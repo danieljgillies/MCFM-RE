@@ -1294,6 +1294,7 @@ getet.o \
 hwwcuts.o \
 hwwjetplots.o \
 integratehisto.o \
+interpolation_mod.o \
 irregbins.o \
 iso.o \
 jetlabel_to_stdhep.o \
@@ -1341,6 +1342,7 @@ setnotag.o \
 singletopreconstruct.o \
 stopcuts.o \
 topreconstruct.o \
+types_mod.o \
 VBS.o \
 wbfcuts.o \
 wbfcuts_jeppe.o \
@@ -1935,7 +1937,7 @@ LIBFLAGS=-lqcdloop$(LIBEXT) -lff$(LIBEXT) -lov$(LIBEXT) -lpv$(LIBEXT) -lsmallG$(
 # the files that do not go into the library                                                      
 NONLIB= \
 $(MAIN) \
-usercode.o  
+usercode.o 
 
 # Check NTUPLES flag
 ifeq ($(NTUPLES),FROOT)
@@ -2180,3 +2182,7 @@ qqqqampl.o: consts_dp.o spinfns.o recurrence.o
 qqqqgampl.o: consts_dp.o spinfns.o recurrence.o
 qqb_wpwp_qqb.o: qqqqampl.o consts_dp.o
 qqb_wpwp_qqb_g.o: qqqqgampl.o consts_dp.o
+
+interpolation_mod.o:
+types_mod.o:
+usercode.o: interpolation_mod.o types_mod.o

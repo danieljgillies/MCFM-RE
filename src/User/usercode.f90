@@ -22,7 +22,7 @@ logical function userincludedipole(nd, ppart, mcfm_result)
   include 'npart.f'
   include 'jetlabel.f'
   include 'ptveto.f'
-!  include 'VVcut.f'
+  !include 'VVcut.f'
   integer,          intent(in) :: nd
   double precision, intent(in) :: ppart(mxpart,4)
   logical,          intent(in) :: mcfm_result
@@ -390,23 +390,41 @@ end function userincludedipole
 !          (if applicable), otherwise equal to zero
 
 subroutine userplotter(ppart, wt,wt2, nd)
+	use interpolation
+	use types_mod
   implicit none
   include 'constants.f'
   include 'ptilde.f'
   include 'npart.f'
   include 'nplot.f'
+  include 'ptveto.f'
+  include 'scale.f'
+  include 'facscale.f'
+  include 'resumscale.f'
+  include 'part.f'
   double precision, intent(in)  :: ppart(mxpart,4)
   double precision, intent(in)  :: wt,wt2
   integer,          intent(in)  :: nd
   !---------------------------------------------
-  integer :: i, iplot 
+  integer :: i, iu, iplot 
   double precision :: m34, m45, m56, m3456
+  double precision :: wt_tmp, wt2_tmp
   double precision :: ht, htjet
   logical, save :: first = .true.
   character*4   :: tag
+  
+  !---------------------------------------------
+  ! load in grids of sudakov weightings
+  double precision, save :: sudakov(101,101,3)
+  
+  
   if (first) then
     tag   = "book"
     first = .false.
+		!read grids here
+		open(newunit=iu, file='grids/muR=0.5muF=0.5Q=0.5.bin', access='stream', status='old', action='read')
+			read(iu) sudakov
+		close(iu)
   else                
     tag = "plot"
   end if
@@ -441,17 +459,36 @@ subroutine userplotter(ppart, wt,wt2, nd)
 		m56=m56-(ppart(5,i)+ppart(6,i))**2
 	enddo
 	m56=sqrt(m56)
+	
+	! reweight events
+	
+	! check of interpolation routines
+	!write(*,*) "mww", m3456, "ptveto", ptveto
+	!write(*,*) "index, ", binarysearch(size(sudakov(:, 1, 1)), sudakov(:, 1, 1), m3456)
+	!write(*,*) "value of grid index, ", sudakov(binarysearch(size(sudakov(:, 1, 1)), sudakov(:, 1, 1), m3456), 1, 1)
+	!write(*,*) "interpolant, ", interpolate(size(sudakov(:,1,1)), sudakov(:,1,1), size(sudakov(1,:,2)), sudakov(1,:,2), &
+	!	sudakov(:,:,3), m3456, ptveto )
+	
+	if (part .eq. "rmlo" .or. part .eq. "resm") then
+		wt_tmp = wt * interpolate(size(sudakov(:,1,1)), sudakov(:,1,1), size(sudakov(1,:,2)), sudakov(1,:,2), &
+			sudakov(:,:,3), m3456, ptveto )
+		wt2_tmp = wt2 * interpolate(size(sudakov(:,1,1)), sudakov(:,1,1), size(sudakov(1,:,2)), sudakov(1,:,2), &
+			sudakov(:,:,3), m3456, ptveto )**2
+	else 
+		wt_tmp = wt
+		wt2_tmp = wt2
+	endif
 
-	call bookplot(iplot,tag,'m_{ll}',m45,wt,wt2,0d0,8000d0,80d0,'log')
+	call bookplot(iplot,tag,'m_{ll}',m45,wt_tmp,wt2_tmp,0d0,8000d0,80d0,'log')
 	iplot = iplot + 1
 
-	call bookplot(iplot,tag,'m_{ll}',m45,wt,wt2,0d0,1000d0,20d0,'log')
+	call bookplot(iplot,tag,'m_{ll}',m45,wt_tmp,wt2_tmp,0d0,1000d0,20d0,'log')
   iplot = iplot + 1
   
-	call bookplot(iplot,tag,'m_{WW}',m3456,wt,wt2,0d0,8000d0,80d0,'log')
+	call bookplot(iplot,tag,'m_{WW}',m3456,wt_tmp,wt2_tmp,0d0,8000d0,80d0,'log')
 	iplot = iplot + 1
 
-	call bookplot(iplot,tag,'m_{WW}',m3456,wt,wt2,0d0,1000d0,20d0,'log')
+	call bookplot(iplot,tag,'m_{WW}',m3456,wt_tmp,wt2_tmp,0d0,1000d0,20d0,'log')
   iplot = iplot + 1
   
   ! update nextnplot so we get userplots and generic plots from nplotter routines
