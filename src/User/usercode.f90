@@ -22,7 +22,7 @@ logical function userincludedipole(nd, ppart, mcfm_result)
   include 'npart.f'
   include 'jetlabel.f'
   include 'ptveto.f'
-  !include 'VVcut.f'
+  include 'VVcut.f'
   integer,          intent(in) :: nd
   double precision, intent(in) :: ppart(mxpart,4)
   logical,          intent(in) :: mcfm_result
@@ -40,8 +40,6 @@ logical function userincludedipole(nd, ppart, mcfm_result)
   !------------
   logical    bin
   double precision sqrts
-	integer VVcut
-	common/VVcut/VVcut
   common/bin/bin
   common/energy/sqrts 
 
