@@ -1,0 +1,9 @@
+Please place any gridfiles here. The grids should have a shape(101, 101, 3).
+this should be thought of as a grid with mww along the x axis and ptveto along the
+y axis. Each element is then the tuple [mww, ptveto, sudakov]. We include all 
+information in the tuple so that arbitrary grids can be used. 
+
+The grids should be named as 'muR=initialscale_muF=initialfacscale_muQ=initialresumscale.bin'
+where the initial scale is the multiplicative factor of the dynamic scale. (currently this doesn't
+support a fixed scale). The initial scale should be formatted as '(f4.2)' e.g. for the central scale
+of '0.5' in the input card, this would be '0.50'.

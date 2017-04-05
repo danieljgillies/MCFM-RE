@@ -396,9 +396,7 @@ subroutine userplotter(ppart, wt,wt2, nd)
   include 'npart.f'
   include 'nplot.f'
   include 'ptveto.f'
-  include 'scale.f'
-  include 'facscale.f'
-  include 'resumscale.f'
+	include 'initialscales.f'
   include 'part.f'
   double precision, intent(in)  :: ppart(mxpart,4)
   double precision, intent(in)  :: wt,wt2
@@ -409,7 +407,11 @@ subroutine userplotter(ppart, wt,wt2, nd)
   double precision :: wt_tmp, wt2_tmp
   double precision :: ht, htjet
   logical, save :: first = .true.
+  logical       :: file_e
   character*4   :: tag
+  character*4   :: muR_s, muF_s, muQ_s
+  character*26  :: gridname
+  character*36  :: gridloc
   
   !---------------------------------------------
   ! load in grids of sudakov weightings
@@ -419,10 +421,27 @@ subroutine userplotter(ppart, wt,wt2, nd)
   if (first) then
     tag   = "book"
     first = .false.
+    
+    !construct gridnames
+    write(muR_s, '(f4.2)') initscale
+    write(muF_s, '(f4.2)') initfacscale
+    write(muQ_s, '(f4.2)') initresumscale
+    
+    gridname = 'muR=' // muR_s // '_muF=' // muF_s // '_muQ=' // muQ_s
+    gridloc  = 'grids/' // gridname // '.bin'
+
 		!read grids here
-		open(newunit=iu, file='grids/muR=0.5muF=0.5Q=0.5.bin', access='stream', status='old', action='read')
-			read(iu) sudakov
-		close(iu)
+		inquire(file=gridloc, exist=file_e )
+		if (file_e) then
+			open(newunit=iu, file=gridloc, access='stream', status='old', action='read')
+				read(iu) sudakov
+			close(iu)
+		else
+			write(*,*) "Couldn't find grid file: ", gridname, " please check it exists &
+				in the grids folder: ", gridloc
+			stop
+		endif
+		
   else                
     tag = "plot"
   end if
@@ -483,7 +502,7 @@ subroutine userplotter(ppart, wt,wt2, nd)
 	call bookplot(iplot,tag,'m_{ll}',m45,wt_tmp,wt2_tmp,0d0,1000d0,20d0,'log')
   iplot = iplot + 1
   
-	call bookplot(iplot,tag,'m_{WW}',m3456,wt_tmp,wt2_tmp,0d0,8000d0,80d0,'log')
+	call bookplot(iplot,tag,'m_{WW}',m3456,wt_tmp,wt2_tmp,0d0,4000d0,40d0,'log')
 	iplot = iplot + 1
 
 	call bookplot(iplot,tag,'m_{WW}',m3456,wt_tmp,wt2_tmp,0d0,1000d0,20d0,'log')
