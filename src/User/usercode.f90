@@ -388,7 +388,7 @@ end function userincludedipole
 !          (if applicable), otherwise equal to zero
 
 subroutine userplotter(ppart, wt,wt2, nd)
-	use interpolation
+	use interpolation_mod
 	use types_mod
   implicit none
   include 'constants.f'
