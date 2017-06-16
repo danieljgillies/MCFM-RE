@@ -10,6 +10,7 @@ c---
       include 'qcdcouple.f'
       include 'ewcouple.f'
       include 'process.f'
+      include 'cgg.f'
       integer j,k
       double precision msq(-nf:nf,-nf:nf),p(mxpart,4),s,s12
       double precision decay,gg,Asq
@@ -31,7 +32,8 @@ c---set msq=0 to initialize
       if ((case .eq. 'HWW2lq') .or. (case .eq. 'HWWdkW')) then
         decay=2d0*xn*decay
       endif
-      Asq=(as/(3d0*pi))**2/vevsq
+!      Asq=(as/(3d0*pi))**2/vevsq
+      Asq = (4*cgg)**2*vevsq/2
       gg=0.5d0*V*Asq*s12**2
 
 c---calculate propagators
