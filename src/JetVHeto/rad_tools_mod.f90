@@ -87,7 +87,7 @@ contains
        BB   = -beta0 * pi/ca_def
        Rad_B(1) = -two*twopi*beta0     
        Rad_B(2) = -two*(ca_def**2*(8._dp/3._dp+three*zeta3)-cf_def*tf_def-four/three*ca_def*tf_def) &
-            & +twopi_beta0*zeta2*ca_def !! Becher & Neubert arxiv:1205.3806v1 had additional: +8._dp*zeta3*ca_def**2
+            & +two*twopi_beta0*zeta2*ca_def !! Becher & Neubert arxiv:1205.3806v1 had additional: +8._dp*zeta3*ca_def**2
 
        coeff_Rad_A(1) = two
        coeff_Rad_B(1) = -two*twopi*beta0/ca_def ! check this
@@ -102,7 +102,7 @@ contains
        Rad_B(2) =   -two*(cf_def**2*(-half*pisq+3._dp/8._dp+6._dp*zeta3)&
             & + cf_def*ca_def*(11._dp/18._dp*pisq+17._dp/24._dp-three*zeta3) &
             & + cf_def*tf_def*(-one/6._dp-two/9._dp*pisq)) &
-            & + twopi_beta0*zeta2*cf_def 
+            & + two*twopi_beta0*zeta2*cf_def 
 
        coeff_Rad_A(1) = two
        coeff_Rad_B(1) = -three

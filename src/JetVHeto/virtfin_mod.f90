@@ -47,7 +47,7 @@ contains
           msqv(j,k) = msqv(j,k) + ason2pi*msq(j,k)*I
 
           ! additional C*pi**2/6 due to coupling mismatch
-          msqv(j,k) = msqv(j,k) + ason2pi*msq(j,k)*(half*rad_A(1))*pisqo6
+          ! msqv(j,k) = msqv(j,k) + ason2pi*msq(j,k)*(half*rad_A(1))*pisqo6
 
           ! debug line for finite matrix elements H(1)
           ! write(*,*) msqv(j,k)/msq(j,k)/ason2pi - two*as_pow*pi*beta0*cs%ln_muR2_M2

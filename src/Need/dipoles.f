@@ -78,7 +78,7 @@ c  * ( 2*L + 4*[ln(1-x)] - 2*epinv )
       case(knnll, klumi, klumi1)
 
       if (vorz == 1) then
-         ii_qq=(-pisq/12._dp + three/two*resm_opts%ln_Q2_muF2)
+         ii_qq=(three/two*resm_opts%ln_Q2_muF2)
      &    /(1-2*as*beta0*L_tilde)
         if (scheme == 'tH-V') then
           return
@@ -450,7 +450,7 @@ c    * ( 2*L + 4*[ln(1-x)] - 2*epinv )
       case(knnll, klumi, klumi1)
 
       if (vorz == 1) then
-        ii_gg=(-pisq/12._dp + b0/ca*resm_opts%ln_Q2_muF2)
+        ii_gg=(b0/ca*resm_opts%ln_Q2_muF2)
      &        /(1-2*as*beta0*L_tilde)
         if (scheme == 'tH-V') then
           return
