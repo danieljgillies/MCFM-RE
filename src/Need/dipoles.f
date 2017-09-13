@@ -109,7 +109,7 @@ c  * ( 2*L + 4*[ln(1-x)] - 2*epinv )
       case(knnllexpd)
 
       if (vorz == 1) then
-         ii_qq=-pisq/12._dp + three/two * resm_opts%ln_Q2_muF2    ! resummed coefficient
+         ii_qq= three/two * resm_opts%ln_Q2_muF2    ! resummed coefficient
      &        -two*three/two*L_tilde       ! coefficient of P_qq
      &        +(-coeff_Rad_A(1)*L_tilde**2
      &        +(-coeff_Rad_A(1)*(-resm_opts%ln_Q2_M2)
@@ -481,7 +481,7 @@ c    * ( 2*L + 4*[ln(1-x)] - 2*epinv )
       case(knnllexpd)
 
       if (vorz == 1) then
-        ii_gg=-pisq/12._dp + b0/ca*resm_opts%ln_Q2_muF2
+        ii_gg=b0/ca*resm_opts%ln_Q2_muF2
      &        -two*b0/ca*L_tilde
      &        +(-coeff_Rad_A(1)*L_tilde**2
      &        +(-coeff_Rad_A(1)*(-resm_opts%ln_Q2_M2)
