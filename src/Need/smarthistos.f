@@ -1,11 +1,10 @@
       subroutine smartzero
       implicit none
       include 'types.f'
+      include 'nplot.f' ! maxhisto
 c--- zero out all entries in the temporary histograms used for
 c--- binning the weights in the real contribution
       
-      integer:: maxd,maxhisto
-      parameter(maxd=40,maxhisto=100) ! maximum number of dipoles and histograms
       include 'incsmarthisto.f'
             
       ibin(:,:)=0             ! which bin entry should be filled
@@ -19,12 +18,11 @@ c--- binning the weights in the real contribution
       subroutine smartbook(N,TIT,DEL,XMIN,XMAX)
       implicit none
       include 'types.f'
+      include 'nplot.f' ! maxhisto
       
       integer:: N
       real(dp):: DEL,XMIN,XMAX
       character*(*) TIT
-      integer:: maxd,maxhisto
-      parameter(maxd=40,maxhisto=100) ! maximum number of dipoles and histograms
       include 'incsmarthisto.f'
       
       binmin(N)=XMIN
@@ -37,11 +35,10 @@ c--- binning the weights in the real contribution
       subroutine smartfill(N,X,Y)
       implicit none
       include 'types.f'
+      include 'nplot.f' ! maxhisto
       
       integer:: N,I
       real(dp):: X,Y
-      integer:: maxd,maxhisto
-      parameter(maxd=40,maxhisto=100) ! maximum number of dipoles and histograms
       include 'incsmarthisto.f'
       
       I=INT((X-binmin(N))/bindel(N)+1)
@@ -64,8 +61,6 @@ c--- add temporary histograms to the cumulative ones
       real(dp):: wgt,tmpvar
       integer:: nplotmax
       common/nplotmax/nplotmax
-      integer:: maxd
-      parameter(maxd=40) ! maximum number of dipoles
       include 'incsmarthisto.f'
 ccccc!$omp threadprivate(/nplotmax/)
       do I=1,nplotmax

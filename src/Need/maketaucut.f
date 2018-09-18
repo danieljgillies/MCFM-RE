@@ -21,8 +21,8 @@ c----
       include 'first.f'
       logical passed
       integer i,j,isub,ihard,jets
-      real(dp) pparton(mxpart,4),pjet(mxpart,4),pttwo,
-     & ptjet(3),nn1(4),nn2(4),nn3(4),tau,taua,taub,tauj
+      real(dp) pparton(mxpart,4),pjet(mxpart,4),
+     & ptjet(3),nn1(4),nn2(4),nn3(4),tau,taua,taub,tauj,lambda,Q(4)
       integer, save :: ipp
 !$omp threadprivate(ipp)
       logical failedndp 
@@ -104,6 +104,16 @@ c--- 4-momentum into ni, for i=1,2 and 3 (ntau>0 only)
      &     -pparton(j,2)*nn1(2)-pparton(j,3)*nn1(3)
       taub=pparton(j,4)*nn2(4)-pparton(j,1)*nn2(1)
      &    -pparton(j,2)*nn2(2)-pparton(j,3)*nn2(3)
+      if (tauboost) then
+! account for boost into singlet c.-m. frame
+        Q(:)=pparton(3,:)
+        if (ipp > 4) Q(:)=Q(:)+pparton(4,:)
+        if (ipp > 5) Q(:)=Q(:)+pparton(5,:)
+        if (ipp > 6) Q(:)=Q(:)+pparton(6,:)
+        lambda=sqrt((Q(4)+Q(3))/(Q(4)-Q(3)))
+        taua=taua*lambda
+        taub=taub/lambda
+      endif
       if (ntau .eq. 0) then
         tau=tau+min(abs(taua),abs(taub))
       else

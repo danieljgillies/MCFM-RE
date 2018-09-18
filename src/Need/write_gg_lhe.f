@@ -158,8 +158,7 @@ c--- events with negative weight or events with weights that exceed wtmax
       include 'maxwt.f' 
       include 'xs_store_info.f'
       include 'energy.f'
-      integer:: nproc
-      common/nproc/nproc
+      include 'nproc.f'
       integer:: iu,ih1,ih2 
       common/density/ih1,ih2 
       

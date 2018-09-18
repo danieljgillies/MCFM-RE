@@ -23,7 +23,7 @@ c--- fraction of events generated flat in invariant mass:
 c--- this form is chosen such that as the photon cut is decreased,
 c--- more events are generated this way due to copious photon radiation
 c--- from leptons in Z decay
-      flatfrac=(1._dp-sqrt(gammpt/rmass))/2._dp
+      flatfrac=(1._dp-sqrt(gammptmin/rmass))/2._dp
       if (flatfrac < 0._dp) flatfrac=0._dp
       if (mflatsq < mminsq) then
         mflatsq=mminsq

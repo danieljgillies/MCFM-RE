@@ -73,6 +73,10 @@ c      endif
         maxdip=2
         dipconfig(1,:)= (/ 1,5,2 /)
         dipconfig(2,:)= (/ 2,5,1 /)
+      elseif (kcase==kHi_Zga) then
+        maxdip=2
+        dipconfig(1,:)= (/ 1,6,2 /)
+        dipconfig(2,:)= (/ 2,6,1 /)
       elseif ((kcase==kWWqqbr) .or. (kcase==kWWnpol)
      &   .or. (kcase==kWZbbar) .or. (kcase==kZZlept)
      &   .or. (kcase==kWHbbar) .or. (kcase==kZHbbar)
@@ -92,9 +96,21 @@ c      endif
         dipconfig(6,:)= (/ 2,6,1 /)
         dipconfig(7,:)= (/ 1,6,2 /)
         dipconfig(8,:)= (/ 2,7,1 /)
+      elseif (kcase==kHi_Zaj) then
+        maxdip=10
+        dipconfig(1,:)= (/ 1,6,2 /)
+        dipconfig(2,:)= (/ 2,6,1 /)
+        dipconfig(3,:)= (/ 1,7,2 /)
+        dipconfig(4,:)= (/ 2,7,1 /)
+        dipconfig(5,:)= (/ 1,6,7 /)
+        dipconfig(6,:)= (/ 6,7,1 /)
+        dipconfig(7,:)= (/ 1,7,6 /)
+        dipconfig(8,:)= (/ 2,7,6 /)
+        dipconfig(9,:)= (/ 6,7,2 /)
+        dipconfig(10,:)=(/ 2,6,7 /)
       elseif ((kcase==kW_1jet) .or. (kcase==kZ_1jet)
-     &    .or.(kcase==kggfus1) .or. (kcase==kgmgmjt)
-     &    .or.(kcase==kHgagaj)) then
+     &    .or.(kcase==kggfus1) .or. (kcase==khjetma)
+     &    .or.(kcase==kgmgmjt) .or. (kcase==kHgagaj)) then
         dipconfig(1,:)= (/ 1,5,2 /)
         dipconfig(2,:)= (/ 2,5,1 /)
         dipconfig(3,:)= (/ 1,6,2 /)
@@ -193,6 +209,16 @@ c        dipconfig(36,:)=(/ 6,5,7 /)
         else
         maxdip=2
         endif
+      elseif (kcase==ktwo_ew) then
+        dipconfig(1,:)= (/ 1,5,2 /)
+        dipconfig(2,:)= (/ 2,5,1 /)
+        dipconfig(3,:)= (/ 3,5,1 /)
+        dipconfig(4,:)= (/ 4,5,1 /)
+        dipconfig(5,:)= (/ 1,3,2 /)
+        dipconfig(6,:)= (/ 2,4,1 /)
+        dipconfig(7,:)= (/ 1,4,2 /)
+        dipconfig(8,:)= (/ 2,3,1 /)
+        maxdip=8
       elseif (kcase==kdirgam) then 
         dipconfig(1,:)= (/ 1,4,2 /)
         dipconfig(2,:)= (/ 2,4,1 /)
@@ -217,14 +243,14 @@ c        dipconfig(36,:)=(/ 6,5,7 /)
            maxdip=2
         endif
       elseif (kcase==kZgamma) then 
-         dipconfig(1,:)= (/ 1,6,2 /)
-         dipconfig(2,:)= (/ 2,6,1 /)
-        if (frag) then
-           dipconfig(3,:)= (/ 5,6,2 /)
-           maxdip=3
-        else
-           maxdip=2
-        endif
+          dipconfig(1,:) = (/ 1,6,2 /)
+          dipconfig(2,:) = (/ 2,6,1 /)
+          if (frag) then
+             dipconfig(3,:) = (/ 5,6,2 /)
+             maxdip=3
+          else
+             maxdip=2
+          endif
       elseif (kcase==kZgajet) then 
          dipconfig(1,:)= (/ 1,6,2 /)
          dipconfig(2,:)= (/ 2,6,1 /)
@@ -272,6 +298,10 @@ c        dipconfig(36,:)=(/ 6,5,7 /)
       elseif (kcase==ktottth) then
         dipconfig(1,:)= (/ 1,6,2 /)
         dipconfig(2,:)= (/ 2,6,1 /)
+        maxdip=2
+      elseif (kcase==ktt_mix) then
+        dipconfig(1,:)= (/ 1,5,2 /)
+        dipconfig(2,:)= (/ 2,5,1 /)
         maxdip=2
       elseif (kcase==kW_cjet) then
         dipconfig(1,:)= (/ 1,6,2 /)

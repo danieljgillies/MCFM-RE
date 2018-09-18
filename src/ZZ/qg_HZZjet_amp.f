@@ -1,4 +1,5 @@
       subroutine qg_HZZjet_amp(i1,i2,i7,za,zb,amp_t,amp_b) 
+        use mod_qcdloop_c
       implicit none
       include 'types.f'
        
@@ -23,7 +24,7 @@
       complex(dp):: amp_t(2,2,2,2),amp_b(2,2,2,2),
      & amp_th(2,2),amp_bh(2,2),
      & C0mt,C0mb,B12mt,B127mt,B12mb,B127mb,funcmt,funcmb,
-     & qlI2,qlI3,fac_pro,fac_dec,mybmb,mybmt,
+     & fac_pro,fac_dec,mybmb,mybmt,
      & mtsfac,mbsfac,prop127,prop34,prop56,H4l(2,2),higgsprop
       real(dp):: s12,s127,mt2,mb2,sinthw,rescale
 

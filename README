@@ -1,11 +1,13 @@
- ************** MCFM - version 8.0 ****************
+ ************** MCFM - version 8.1 ****************
  *                                                *
- * MCFM, v8.0                     June 2nd, 2016  *
+ * MCFM, v8.1                      December 2017  *
  *                                                *
  * Authors: John Campbell, Keith Ellis,           *
- *          Walter Giele, Ciaran Williams         *
+ *          Walter Giele, Tobias Neumann,         *
+ *          Ciaran Williams                       *
  *         (johnmc@fnal.gov, ellis@fnal.gov,      *
- *          giele@fnal.gov,ciaranwi@buffalo.edu)  *
+ *          giele@fnal.gov,tneumann@fnal.gov,     *
+ *          ciaranwi@buffalo.edu)                 *
  *                                                *
  * For details see:                               *
  *                                                *
@@ -15,6 +17,14 @@
  *    C. Williams,  arXiv:1605.08011              *
  *    (overview of NNLO implementation in MCFM)   *
  *                                                *
+ *  A study of weak corrections to Drell-Yan,     *
+ *   top-quark pair and di-jet production at      *
+ *    high energies with MCFM                     *
+ *   J. M. Campbell, D. Wackeroth, J. Zhou,       *
+ *   arXiv:1608.03356 (weak corrections in MCFM)  *
+ *                                                *
+ *  arXiv:1708.02925 (Zgamma at NNLO)             *
+ *  arXiv:1609.00367 (NLO H+jet with mass effects)*
  *  arXiv:1603.02663 (diphotons at NNLO)          *
  *  arXiv:1601.00658 (VH at NNLO)                 *
  *                                                *

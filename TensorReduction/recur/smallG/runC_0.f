@@ -1,13 +1,14 @@
       subroutine runC_0(j,DetGr,Xtwiddle0,Gtwiddle,Shat1,N0)
       implicit none
+      include 'types.f'
       include 'pvCnames.f'
       include 'pvCv.f'
       include 'Carraydef.f'
       include 'Carrays.f'
       integer ep,N0,j,np
       parameter(np=2)
-      double precision DetGr,Xtwiddle0(np),Gtwiddle(np,np)
-      double complex Shat1(np,-2:0)
+      real(dp):: DetGr,Xtwiddle0(np),Gtwiddle(np,np)
+      complex(dp):: Shat1(np,-2:0)
        
       do ep=-2,0
       Cv(cc0+N0,ep)=

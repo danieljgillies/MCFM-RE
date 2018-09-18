@@ -25,12 +25,13 @@ c--- upgraded 3/2016 to convert string to integer on first call, for speed
       integer, parameter ::
      & khmass=1,kwmass=2,kzmass=3,kmt=4,km34=5,km345=6,km3456=7,
      & kMsqpt34sq=8,kMsqpt345sq=9,kMsqpt5sq=10,kMsqptj1sq=11,kMsqsumptjsq=12,
-     & km34sqsumptjsq=13,kptphoton=14,kHT=15,kddis=16,kmVpmH=17,kshat=18
+     & km34sqsumptjsq=13,kptphoton=14,kHT=15,kddis=16,kmVpmH=17,kshat=18,kptj1=19
       integer, save :: scaleindex
 !$omp threadprivate(scaleindex)
 
 ! Initialization and write-out
       if (first) then
+!$omp master
         if (rank == 0) then
         write(6,*)
         write(6,*)'************** Dynamic scale choice ****************'
@@ -53,6 +54,7 @@ c--- upgraded 3/2016 to convert string to integer on first call, for speed
         write(6,*)'*                                                  *'
         write(6,*)'****************************************************'
         endif
+!$omp end master
         first=.false.
         if     ((dynstring == 'mh') .or. (dynstring == 'mH')
      &     .or. (dynstring == 'Mh') .or. (dynstring == 'MH')) then
@@ -84,6 +86,8 @@ c--- upgraded 3/2016 to convert string to integer on first call, for speed
           scaleindex=kMsqsumptjsq
         elseif (dynstring == 'sqrt(m(34)^2+sumptj^2)') then
           scaleindex=km34sqsumptjsq
+        elseif (dynstring == 'pt(j1)') then
+          scaleindex=kptj1
         elseif (dynstring == 'pt(photon)') then
           scaleindex=kptphoton
         elseif (dynstring == 'HT') then
@@ -128,6 +132,8 @@ c--- upgraded 3/2016 to convert string to integer on first call, for speed
         call scaleset_Msqsumptjsq(p,mu0)
       elseif (scaleindex == km34sqsumptjsq) then
         call scaleset_m34sqsumptjsq(p,mu0)
+      elseif (scaleindex == kptj1) then
+        call scaleset_ptj1(p,mu0)
       elseif (scaleindex == kptphoton) then
         call scaleset_ptphoton(p,mu0)
       elseif (scaleindex == kHT) then
@@ -150,10 +156,10 @@ c--- upgraded 3/2016 to convert string to integer on first call, for speed
       q_scale=q_scalestart*mu0
 
 c--- catch absurdly large and small scales      
-      if  (scale > 100000._dp) scale=60000._dp
-      if  (facscale > 100000._dp) facscale=60000._dp
-      if  (frag_scale > 990._dp) frag_scale=900._dp
-      if  (Q_scale > 100000._dp) scale=60000._dp
+      if  (scale > 60000._dp) scale=60000._dp
+      if  (facscale > 60000._dp) facscale=60000._dp
+      if  (frag_scale > 900._dp) frag_scale=900._dp
+      if  (Q_scale > 60000._dp) scale=60000._dp
       if  (scale < 1._dp) scale=1._dp
       if  (facscale < 1._dp) facscale=1._dp
       if  (frag_scale < 1._dp) frag_scale=1._dp

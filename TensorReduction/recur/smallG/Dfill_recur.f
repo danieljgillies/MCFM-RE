@@ -8,6 +8,7 @@ C--- Currently: calculates up to rank 4 with at least one recursion
 c---            calculates rank 5 with no recursion
 c---            calculates metric tensor components of rank 6
 
+      include 'types.f'
       include 'TRconstants.f'
       include 'pvCnames.f'
       include 'pvCv.f'
@@ -18,9 +19,9 @@ c---            calculates metric tensor components of rank 6
       integer C234,C134,C124,C123,np,ep,N0,i,j,k,l,pvCcache,
      . i1,i2,i3,i4,i5,step,jmax,kmax,lmax
       parameter(np=3)
-      double precision p1,p2,p3,p4,p1p2,p2p3,m1,m2,m3,m4,f(np),
+      real(dp):: p1,p2,p3,p4,p1p2,p2p3,m1,m2,m3,m4,f(np),
      . Gtwiddle(np,np),Xtwiddle0(np),Gr(np,np),DetGr,Gtt(np,np,np,np)
-      double complex S00(-2:0),S0000(-2:0),S000000(-2:0),
+      complex(dp):: S00(-2:0),S0000(-2:0),S000000(-2:0),
      . S0000i(np,-2:0),S0000ii(z2max,-2:0),
      . S00i(np,-2:0),S00ii(z2max,-2:0),
      . S00iii(z3max,-2:0),S00iiii(z4max,-2:0),
@@ -30,7 +31,7 @@ c---            calculates metric tensor components of rank 6
      . Shat1(np,-2:0),Shat2(np,z1max,-2:0),
      . Shat3(np,z2max,-2:0),Shat4(np,z3max,-2:0),Shat5(np,z4max,-2:0),
      . Shat6(np,z5max,-2:0),Shat7(np,z6max,-2:0)
-      double complex csum0(-2:0),csum1(-2:0),csum2(-2:0),
+      complex(dp):: csum0(-2:0),csum1(-2:0),csum2(-2:0),
      . csum11(-2:0),csum00(-2:0),csum12(-2:0),csum22(-2:0),
      . csum111(-2:0),csum112(-2:0),csum122(-2:0),csum222(-2:0),
      . csum1111(-2:0),csum1112(-2:0),csum1122(-2:0),

@@ -11,6 +11,7 @@
       function G3sx(t,u,Lx,Ly,Ls)
       include 'types.f'
       real(dp):: G3sx
+      include 'constants.f'
       include 'zeta.f'
       real(dp)::t,u,Lx,Ly,Ls
 

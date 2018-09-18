@@ -1,7 +1,6 @@
       subroutine qqb_ww(p,msq)
       implicit none
       include 'types.f'
-      
 C----Author R.K.Ellis December 1998
 C----modified by JMC to include supplementary diagrams February 1999
 c----Matrix element for WW production
@@ -125,7 +124,7 @@ c--- apply a dipole form factor to anomalous couplings (only if tevscale > 0)
       xlambda_z=xfac*lambda_z
       xlambda_g=xfac*lambda_g
       
-c---case dbar-d and .e-_dpdbar
+c---case dbar-d and d-dbar
    
       Fa126543=A6treea(1,2,6,5,4,3,za,zb)
       Fa216543=A6treea(2,1,6,5,4,3,za,zb)
@@ -133,19 +132,19 @@ c---case dbar-d and .e-_dpdbar
       Fa213456=A6treea(2,1,3,4,5,6,za,zb)
 
       call A6treeb_anom(1,2,3,4,5,6,za,zb,A6b_1,A6b_2,A6b_3)
-      Fb123456_z=A6b_1*(2._dp+xdelg1_z+xdelk_z+xlambda_z)
+      Fb123456_z=A6b_1*(2._dp+xdelg1_z+xdelk_z)
      &          +A6b_2*(2._dp*(1._dp+xdelg1_z))
      &          +A6b_3*(xlambda_z/wmass**2)
-      Fb123456_g=A6b_1*(2._dp+xdelg1_g+xdelk_g+xlambda_g)
+      Fb123456_g=A6b_1*(2._dp+xdelg1_g+xdelk_g)
      &          +A6b_2*(2._dp*(1._dp+xdelg1_g))
      &          +A6b_3*(xlambda_g/wmass**2)
       Fb126543_z=-Fb123456_z
       Fb126543_g=-Fb123456_g
       call A6treeb_anom(2,1,3,4,5,6,za,zb,A6b_1,A6b_2,A6b_3)
-      Fb213456_z=A6b_1*(2._dp+xdelg1_z+xdelk_z+xlambda_z)
+      Fb213456_z=A6b_1*(2._dp+xdelg1_z+xdelk_z)
      &          +A6b_2*(2._dp*(1._dp+xdelg1_z))
      &          +A6b_3*(xlambda_z/wmass**2)
-      Fb213456_g=A6b_1*(2._dp+xdelg1_g+xdelk_g+xlambda_g)
+      Fb213456_g=A6b_1*(2._dp+xdelg1_g+xdelk_g)
      &          +A6b_2*(2._dp*(1._dp+xdelg1_g))
      &          +A6b_3*(xlambda_g/wmass**2)
       Fb216543_z=-Fb213456_z

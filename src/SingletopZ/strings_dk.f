@@ -58,10 +58,10 @@ c      doJ52=.false.
 c--- first call, calculate everything 
 c      if ((h3 == -1) .and. (h5 == -1)) then
 c        doJ61=.true.
-c	doJ52=.true.
+c        doJ52=.true.
 c      endif        
 c      if ((h3 == -1) .and. (h5 == +1)) then
-c	doJ52=.true.
+c        doJ52=.true.
 c      endif        
       doJ61=.true.
       doJ52=.true.
@@ -72,7 +72,7 @@ c      endif
       call uspinor0(p1,h1,f1)
       endif
       if (doJ52) then
-      call UbKlSt(p5,mt,q6,h5,f5)	! Auxiliary vector q6
+      call UbKlSt(p5,mt,q6,h5,f5)   ! Auxiliary vector q6
       call uspinor0(p2,h2,f2)
       endif
       call ubarspinor0(p3,h3,f3)
@@ -85,8 +85,8 @@ c      J61x0=czip
       do i=1,4
       do j=1,4
 c      J34x0=J34x0+f3(i)*gam0(i,j)*f4(j)
-      if (abs(gam0(i,j)) > 1d-8) then  
-      J52x0=J52x0+f5(i)*gam0(i,j)*f2(j)      
+      if (abs(gam0(i,j)) > 1d-8) then
+      J52x0=J52x0+f5(i)*gam0(i,j)*f2(j)
 c      J61x0=J61x0+f6(i)*gam0(i,j)*f1(j)
       endif
       enddo
@@ -99,10 +99,10 @@ c      J61x0=J61x0+f6(i)*gam0(i,j)*f1(j)
       if (doJ61) J61x1(fi)=czip
       do i=1,4
       do j=1,4
-      if (abs(gam1(fi,i,j)) > 1d-8) then  
-      J34x1(fi)=J34x1(fi)+f3(i)*gam1(fi,i,j)*f4(j)  
-      if (doJ52) J52x1(fi)=J52x1(fi)+f5(i)*gam1(fi,i,j)*f2(j)       
-      if (doJ61) J61x1(fi)=J61x1(fi)+f6(i)*gam1(fi,i,j)*f1(j)    
+      if (abs(gam1(fi,i,j)) > 1d-8) then
+      J34x1(fi)=J34x1(fi)+f3(i)*gam1(fi,i,j)*f4(j)
+      if (doJ52) J52x1(fi)=J52x1(fi)+f5(i)*gam1(fi,i,j)*f2(j)
+      if (doJ61) J61x1(fi)=J61x1(fi)+f6(i)*gam1(fi,i,j)*f1(j)
       endif   
       enddo
       enddo
@@ -205,14 +205,14 @@ c      write(6,*) 'J52',j52
 c--- perform complex conjugation, if required
       if (docc) then
         if (doJ52) then
-	  J52x0=-h5*conjg(J52x0)
-	  do fi=1,4
-	  J52x1(fi)=-h5*conjg(J52x1(fi))
-	    do nu=1,4
-	    J52x2(fi,nu)=-h5*conjg(J52x2(fi,nu))
-	      do ro=1,4
-	      J52x3(fi,nu,ro)=-h5*conjg(J52x3(fi,nu,ro))
-	        do si=1,4
+          J52x0=-h5*conjg(J52x0)
+          do fi=1,4
+          J52x1(fi)=-h5*conjg(J52x1(fi))
+            do nu=1,4
+            J52x2(fi,nu)=-h5*conjg(J52x2(fi,nu))
+              do ro=1,4
+              J52x3(fi,nu,ro)=-h5*conjg(J52x3(fi,nu,ro))
+                do si=1,4
                 J52x4(fi,nu,ro,si)=-h5*conjg(J52x4(fi,nu,ro,si))
                   do om=1,4
                   J52x5(fi,nu,ro,si,om)=-h5*
@@ -224,17 +224,17 @@ c--- perform complex conjugation, if required
       enddo
         endif
         if (doJ61) then
-	  do fi=1,4
-	  J61x1(fi)=conjg(J61x1(fi))
-	    do nu=1,4
-	      do ro=1,4
-	      J61x3(fi,nu,ro)=conjg(J61x3(fi,nu,ro))
+          do fi=1,4
+          J61x1(fi)=conjg(J61x1(fi))
+            do nu=1,4
+              do ro=1,4
+              J61x3(fi,nu,ro)=conjg(J61x3(fi,nu,ro))
                 do si=1,4
-	          do om=1,4
-	          J61x5(fi,nu,ro,si,om)=conjg(J61x5(fi,nu,ro,si,om))
-	          enddo
-	        enddo
-	      enddo
+                  do om=1,4
+                  J61x5(fi,nu,ro,si,om)=conjg(J61x5(fi,nu,ro,si,om))
+                  enddo
+                enddo
+              enddo
             enddo
           enddo
         endif

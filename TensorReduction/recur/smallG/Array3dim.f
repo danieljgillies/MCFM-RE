@@ -1,5 +1,6 @@
       subroutine Array3dim
       implicit none
+      include 'types.f'
       include 'Darraydef.f'
       integer n1,n2,n3,n4,n5,n6,n7,i
       integer nn2(2),nn3(3),nn4(4),nn5(5),nn6(6),nn7(7)

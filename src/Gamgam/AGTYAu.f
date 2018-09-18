@@ -1,10 +1,11 @@
-      function AGTYAu(s,t,u,Lx,Ly,Li2x,Li3x,Li4x,Li4y,Li3y,Li4z)
+      function AGTYAu(s,t,u,Lx,Ly,Li2x,Li3x,Li4x,Li3y,Li4y,Li4z)
       implicit none
 !     Results taken from hep-ph/0201274
 !  C.~Anastasiou, E.~W.~N.~Glover and M.~E.~Tejeda-Yeomans,
 !     Eq. A.12
       include 'types.f'
       real(dp):: AGTYAu
+      include 'constants.f'
       include 'zeta.f'
       real(dp)::s,t,u,Lx,Ly,
      & Li4x,Li4y,Li4z,Li3x,Li3y,Li2x

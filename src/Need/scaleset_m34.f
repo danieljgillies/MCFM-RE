@@ -28,9 +28,11 @@ c--- invariant mass of particles 3 and 4
      &   (kcase==kgagajj) .or.
      &   (kcase==kggfus0) .or.
      &   (kcase==kggfus1) .or.
+     &   (kcase==khjetma) .or.
      &   (kcase==kggfus2) .or.
      &   (kcase==kggfus3) .or.
      &   (kcase==kgagajj) .or.
+     &   (kcase==kh2jmas) .or.
      &   (kcase==kqg_tbq) .or.
      &   (kcase==ktt_tot) .or.
      &   (kcase==kbb_tot) .or.

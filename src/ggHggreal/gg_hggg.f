@@ -19,7 +19,7 @@ c--- Using the results of Frizzo and Company
       include 'bitflags.f'
       integer::j,k,nu
       real(dp)::p(mxpart,4),Asq,fac,q(mxpart,4)
-      real(dp)::Hggggg,msqgamgam,
+      real(dp)::Hggggg,msqhgamgam,
      & Hqaggg,Haqggg,Hgqqgg,Hgaagg,Hqgqgg,Hagagg,Hggqag
       real(dp)::qr_qrg,ar_arg,ab_abg,qa_rbg,
      &                 gr_rqa,gb_baq,rg_rqa,bg_baq,aq_brg
@@ -40,7 +40,7 @@ C   Deal with Higgs decay
       elseif (hdecaymode == 'bqba') then
           call hbbdecay(p,3,4,hdecay)
       elseif (hdecaymode == 'gaga') then
-          hdecay=msqgamgam(hmass)
+          hdecay=msqhgamgam(s34)
       else
       write(6,*) 'Unimplemented process in gg_hgg_v'
       stop

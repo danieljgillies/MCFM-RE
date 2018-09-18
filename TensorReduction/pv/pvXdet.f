@@ -7,16 +7,18 @@
 *   determinant of A
 * Warning: A is overwritten
 
-      Double Complex function pvXDet(A, n)
+      function pvXDet(A, n)
       implicit none
-      integer n
-        include 'pvNmax.f'
-      Double Complex A(n,n)
-
-      integer i, perm(Nmax)
+      include 'types.f'
+      include 'TRconstants.f'
+      include 'pvNmax.f'
+      complex(dp):: pvXDet
+      integer:: n
+      complex(dp):: A(n,n)
+      integer:: i, perm(Nmax)
 
       call XLUDecomp(A, n, perm)
-      pvXDet = dcmplx(1d0,0d0)
+      pvXDet = cone
       do i = 1, n
         pvXDet = pvXDet*A(i,i)
         if( perm(i) .ne. i ) pvXDet = -pvXDet

@@ -8,6 +8,7 @@ C--- Currently: calculates up to rank 3 with at least one recursion
 c---            calculates ranks 4 and 5 with no recursion
 c---            calculates C00iiii, C00iiiii components of ranks 6 and 7
 
+      include 'types.f'
       include 'TRconstants.f'
       include 'pvBnames.f'
       include 'pvBv.f'
@@ -18,9 +19,9 @@ c---            calculates C00iiii, C00iiiii components of ranks 6 and 7
       integer B12,B23,B13,np,ep,N0,pvBcache,
      , j,k,i1,i2,i3,i4,i5,step,kmin
       parameter(np=2)
-      double precision p1,p2,p1p2,m1,m2,m3,f(np),
+      real(dp):: p1,p2,p1p2,m1,m2,m3,f(np),
      . Gr(np,np),DetGr
-      double complex S0000(-2:0),S0000i(np,-2:0),
+      complex(dp):: S0000(-2:0),S0000i(np,-2:0),
      . Shat3zz(np,-2:0),Shat4zz(np,z1max,-2:0),
      . Shat5zz(np,z2max,-2:0),Shat6zz(np,z3max,-2:0),
      . Shat5zzzz(np,-2:0),Shat6zzzz(np,z1max,-2:0),
@@ -28,7 +29,7 @@ c---            calculates C00iiii, C00iiiii components of ranks 6 and 7
      . Shat1(np,-2:0),Shat2(np,z1max,-2:0),
      . Shat3(np,z2max,-2:0),Shat4(np,z3max,-2:0),
      . Shat5(np,z4max,-2:0),Shat6(np,z5max,-2:0),Shat7(np,z6max,-2:0)
-      double complex bsum1(-2:0),
+      complex(dp):: bsum1(-2:0),
      . bsum0(-2:0),bsum11(-2:0),bsum00(-2:0),
      . bsum111(-2:0),bsum1111(-2:0),bsum001(-2:0),
      . bsum0011(-2:0),bsum0000(-2:0),

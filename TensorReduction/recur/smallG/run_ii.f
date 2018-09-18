@@ -2,13 +2,14 @@
       implicit none
 C---  Fixes Dii using Eq. 5.45
 C     knowing D00i with correction of order Delta Diii
+      include 'types.f'
       include 'pvDnames.f'
       include 'pvDv.f'
       include 'Darraydef.f'
       include 'Darrays.f'
       integer ep,N0,j,i1,i2,n
-      double precision DetGr,Xtwiddle0(3),Gtwiddle(3,3)
-      double complex Shat3(3,z2max,-2:0),Shat3s(3,z2max,-2:0)
+      real(dp):: DetGr,Xtwiddle0(3),Gtwiddle(3,3)
+      complex(dp):: Shat3(3,z2max,-2:0),Shat3s(3,z2max,-2:0)
        
       do ep=-2,0
       do n=1,3

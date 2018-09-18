@@ -53,7 +53,7 @@ c--- first calculate the tree-level amplitudes
       call a6treemass(k1,k2,k3,k4,k5,k6,mq,
      & a6treemm,a6treemp,a6treepm,a6treepp)
 
-c--- compute logarithms appearing in pole contributions      
+c--- compute logarithms appearing in pole contributions
       do nu=1,4
       p2(nu)=bp*mom(k2,nu)+bm*mom(k3,nu)
       p3(nu)=bp*mom(k3,nu)+bm*mom(k2,nu)
@@ -70,6 +70,8 @@ c--- compute logarithms appearing in pole contributions
       xl13=lnrat(-two*p1Dp3,musq)
       xl24=lnrat(-two*p2Dp4,musq)
       xl34=lnrat(-two*p3Dp4,musq)
+      
+      scints(:,:,:)=czip      ! Initialize array to zero
       
 c--- compute the necessary scalar integrals for leading colour A
       call computescalars(k1,k2,k3,k4,k5,k6,scints)

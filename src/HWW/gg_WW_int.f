@@ -74,7 +74,6 @@ c--- omit massless loops for pt(W) < "ptWsafetycut_massless" (for num. stability
         write(6,*)'*                                                  *'
         write(6,*)'****************************************************'
         first=.false. 
-        if (includegen3) call qlinit
         caseggWW4l=.false.
         caseHWWHpI=.false.
         caseHWWint=.false.

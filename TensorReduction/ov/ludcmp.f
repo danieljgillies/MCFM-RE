@@ -2,11 +2,12 @@
 c--- Adapted from Numerical Recipes
 c--- extended so that original matrix a is not destroyed
       implicit none
+      include 'types.f'
       integer n,indx(n)
-      double precision d,a(n,n),ain(n,n),TINY
+      real(dp):: d,a(n,n),ain(n,n),TINY
       parameter (tiny=1d-20)
       integer i,imax,j,k
-      double precision aamax,dum,sum,vv(n)
+      real(dp):: aamax,dum,sum,vv(n)
       a=ain
       d=1d0
       do i=1,n

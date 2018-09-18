@@ -1,6 +1,6 @@
-# Makefile routine.
 VPATH		= $(PWD)/obj
 INCPATH = $(PWD)/../Include/
+QCDLOOP_DIR=$(PWD)/../../qcdloop-2.0.2
 OUTPUT_OPTION	= -o $(PWD)/obj/$@ 
 
 ifeq ($(origin FC),environment)
@@ -8,12 +8,9 @@ ifeq ($(origin FC),environment)
 else
     FC = gfortran
 endif
-FFLAGS 	= -O2 -fno-f2c -g -I$(INCPATH) -Iobj -Jobj
+FFLAGS 	= -O2 -fno-f2c -fopenmp -g -I$(INCPATH) -Iobj -Jobj -I$(QCDLOOP_DIR)
 
 LIBRARY	      = libpv.a
-
-# -----------------------------------------------------------------------------
-# Specify the object files. 
 
 OBJS = \
 TRsetmaxindex.o \
@@ -59,22 +56,12 @@ pvArraysetup.o \
 pvYcalc.o \
 pvswap.o
 
-
-$(LIBRARY):	$(OBJS) 
-		ar cru $(LIBRARY) $(patsubst %,obj/%,$(OBJS)) 
+$(LIBRARY):	$(OBJS)
+		ar cru $(LIBRARY) $(patsubst %,obj/%,$(OBJS))
 		ranlib $(LIBRARY)
  
-# -----------------------------------------------------------------------------
-
 all:		$(LIBRARY)
 
-# -----------------------------------------------------------------------------
-
 clean:
-	- rm -f obj/*.o obj_omp/*.o *.s *.prj *.a *~ core
-
-# -----------------------------------------------------------------------------
-
-# DO NOT DELETE
-
+	- rm -f obj/*.o *.a
 

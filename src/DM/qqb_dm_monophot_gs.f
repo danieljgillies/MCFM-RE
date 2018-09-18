@@ -19,7 +19,8 @@ c     q(-p1)+qbar(-p2) -->  e-(p3)+e+(p4))+a(p5)+g(p6)
       real(dp):: p(mxpart,4),msq(maxd,-nf:nf,-nf:nf)
       real(dp):: msq16_2(-nf:nf,-nf:nf),msq26_1(-nf:nf,-nf:nf),
      & sub16_2(4),sub26_1(4),dummyv(-nf:nf,-nf:nf),dsubv
-      real(dp):: sub56_2,msq56_2(-nf:nf,-nf:nf)
+      real(dp):: sub56_1,sub56_2,msq56_1(-nf:nf,-nf:nf),
+     & msq56_2(-nf:nf,-nf:nf)
       external qqb_dm_monophot,donothing_gvec
       external qqb_dm_monojet
 

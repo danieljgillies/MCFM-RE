@@ -2,7 +2,6 @@
       implicit none
       include 'types.f'
       real(dp):: lowint
-      
       include 'constants.f'
       include 'nf.f'
       include 'mxpart.f'
@@ -34,6 +33,12 @@
       include 'dm_params.f'
       include 'initialscales.f'
       include 'toploopgaga.f'
+      include 'scalevar.f'
+      include 'qcdcouple.f'
+      include 'couple.f'
+      include 'nlooprun.f'
+      include 'badpoint.f'
+      include 'ewcorr.f'
 c---- SSbegin
       include 'reweight.f'
 c---- SSend
@@ -42,17 +47,22 @@ c --- DSW. To store flavour information :
 c --- DSW.
       include 'x1x2.f'
       include 'bypart.f'
+      include 'taucut.f' ! for usescet
       integer:: pflav,pbarflav
 c--- To use VEGAS random number sequence :
       real(dp):: ran2
       integer:: ih1,ih2,j,k,nvec,sgnj,sgnk,ii,i1,i2,i3,i4
       integer:: i,t
+      integer:: itrial
+      real(dp):: alphas,msqtrial,xmsqvar(2),
+     & fx1up(-nf:nf),fx2up(-nf:nf),fx1dn(-nf:nf),fx2dn(-nf:nf)
       real(dp):: r(mxdim),W,xmsq,val,val2,ptmp,
      & fx1(-nf:nf),fx2(-nf:nf),p(mxpart,4),pjet(mxpart,4),
      & pswt,rscalestart,fscalestart,
      & fx1_H(-nf:nf),fx2_H(-nf:nf),fx1_L(-nf:nf),fx2_L(-nf:nf),
      & fxb1(-nf:nf),fxb2(-nf:nf),xmsq_array(-nf:nf,-nf:nf)
       real(dp):: wgt,msq(-nf:nf,-nf:nf),m3,m4,m5,xmsqjk
+      real(dp):: xmsqjk_noew,msq_noew(-nf:nf,-nf:nf),xmsq_noew,lowint_noew
       real(dp):: msq1(-nf:nf,-nf:nf),
      & msq4(-nf:nf,-nf:nf,-nf:nf,-nf:nf)
       real(dp):: flux,vol,vol_mass,vol3_mass,vol_wt,BrnRat
@@ -68,7 +78,7 @@ c--- To use VEGAS random number sequence :
       common/bqscale/b1scale,q2scale,q1scale,b2scale
       external qq_tchan_ztq,qq_tchan_ztq_mad
       external qq_tchan_htq,qq_tchan_htq_mad,qq_tchan_htq_amp
-      external qqb_gamgam_g,qqb_gmgmjt_gvec
+      external qqb_gamgam_g,qqb_gmgmjt_gvec,gg_hzgamg,gg_hg_zgam_gvec
 !$omp threadprivate(/bqscale/)
 
 !$omp atomic
@@ -79,6 +89,10 @@ c--- ensure isolation code does not think this is fragmentation piece
       
       W=sqrts**2
       p(:,:)=0._dp
+      pjet(:,:)=0._dp
+
+c---- set default reweight to 1 (hence no reweighting)
+      reweight = 1.0_dp
 
       call gen_lops(r,p,pswt,*999)
 
@@ -90,10 +104,13 @@ c      if (kcase.ne.kvlchk6 .and. kcase.ne.ktautau) then
 c        call masscuts(p,*999)
 c      endif
 
-c---- reject event if any s(i,j) is too small
-c      call smalls(s,npart,*999)
+      if (usescet) then
 c----reject event if any tau is too small
-      call smalltau(p,npart,*999)
+        call smalltau(p,npart,*999)
+      else
+c---- reject event if any s(i,j) is too small
+       call smalls(s,npart,*999)
+      endif
 c--- see whether this point will pass cuts - if it will not, do not
 c--- bother calculating the matrix elements for it, instead bail out
       if (includedipole(0,p) .eqv. .false.) then
@@ -108,6 +125,11 @@ c      stop
       xx(2)=-2._dp*p(2,4)/sqrts
 
 c      if (debug) write(*,*) 'Reconstructed x1,x2 ',xx(1),xx(2)
+
+      if ((doscalevar) .and. (foundpow .eqv. .false.)) then
+        itrial=1
+      endif
+   66 continue
 
 c--- Calculate the required matrix elements      
       if     (kcase==kW_only) then
@@ -125,6 +147,8 @@ c        stop
         call qqb_wgam(p,msq)
       elseif (kcase==kWgajet) then
          call qqb_wgam_g(p,msq)
+      elseif (kcase==kWga2jt) then
+         call qqb_waj_g(p,msq)
       elseif (kcase==kWbfrmc) then
         call qqb_wbfromc(p,msq)
       elseif (kcase==kW_cjet) then
@@ -146,11 +170,17 @@ c        stop
       elseif (kcase==kWbbjet) then
         call qqb_wbb_g(p,msq)
       elseif (kcase==kZ_only) then
-c        if (ewcorr) then
-c          call qqb_z_ew(p,msq)
-c        else
-          call qqb_z(p,msq)
-c        endif
+        call qqb_z(p,msq)
+        if (kewcorr /= knone) then
+          msq_noew=msq
+          if     (kewcorr == ksudakov) then
+            call qqb_z_ew_sudakov(p,msq)
+          elseif (kewcorr == kexact) then
+            call qqb_z_ew_exact(p,msq)
+          endif
+        endif
+      elseif (kcase==kgg2lep) then
+        call ggdilep(p,msq)
       elseif (kcase==kZ_1jet) then
         call qqb_z1jet(p,msq)
 c        call qqb_z1jetbis(p,msq1)
@@ -165,19 +195,30 @@ c        pause
       elseif (kcase==kZ_3jet) then
         call qqb_z2jet_g(p,msq)
       elseif (kcase==kZgamma) then
-        call qqb_zgam(p,msq)
+        call set_anomcoup(p)
+        call qqb_zgam_new(p,msq)
       elseif (kcase==kZ_2gam) then
         call qqb_zaa(p,msq)
       elseif (kcase==kW_2gam) then
 c        if (checkpiDpjk(p)) goto 999
         call qqb_Waa(p,msq)
       elseif (kcase==kZgajet) then
+        call set_anomcoup(p)
         call qqb_zaj(p,msq)
 c        call qqb_zgam_g(p,msq)      ! Old routine
       elseif (kcase==kZ2gajt) then
         call qqb_zaa_g(p,msq)
       elseif (kcase==kZga2jt) then
+        call set_anomcoup(p)
         call qqb_zaj_g(p,msq)
+!        call qqb_zaj_g_mad(p,msq1)
+!        call qqb_zaj_g(p,msq)
+!        do j=-4,4
+!        do k=-4,4
+!        if (msq(j,k) .ne. zip) write(6,*) j,k,msq(j,k),msq(j,k)/msq1(j,k)
+!        enddo
+!        enddo
+!        stop
       elseif (kcase==kZbbmas) then
         call qqb_zbbm(p,msq)
       elseif (kcase==kZbbbar) then
@@ -279,7 +320,20 @@ c       pause
       elseif (kcase==kWH1jet) then
         call qqb_WH1jet(p,msq)
       elseif (kcase==ktwojet) then
+c         reweight=s(1,2)**2*reweight
         call qqb_twojet(p,msq)
+        if (kewcorr /= knone) then
+          msq_noew=msq
+          if     (kewcorr == ksudakov) then
+            call qqb_twojet_ew_sudakov(p,msq)
+          elseif (kewcorr == kexact) then
+            stop 'not implemented yet'
+          endif
+        endif
+      elseif (kcase==ktwo_ew) then
+c         reweight=s(1,2)**2*reweight
+        call qqb_twojet_ew(p,msq)
+        call qqb_twojet(p,msq_noew)
 c      elseif (kcase==kthrjet) then
 c        call qqb_3jet(p,msq)
       elseif (kcase==kdirgam) then
@@ -337,6 +391,14 @@ c      call checkgvec(-1, 1,5,p,qqb_gamgam_g,qqb_gmgmjt_gvec)
         call gg_hgamgam(p,msq)
       elseif (kcase==kHi_Zga) then
         call gg_hzgam(p,msq)
+      elseif (kcase==kHi_Zaj) then
+!        call checkgvec(+2, 0,2,p,gg_hzgamg,gg_hg_zgam_gvec)
+!        call checkgvec(-1, 0,2,p,gg_hzgamg,gg_hg_zgam_gvec)
+!        call checkgvec( 0,-1,1,p,gg_hzgamg,gg_hg_zgam_gvec)
+!        call checkgvec( 0, 2,1,p,gg_hzgamg,gg_hg_zgam_gvec)
+!        call checkgvec( 1,-1,6,p,gg_hzgamg,gg_hg_zgam_gvec)
+!        call checkgvec(-1, 1,6,p,gg_hzgamg,gg_hg_zgam_gvec)
+        call gg_hzgamg(p,msq)
       elseif (kcase==kHWW_4l) then
         call qqb_hww(p,msq)
       elseif (kcase==kHWW2lq) then
@@ -383,6 +445,14 @@ c      call checkgvec(-1, 1,5,p,qqb_gamgam_g,qqb_gmgmjt_gvec)
        call qqb_QQbdk_g(p,msq)
       elseif (kcase==ktt_tot) then
         call qqb_QQb(p,msq)
+        if (kewcorr /= knone) then
+          msq_noew=msq
+          if     (kewcorr == ksudakov) then
+            call qqb_QQb_ew_sudakov(p,msq)
+          elseif (kewcorr == kexact) then
+            stop 'not implemented yet'
+          endif
+        endif
       elseif (kcase==kbb_tot) then
         call qqb_QQb(p,msq)
       elseif (kcase==kcc_tot) then
@@ -423,6 +493,8 @@ c      call checkgvec(-1, 1,5,p,qqb_gamgam_g,qqb_gmgmjt_gvec)
         call qqb_higgs(p,msq)
       elseif (kcase==kggfus1) then
         call gg_hg(p,msq)
+      elseif (kcase==khjetma) then
+        call hjetmass(p,msq)
       elseif (kcase==kHgagaj) then
         call gg_hgagag(p,msq)
       elseif (kcase==kHWWjet) then
@@ -521,6 +593,12 @@ c      call checkgvec(-1,2,5,p,qq_tbg,qq_tbg_gvec)
         call gg_hgg(p,msq)
       elseif (kcase==kgagajj) then
         call gg_hgg(p,msq)
+      elseif (kcase==kh2jmas) then
+        badpoint = .false.
+        call hjetmass_r(p,msq)
+        if (badpoint) then
+          msq(:,:)=zip
+        endif
       elseif (kcase==kggfus3) then
         call gg_hggg(p,msq)
       elseif (kcase==kW_bjet) then
@@ -652,8 +730,40 @@ c      call checkgvec(-1,2,5,p,qq_tbg,qq_tbg_gvec)
         write(6,*) 'Unimplemented process in lowint : kcase=',kcase
         stop 
       endif
-      
-      
+! code to find power of alpha-s for scale variation
+      if ((doscalevar) .and. (foundpow .eqv. .false.)) then
+        if (itrial == 1) then
+          msqtrial=maxval(msq)
+          if (msqtrial == 0) goto 999
+          as=as*two
+          ason2pi=ason2pi*two
+          ason4pi=ason4pi*two
+          gsq=gsq*two
+          itrial=itrial+1
+          goto 66
+        endif
+        msqtrial=maxval(msq)/msqtrial
+        alphaspow=-1
+        if (abs(msqtrial-one) < 1.e-8) alphaspow=0
+        if (abs(msqtrial-two) < 1.e-8) alphaspow=1
+        if (abs(msqtrial-four) < 1.e-8) alphaspow=2
+        if (abs(msqtrial-eight) < 1.e-8) alphaspow=3
+        if (abs(msqtrial-16._dp) < 1.e-8) alphaspow=4
+        if (abs(msqtrial-32._dp) < 1.e-8) alphaspow=5
+        if (alphaspow == -1) then
+          write(6,*) 'Unable to determine power of alpha-s for scale variation'
+          stop
+        endif
+        as=as/two
+        ason2pi=ason2pi/two
+        ason4pi=ason4pi/two
+        gsq=gsq/two
+        foundpow=.true.
+!        write(6,*) 'Found alpha-s power: ',alphaspow
+        goto 66
+      endif
+
+
       do j=-1,1
       do k=-1,1
       xmsq_bypart(j,k)=0._dp
@@ -670,6 +780,7 @@ c      endif
 c--- initialize a PDF set here, if calculating errors
   777 continue    
       xmsq=0._dp
+      xmsq_noew=0._dp
 !      if (PDFerrors) then
 !        call InitPDF(currentPDF)
 !      endif
@@ -679,13 +790,13 @@ c--- calculate PDF's
      &     .and. (dynamicscale .eqv. .false.)) then
 c--- for single top + b, make sure to use two different scales
          if (PDFerrors) then
-!$omp critical(PDFerrors)
+!$omp critical(critPDFerrors)
             call InitPDF(currentPDF)
             call fdist(ih1,xx(1),facscale_H,fx1_H)
             call fdist(ih2,xx(2),facscale_H,fx2_H)
             call fdist(ih1,xx(1),facscale_L,fx1_L)
             call fdist(ih2,xx(2),facscale_L,fx2_L)
-!$omp end critical(PDFerrors)
+!$omp end critical(critPDFerrors)
          else
             call fdist(ih1,xx(1),facscale_H,fx1_H)
             call fdist(ih2,xx(2),facscale_H,fx2_H)
@@ -707,42 +818,49 @@ c--- single top: allow for different scales on each leg
 c---  (applies only if dynstring = 'DDIS')
           if (dynstring == 'DDIS') then
              if (PDFerrors) then
-!$omp critical(PDFerrors)
+!$omp critical(critPDFerrors)
                 call InitPDF(currentPDF)
                 call fdist(ih1,xx(1),b1scale,fxb1)
                 call fdist(ih2,xx(2),q2scale,fx2)
                 call fdist(ih1,xx(1),q1scale,fx1)
                 call fdist(ih2,xx(2),b2scale,fxb2)
-!$omp end critical(PDFerrors)
+!$omp end critical(critPDFerrors)
              else
                 call fdist(ih1,xx(1),b1scale,fxb1)
                 call fdist(ih2,xx(2),q2scale,fx2)
                 call fdist(ih1,xx(1),q1scale,fx1)
                 call fdist(ih2,xx(2),b2scale,fxb2)
              endif
-        else          
-           if (PDFerrors) then
-!$omp critical(PDFerrors)
-              call InitPDF(currentPDF)
-              call fdist(ih1,xx(1),facscale,fx1)
-              call fdist(ih2,xx(2),facscale,fx2)
-!$omp end critical(PDFerrors)
-           else
-              call fdist(ih1,xx(1),facscale,fx1)
-              call fdist(ih2,xx(2),facscale,fx2)
-           endif
-        endif
+          else          
+             if (PDFerrors) then
+!$omp critical(critPDFerrors)
+               call InitPDF(currentPDF)
+               call fdist(ih1,xx(1),facscale,fx1)
+               call fdist(ih2,xx(2),facscale,fx2)
+!$omp end critical(critPDFerrors)
+             else
+               call fdist(ih1,xx(1),facscale,fx1)
+               call fdist(ih2,xx(2),facscale,fx2)
+             endif
+          endif
         else   
-c--- usual case            
+c--- usual case
            if (PDFerrors) then
-!$omp critical(PDFerrors)
+!$omp critical(critPDFerrors)
               call InitPDF(currentPDF)
               call fdist(ih1,xx(1),facscale,fx1)
               call fdist(ih2,xx(2),facscale,fx2)
-!$omp end critical(PDFerrors)
+!$omp end critical(critPDFerrors)
            else
               call fdist(ih1,xx(1),facscale,fx1)
               call fdist(ih2,xx(2),facscale,fx2)
+              if (doscalevar) then
+                call fdist(ih1,xx(1),facscale*two,fx1up)
+                call fdist(ih2,xx(2),facscale*two,fx2up)
+                call fdist(ih1,xx(1),facscale/two,fx1dn)
+                call fdist(ih2,xx(2),facscale/two,fx2dn)
+                xmsqvar(:)=zip
+              endif
            endif
         endif
       endif
@@ -751,19 +869,19 @@ c--- usual case
       do k=-nflav,nflav    
 
       if (ggonly) then
-      if ((j.ne.0) .or. (k.ne.0)) goto 20
+      if ((j.ne.0) .or. (k.ne.0)) cycle
       endif
 
       if (gqonly) then
-      if (((j==0).and.(k==0)) .or. ((j.ne.0).and.(k.ne.0))) goto 20
+      if (((j==0).and.(k==0)) .or. ((j.ne.0).and.(k.ne.0))) cycle
       endif
       
       if (noglue) then 
-      if ((j==0) .or. (k==0)) goto 20
+      if ((j==0) .or. (k==0)) cycle
       endif
 
       if (omitgg) then 
-      if ((j==0) .and. (k==0)) goto 20
+      if ((j==0) .and. (k==0)) cycle
       endif
 
       if     ((kcase==kbq_tpq) .and. (dynstring == 'DDIS')) then
@@ -787,10 +905,16 @@ c--- special case for dynamic scale in t-channel single top
       else
 c--- DEFAULT
         xmsqjk=fx1(j)*fx2(k)*msq(j,k)
+        if (doscalevar) then
+          xmsqvar(1)=xmsqvar(1)+fx1up(j)*fx2up(k)*msq(j,k)
+          xmsqvar(2)=xmsqvar(2)+fx1dn(j)*fx2dn(k)*msq(j,k)
+        endif
+        if (kewcorr /= knone) xmsqjk_noew=fx1(j)*fx2(k)*msq_noew(j,k)
       endif
 
       xmsq=xmsq+xmsqjk
       xmsq_array(j,k)=xmsqjk
+      if (kewcorr /= knone) xmsq_noew=xmsq_noew+xmsqjk_noew
       
       if     (j > 0) then
         sgnj=+1
@@ -811,12 +935,12 @@ c--- DEFAULT
         xmsq_bypart(sgnj,sgnk)=xmsq_bypart(sgnj,sgnk)+xmsqjk
       endif
       
- 20   continue
       enddo
       enddo
 
       if (currentPDF == 0) then
         lowint=flux*pswt*xmsq/BrnRat
+        if (kewcorr /= knone) lowint_noew=flux*pswt*xmsq_noew/BrnRat
       endif
             
 c--- loop over all PDF error sets, if necessary
@@ -856,8 +980,8 @@ c--- loop over all PDF error sets, if necessary
       val=lowint*wgt
       val2=val**2
       if(val.ne.val) then
-         write(6,*) 'lowint val = ',val
-         write(6,*) 'Discarding point with random variables',r
+!         write(6,*) 'lowint val = ',val
+!         write(6,*) 'Discarding point with random variables',r
          lowint=zip
          val=zip
          goto 999
@@ -873,15 +997,36 @@ c---  but not if we are already unweighting ...
 !$omp end critical(MaxWgt)
       endif
 
+! compute weights for scale variation
+      if (doscalevar) then
+        if (abs(xmsq) > zip) then
+          scalereweight(1)=(alphas(scale*two,amz,nlooprun)/as)**alphaspow
+          scalereweight(2)=(alphas(scale/two,amz,nlooprun)/as)**alphaspow
+          scalereweight(1)=scalereweight(1)*xmsqvar(1)/xmsq
+          scalereweight(2)=scalereweight(2)*xmsqvar(2)/xmsq
+          if (maxscalevar == 6) then
+            scalereweight(3)=scalereweight(1)*xmsq/xmsqvar(1)
+            scalereweight(4)=scalereweight(2)*xmsq/xmsqvar(2)
+            scalereweight(5)=xmsqvar(1)/xmsq
+            scalereweight(6)=xmsqvar(2)/xmsq
+          endif
+        else
+          scalereweight(:)=zip
+        endif
+      endif
 
       if (bin) then
-         call nplotter(pjet,val,val2,0)
+c--- for EW corrections, make additional weight available inside common block
+        if (kewcorr /= knone) then
+          wt_noew=lowint_noew*wgt
+        endif
+        call nplotter(pjet,val,val2,0)
 c---  POWHEG-style output if requested
-         if (writepwg) then
+        if (writepwg) then
 !$omp critical(pwhgplot)
-            call pwhgplotter(p,pjet,val,0)
+          call pwhgplotter(p,pjet,val,0)
 !$omp end critical(pwhgplot)
-         endif
+        endif
       endif
 
 c --- Check weights :

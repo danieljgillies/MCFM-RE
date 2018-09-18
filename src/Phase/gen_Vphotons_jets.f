@@ -75,7 +75,6 @@ c--- for processes in which it is safe to jet ptmin to zero at NLO
       if ((kpart==kreal) .and. (pbreak < 1.e-8_dp)) pbreak=5._dp
       endif        
 
-
 c--- total number of photons and jets
       nphotsjets=nphots+njets
 
@@ -103,17 +102,17 @@ c        xmax=1._dp/ptjetmin
 
         if (ijet <= nphots) then
           if     (nphots == 3) then
-            ptmin_part=min(gammpt,gammpt2,gammpt3)
+            ptmin_part=min(gammptmin,gammpt2,gammpt3)
           elseif (nphots == 2) then
-            ptmin_part=min(gammpt,gammpt2)
+            ptmin_part=min(gammptmin,gammpt2)
           elseif (nphots == 1) then
-            ptmin_part=gammpt
+            ptmin_part=gammptmin
           else
             write(6,*) 'Unexpected # photons in gen_Vphotons_jets: ',
      &                  nphots
             stop
           endif
-          etamax_part=gammrap
+          etamax_part=gammrapmax
 c          pbreak_part=0._dp
           if (kpart==kreal) then
 c--- cannot generate exactly to match, since dipoles transform photon
@@ -291,7 +290,7 @@ c        endif
 c      endif
 
       wt=wt/8._dp/pi
-
+      
       return
       end
       

@@ -87,8 +87,8 @@ C
       mw=wmass
 
 c--- Implementation of Baur-Zeppenfeld treatment of Z width
-	     cprop=cplx1(1d0/sqrt((sz-zmass**2)**2+(zmass*zwidth)**2))
-	     iprZ=cplx1(sz-zmass**2)
+      cprop=cplx1(1d0/sqrt((sz-zmass**2)**2+(zmass*zwidth)**2))
+      iprZ=cplx1(sz-zmass**2)
 
       cprop=cprop/cplx2(zip,mt*twidth)
 
@@ -96,15 +96,15 @@ c--- Implementation of Baur-Zeppenfeld treatment of Z width
       if (j == 1) then
         pl=3
         pa=4
-	    facuLl=cplx1(Qu*q1)*iprZ+cplx1(L(2)*le)*sz
-	    facuRl=cplx1(Qu*q1)*iprZ+cplx1(R(2)*le)*sz
-	    facdLl=cplx1(Qd*q1)*iprZ+cplx1(L(1)*le)*sz
+        facuLl=cplx1(Qu*q1)*iprZ+cplx1(L(2)*le)*sz
+        facuRl=cplx1(Qu*q1)*iprZ+cplx1(R(2)*le)*sz
+        facdLl=cplx1(Qd*q1)*iprZ+cplx1(L(1)*le)*sz
       else
         pl=4
         pa=3
-	    facuLl=cplx1(Qu*q1)*iprZ+cplx1(L(2)*re)*sz
-	    facuRl=cplx1(Qu*q1)*iprZ+cplx1(R(2)*re)*sz
-	    facdLl=cplx1(Qd*q1)*iprZ+cplx1(L(1)*re)*sz
+        facuLl=cplx1(Qu*q1)*iprZ+cplx1(L(2)*re)*sz
+        facuRl=cplx1(Qu*q1)*iprZ+cplx1(R(2)*re)*sz
+        facdLl=cplx1(Qd*q1)*iprZ+cplx1(L(1)*re)*sz
       endif
 
       amp(j,1)= + prW(sud)*prW(sbt)*sz**(-1)*facdLl * ( za(p1,k3)*za(p5

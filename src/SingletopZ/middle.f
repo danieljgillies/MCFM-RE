@@ -1,4 +1,5 @@
       subroutine middle(p,ymiddle)
+        use mod_qcdloop_c
       implicit none
       include 'types.f'
       
@@ -15,7 +16,7 @@
       include 'nwz.f'
       integer:: j3,k1,k2,ep,eta
       complex(dp):: prW,ymiddle(2,2,-2:0),
-     & qlI2,qlI3,qlI2diff(-2:0),iza,izb,
+     & qlI2diff(-2:0),iza,izb,
      & vert25x1,vert25x2,vert25x3,vert16x1,cprop,iprZ
       complex(dp):: facuLl,facdLl,facLdiff
       real(dp):: p(mxpart,4),q(mxpart,4),mtsq,mwsq

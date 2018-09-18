@@ -1,11 +1,17 @@
-      integer:: lbjscheme
+      integer :: lbjscheme
+      common/lbjscheme_com/lbjscheme
       logical:: jetsopphem
-      real(dp):: leptpt,leptrap,misspt,Rjlmin,Rllmin,delyjjmin,
-     & leptpt2,leptrap2,gammpt,gammrap,Rgalmin,mtrans34cut,
+      real(dp):: leptptmin,leptptmax,leptrapmin,leptrapmax,
+     & misspt,Rjlmin,Rllmin,delyjjmin,
+     & leptpt2min,leptpt2max,leptrap2min,leptrap2max,
+     & gammptmin,gammptmax,gammrapmin,gammrapmax,
+     & Rgalmin,mtrans34cut,
      & gammpt2,Rgagamin,gammpt3,Rgajetmin,
      & leptveto1min,leptveto1max,leptveto2min,leptveto2max 
-      common/leptcuts/leptpt,leptrap,misspt,Rjlmin,Rllmin,delyjjmin,
-     & leptpt2,leptrap2,gammpt,gammrap,Rgalmin,mtrans34cut,
+      common/leptcuts/leptptmin,leptptmax,leptrapmin,leptrapmax,
+     & misspt,Rjlmin,Rllmin,delyjjmin,
+     & leptpt2min,leptpt2max,leptrap2min,leptrap2max,
+     & gammptmin,gammptmax,gammrapmin,gammrapmax,
+     & Rgalmin,mtrans34cut,
      & gammpt2,Rgagamin,gammpt3,Rgajetmin,
-     & lbjscheme,jetsopphem,
      & leptveto1min,leptveto1max,leptveto2min,leptveto2max 

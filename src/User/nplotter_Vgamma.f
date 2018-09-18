@@ -23,11 +23,13 @@ c---                1  --> counterterm for real radiation
       include 'outputflags.f'
       include 'nqcdjets.f'
       include 'nproc.f'
+
       real(dp):: p(mxpart,4),wt,wt2
       real(dp):: etarap,pt,r
       real(dp):: y3,y4,y5,y6,pt3,pt4,pt5,pt6,re5,rea5,re6,rea6
       real(dp):: yWgam,pt34,pttwo
       real(dp):: yraptwo,m34,m345,yellgam,dot
+      real(dp) :: yrapthree, y345
       integer:: switch,n,nplotmax,nd 
       integer tag
       integer:: j,ilep,igam,inu
@@ -68,6 +70,7 @@ c--- the plotting range
         rea5=1.e3_dp
         re6=1.e3_dp
         rea6=1.e3_dp
+        y345=1.e8_dp
         jets=nqcdjets
         goto 99
       else
@@ -82,13 +85,13 @@ c--- Add event in histograms
 ************************************************************************
 c--- If nproc=290, plot e^+(4). If nproc=295, plot e^-(3).
 c--- For nproc=300 plot e^+(4) and e^-(3)
-      if(nproc == 290) then
+      if(nprocbelow == 290) then
          y4=etarap(4,p)
          pt4=pt(4,p)
-      elseif(nproc == 295) then 
+      elseif(nprocbelow == 295) then
          y3=etarap(3,p)
          pt3=pt(3,p)
-      elseif(nproc >= 300) then 
+      elseif(nprocbelow >= 300) then
          if(pt(3,p)>pt(4,p)) then 
             y3=etarap(3,p)
             pt3=pt(3,p)
@@ -108,11 +111,11 @@ c--- For nproc=300 plot e^+(4) and e^-(3)
       y5=etarap(5,p)
       re5=-1._dp
       rea5=-1._dp
-      if(nproc == 290) then
+      if(nprocbelow == 290) then
          re5=R(p,4,5)
-      elseif(nproc == 295) then 
+      elseif(nprocbelow == 295) then
          re5=R(p,3,5)
-      elseif((nproc == 300) .or. (nproc == 302)) then
+      elseif((nprocbelow == 300) .or. (nprocbelow == 302)) then
          re5=R(p,3,5)
          rea5=R(p,4,5)
       endif
@@ -120,9 +123,9 @@ c--- For nproc=300 plot e^+(4) and e^-(3)
 !---- Radiation Zero plot for all processes 
       yWgam=y5-yraptwo(3,4,p) 
       yellgam=1.e8_dp
-      if(nproc==290) then 
+      if(nprocbelow==290) then
          yellgam=y5-y4     
-      elseif(nproc==295) then 
+      elseif(nprocbelow==295) then
          yellgam=y5-y3
       endif
 
@@ -131,11 +134,11 @@ c--- For nproc=300 plot e^+(4) and e^-(3)
          y6=etarap(6,p)
          re6=-1._dp
          rea6=-1._dp
-         if(nproc == 290) then
+         if(nprocbelow == 290) then
             re6=R(p,4,6)
-         elseif(nproc == 295) then 
+         elseif(nprocbelow == 295) then
             re6=R(p,3,6)
-         elseif((nproc == 300) .or. (nproc == 302)) then
+         elseif((nprocbelow == 300) .or. (nprocbelow == 302)) then
             re6=R(p,3,6)
             rea6=R(p,4,6)
          endif
@@ -147,9 +150,9 @@ c--- For nproc=300 plot e^+(4) and e^-(3)
       endif
 
 
-      if(nproc<300) then 
+      if(nprocbelow<300) then
 c---  transverse mass of (e-gam,nu) system for Wgamma
-        if ((nproc == 290) .or. (nproc == 292)) then
+        if ((nprocbelow == 290) .or. (nprocbelow == 292)) then
           inu=3
           ilep=4
         else
@@ -176,6 +179,8 @@ c---  invariant mass of (Z,gam) system for Zgamma
          enddo        
          m345=sqrt(max(m345,zip))
       endif
+
+      y345 = yrapthree(3,4,5,p)
 
 ************************************************************************
 *                                                                      *
@@ -210,13 +215,13 @@ c---     xmax:  highest value to bin
 c---       dx:  bin width
 c---   llplot:  equal to "lin"/"log" for linear/log scale
 
-      if((nproc == 290).or.(nproc>=300)) then
+      if((nprocbelow == 290).or.(nprocbelow>=300)) then
          call bookplot(n,tag,'y4',y4,wt,wt2,-5._dp,5._dp,0.2_dp,'lin')
          n=n+1
          call bookplot(n,tag,'pt4',pt4,wt,wt2,zip,100._dp,two,'lin')
          n=n+1
       endif
-      if((nproc==295).or.(nproc>=300)) then
+      if((nprocbelow==295).or.(nprocbelow>=300)) then
          call bookplot(n,tag,'y3',y3,wt,wt2,-5._dp,5._dp,0.2_dp,'lin')
          n=n+1
          call bookplot(n,tag,'pt3',pt3,wt,wt2,zip,100._dp,two,'lin')
@@ -228,7 +233,7 @@ c---   llplot:  equal to "lin"/"log" for linear/log scale
       
       call bookplot(n,tag,'DeltaRe5',re5,wt,wt2,zip,5._dp,0.1_dp,'lin')
       n=n+1
-      if(nproc==300) then 
+      if(nprocbelow==300) then
       call bookplot(n,tag,'DeltaRea5',rea5,wt,wt2,
      & zip,5._dp,0.1_dp,'lin')
       n=n+1
@@ -239,7 +244,7 @@ c---   llplot:  equal to "lin"/"log" for linear/log scale
       n=n+1
       call bookplot(n,tag,'pt5',pt5,wt,wt2,zip,500._dp,10._dp,'log')
       n=n+1
-      if(nproc<300) then 
+      if(nprocbelow<300) then
       call bookplot(n,tag,'transverse cluster mass, m(e-gam,nu)',
      & m345,wt,wt2,zip,200._dp,5._dp,'lin')
       n=n+1
@@ -263,9 +268,15 @@ c---   llplot:  equal to "lin"/"log" for linear/log scale
       n=n+1
       call bookplot(n,tag,'DeltaRe6',re6,wt,wt2,zip,5._dp,0.1_dp,'lin')
       n=n+1
-c      if(nproc < 305) then 
+c      if(nprocbelow < 305) then
       call bookplot(n,tag,'DeltaRea6',rea6,wt,wt2,
      & zip,5._dp,0.1_dp,'lin')
+      n=n+1
+
+      call bookplot(n,tag,'y345',y345,wt,wt2,-5._dp,5._dp,0.2_dp,'lin')
+      n=n+1
+
+      call bookplot(n,tag,'total cross', 0.5d0,wt,wt2,0d0,100d0,1d0,'lin')
       n=n+1
 c      endif
 

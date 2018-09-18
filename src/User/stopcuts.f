@@ -1,4 +1,5 @@
       subroutine stopcuts(p,maxparts,ht,qeta,mlbnu,merecon,reconcorr)
+        use cxx11random
       implicit none
       include 'types.f'
 c--- given the event momenta in p (with maxparts entries),
@@ -10,7 +11,7 @@ c--- values of HT, Q*eta and M(l+b+nu) for the plotting routine
       include 'plabel.f'
       include 'kprocess.f'
       integer:: j,ilept,ibjet,ispect,maxparts,countjet,jetindex(mxpart)
-      real(dp):: pt,etarap,p(mxpart,4),ran2,
+      real(dp):: pt,etarap,p(mxpart,4),
      & etvec(2),plept(4),etmissing(4),
      & mlbnu,ht,qeta,missinget,merecon,reconcorr
             
@@ -81,7 +82,7 @@ c--- find the leading b-jet and the spectator jet
         else    
 c--- this is an arbitrary condition (leading jet?) for the case of 2 b's
 c          if (pt(jetindex(1),p) >  pt(jetindex(2),p)) then
-          if (ran2() < half) then
+          if (cxx11_random_number() < half) then
             ibjet=1
             ispect=2
           else

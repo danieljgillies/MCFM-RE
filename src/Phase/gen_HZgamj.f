@@ -33,7 +33,8 @@
       p34(:)=zip    
 
 !-------- generate Qsq. 
-      cutoff=max(1.e-4_dp,(hmass-25._dp*hwidth)**2)
+!      cutoff=max(1.e-4_dp,(hmass-25._dp*hwidth)**2)
+      cutoff=max(1.e-4_dp,wsqmin)
       taumin=(cutoff/sqrts**2)
 
       lntaum=log(taumin)

@@ -3,9 +3,10 @@ c--- Adapted from Numerical Recipes
 C--- back substitution for real a and complex b
 c--- extended so that original vector b is not destroyed
       implicit none
+      include 'types.f'
       integer n,indx(n)
-      double precision a(n,n)
-      double complex b(n),bin(n),sum
+      real(dp):: a(n,n)
+      complex(dp):: b(n),bin(n),sum
       integer i,ii,j,ll
       b=bin
       ii=0
@@ -15,9 +16,9 @@ c--- extended so that original vector b is not destroyed
          b(ll)=b(i)
          if (ii.ne.0)then
             do j=ii,i-1
-               sum=sum-dcmplx(a(i,j))*b(j)
+               sum=sum-cmplx(a(i,j),kind=dp)*b(j)
             enddo               ! 11
-         else if (sum.ne.dcmplx(0d0,0d0)) then
+         else if (sum.ne.cmplx(0._dp,0._dp,kind=dp)) then
             ii=i
          endif
          b(i)=sum
@@ -26,10 +27,10 @@ c--- extended so that original vector b is not destroyed
          sum=b(i)
          if(i.lt.n)then
             do j=i+1,n
-               sum=sum-dcmplx(a(i,j))*b(j)
+               sum=sum-cmplx(a(i,j),kind=dp)*b(j)
             enddo               ! 13
          endif
-         b(i)=sum/dcmplx(a(i,i))
+         b(i)=sum/cmplx(a(i,i),kind=dp)
       enddo                     ! 14
       return
       end

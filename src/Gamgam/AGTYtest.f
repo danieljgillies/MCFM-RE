@@ -27,7 +27,7 @@
 
 !==== initializtaion 
 !===== set scale
-      musq=1_dp 
+      musq=1._dp 
 
 !----- define various pieces 
       BigX=log(-tt/ss)
@@ -52,7 +52,7 @@
       Li3z=Li3(z)
       Li4z=Li4(z)
 
-      Li4zinv=Li4(1_dp/z)
+      Li4zinv=Li4(1._dp/z)
       write(6,*) '********** AGTY TEST **************'
       write(6,*) '* points :                         *'
       write(6,*) 'ss = ',ss

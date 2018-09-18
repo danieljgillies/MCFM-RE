@@ -60,6 +60,8 @@ c---- total cross-section comes out correctly when the BR is removed
       include 'mpicommon.f'
       include 'noglue.f'
       include 'toploopgaga.f'
+      include 'first.f'
+      include 'ewcorr.f'
       real(dp):: wwbr,zzbr,tautaubr,gamgambr,zgambr,Rcut,Rbbmin,
      & alphas,cmass,bmass
       real(dp):: br,BrnRat,brwen,brzee,brznn,brtau,brtop,brcharm
@@ -131,16 +133,20 @@ c---- total cross-section comes out correctly when the BR is removed
       close(unit=21)
 
 c--- check no. of momenta appearing in LO process, fill ilomomenta common block
-      if (index(pname,'p3') > 0)  ilomomenta=3
-      if (index(pname,'p4') > 0)  ilomomenta=4
-      if (index(pname,'p5') > 0)  ilomomenta=5
-      if (index(pname,'p6') > 0)  ilomomenta=6
-      if (index(pname,'p7') > 0)  ilomomenta=7
-      if (index(pname,'p8') > 0)  ilomomenta=8
-      if (index(pname,'p9') > 0)  ilomomenta=9
-      if (index(pname,'p10') > 0) ilomomenta=10
-      if (index(pname,'p11') > 0) ilomomenta=11
-      if (index(pname,'p12') > 0) ilomomenta=12
+      if (first) then
+        if (index(pname,'p3') > 0)  ilomomenta=3
+        if (index(pname,'p4') > 0)  ilomomenta=4
+        if (index(pname,'p5') > 0)  ilomomenta=5
+        if (index(pname,'p6') > 0)  ilomomenta=6
+        if (index(pname,'p7') > 0)  ilomomenta=7
+        if (index(pname,'p8') > 0)  ilomomenta=8
+        if (index(pname,'p9') > 0)  ilomomenta=9
+        if (index(pname,'p10') > 0) ilomomenta=10
+        if (index(pname,'p11') > 0) ilomomenta=11
+        if (index(pname,'p12') > 0) ilomomenta=12
+
+        first = .false.
+      endif
       
       plabel(1)='pp'
       plabel(2)='pp'
@@ -727,9 +733,21 @@ c--  36 '  f(p1)+f(p2) -> Z -> t(-->nu(p3)+e^+(p4)+b(p5))+b~(p6))+e^-(p7)+nu~(p8
             bbproc=.false.
           endif
 
+c-----------------------------------------------------------------------
+
+      elseif (nproc == 310) then
+c-- 310 '  gamma(p1)+gamma(p2) --> e^-(p3)+e^+(p4)'
+        kcase=kgg2lep
+        n3=0
+        ndim=4
+        plabel(3)='el'
+        plabel(4)='ea'
+        q1=-1d0
+
+        mcfmplotinfo= (/ 34, (0,j=1,49) /)
 
 c-----------------------------------------------------------------------
-      
+
       elseif ((nproc >= 41) .and. (nproc <= 43)) then
         kcase=kZ_1jet
         nqcdjets=1
@@ -2483,6 +2501,7 @@ c--      '  f(p1)+f(p2) --> H (for total Xsect)' (removebr=.true.)
         plabel(3)='el'
         plabel(4)='ea'
         plabel(5)='ga'
+        lastphot=5
         l1=le
         r1=re
         q1=-1._dp
@@ -2512,6 +2531,8 @@ c--  121 '  f(p1)+f(p2) --> H(-->Z^0(3*(nu(p3)+nu~(p4))) + gamma(p5)')'
 c--      '  f(p1)+f(p2) --> H (for total Xsect)' (removebr=.true.)
         plabel(3)='nl'
         plabel(4)='na'
+        plabel(5)='ga'
+        lastphot=5
         q1=zip
         l1=ln*sqrt(3._dp)
         r1=rn*sqrt(3._dp)      
@@ -2863,6 +2884,11 @@ c--  157 '  f(p1)+f(p2) --> t t~ (for total Xsect)'
         plabel(5)='pp'
 
         mcfmplotinfo= (/ 34, (0,j=1,49) /)
+        
+        if (kewcorr == kexact) then
+          kcase=ktt_mix
+          if (kpart==klord) kpart=ktota
+        endif
         
       elseif (nproc == 158) then
 c--  158 '  f(p1)+f(p2) --> b b~ (for total Xsect)'
@@ -3481,7 +3507,41 @@ c--  182 '  f(p1)+f(p2) --> W^+(-->nu(p3)+e^+(p4))+t~(e^-(p5)+nu~(p6)+bbar(p7)) 
           plabel(7)='ig'
           nqcdjets=0
         endif
-             
+
+c-----------------------------------------------------------------------
+
+      elseif ((nproc .eq. 190) .or. (nproc .eq. 191)) then
+c--  190      '  f(p1)+f(p2)--> f(p3)+f(p4)'
+c--  191      '  f(p1)+f(p2) --> f(p3)+f(p4) [mixed QCD/EW]' 'N'
+         ndim=4
+!         nflav=4
+         if (nproc .eq. 190) then
+           kcase=ktwojet
+         else
+           kcase=ktwo_ew
+c           zwidth=0._dp
+c           wwidth=0._dp
+c           write(6,*)
+c           write(6,*) '>>>> Warning: setting W and Z widths to zero'
+         endif
+
+         if ((kewcorr == kexact) .and. (nproc == 190)) then
+          kcase=ktwo_ew
+          if (kpart==klord) kpart=ktota
+          order='N' ! ensure that program allows this calculation
+         endif
+
+         plabel(3)='pp'
+         plabel(4)='pp'
+         plabel(5)='pp'
+         nqcdjets=2
+         n3=0
+
+         mcfmplotinfo= (/ 34, 35, 45, 345, (0,j=1,46) /)
+
+c-----------------------------------------------------------------------
+
+      elseif ((nproc .eq. 190) .or. (nproc .eq. 191)) then
       elseif ((nproc >= 200) .and. (nproc <= 210)) then
         kcase=khttjet
         call sethparams(br,wwbr,zzbr,tautaubr,gamgambr,zgambr)
@@ -3526,7 +3586,7 @@ c--  202 '  f(p1)+f(p2)--> H (-> tau(p3) tau~(p4)) + f(p5) [full mt dep.]'
             nqcdjets=1
           endif
 
-        elseif ((nproc == 203) .or. (nproc == 204)
+        elseif ((nproc == 200) .or. (nproc == 203) .or. (nproc == 204)
      &     .or. (nproc == 210)) then
           kcase=kggfus1
           nqcdjets=1
@@ -3539,9 +3599,13 @@ c--  202 '  f(p1)+f(p2)--> H (-> tau(p3) tau~(p4)) + f(p5) [full mt dep.]'
 
           mcfmplotinfo= (/ 34, (0,j=1,49) /)
 
-          if     (nproc == 203) then
+          if (nproc == 200 .or. nproc == 203) then
 c--  203 '  f(p1)+f(p2) -->H(-->b(p3)+b~(p4)) + f(p5)'
 c--      '  f(p1)+f(p2)--> H(p3+p4) + f(p5) (for total Xsect)' (removebr=.true.)
+            if (nproc == 200) then
+              kcase=khjetma
+            endif
+            new_pspace = .true.
             hdecaymode='bqba'
             plabel(3)='bq'
             plabel(4)='ba'
@@ -3576,6 +3640,36 @@ c--  210 '  f(p1)+f(p2) -->H(-->gamma(p3)+gamma(p4)) + f(p5)'
             endif
           endif
 
+        elseif (nproc == 205) then
+          kcase=kHi_Zaj
+          call checkminzmass(1)
+          nqcdjets=1
+          ndim=10
+          call sethparams(br,wwbr,zzbr,tautaubr,gamgambr,zgambr)
+      
+          n2=0
+          n3=1
+          mass3=zmass
+          width3=zwidth
+
+          mcfmplotinfo= (/ 34, 345, (0,j=1,48) /)
+          
+          plabel(3)='el'
+          plabel(4)='ea'
+          plabel(5)='ga'
+          plabel(6)='pp'
+          plabel(7)='pp'
+          lastphot=5
+          l1=le
+          r1=re
+          q1=-1._dp
+          if (removebr) then
+            call branch(brwen,brzee,brznn,brtau,brtop,brcharm)
+            BrnRat=brzee*zgambr 
+            plabel(3)='ig'
+            plabel(4)='ig'
+            plabel(5)='ig'
+          endif
         
         elseif (nproc == 206) then
 c--  206 '  f(p1)+f(p2)--> A(-->b(p3)+b~(p4)) + f(p5) [full mt dep.]'
@@ -4991,7 +5085,7 @@ c--  264 '  f(p1)+f(p2) --> Z^0(-->e^-(p3)+e^+(p4))+c~(p5)+c(p6) (1 c-tag)'
            
 c-----------------------------------------------------------------------
           
-      elseif ((nproc == 270) .or. (nproc == 271) 
+      elseif ((nproc == 269) .or. (nproc == 270) .or. (nproc == 271) 
      &   .or. (nproc == 272)) then
       
 c--- turn off Higgs decay, for speed
@@ -5016,13 +5110,14 @@ c--- parameters to turn off various pieces, for checking
         
         mcfmplotinfo= (/ 34, 56, (0,j=1,48) /)
         
-        if     (nproc == 270) then
+        if     ((nproc == 269) .or. (nproc == 270)) then
 c-- 270 '  f(p1)+f(p2) --> H(gamma(p3)+gamma(p4))+f(p5)+f(p6)[in heavy top limit]'
 c--     '  f(p1)+f(p2) --> H(no BR)+f(p5)+f(p6)[in heavy top limit]' (removebr=.true.)
           hdecaymode='gaga'
           plabel(3)='ga'
           plabel(4)='ga'
           kcase=kgagajj
+          if (nproc == 269) kcase=kh2jmas
           nqcdjets=2
           if (removebr) then
             plabel(3)='ig'
@@ -5616,11 +5711,53 @@ c---  total cross-section
           BrnRat=brwen
        endif
 
-      
+c--------------------------------------------------------------------------------------------------
+
+      elseif ((nproc == 293) .or. (nproc == 298)) then
+c-- 293 '  f(p1)+f(p2) --> W^+(-->nu(p3)+e^+(p4))+gamma(p5)+f(p6)+f(p7) ' 'L'
+c-- 298 '  f(p1)+f(p2) --> W^-(-->e^-(p3)+nu~(p4))+gamma(p5)+f(p6)+f(p7) ' 'L'
+        kcase=kWga2jt
+        nqcdjets=2
+        ndim=13
+        n2=0
+        n3=0
+
+        mcfmplotinfo= (/ 34, (0,j=1,49) /)
+        
+        if (nproc == 293) then
+           nwz=+1
+           plabel(3)='nl'
+           plabel(4)='ea'
+           if (zerowidth .eqv. .false.) then
+           write(6,*)
+             write(6,*)'Setting removebr to .false. in order to ensure'
+           write(6,*)'lepton-photon singularity can be removed'
+           removebr=.false.
+         endif
+c--- total cross-section             
+           if (removebr) then
+             plabel(3)='ig'
+             plabel(4)='ig'
+             call branch(brwen,brzee,brznn,brtau,brtop,brcharm)
+             BrnRat=brwen
+           endif
+        elseif (nproc == 298) then
+           nwz=-1
+           plabel(3)='el'
+           plabel(4)='na'
+        endif
+        plabel(5)='ga'
+        plabel(6)='pp'
+        plabel(7)='pp'
+        lastphot=5
+        mass3=wmass
+        width3=wwidth
+
 c--------------------------------------------------------------------------------------------------
 
         elseif ((nproc == 300) .or. (nproc == 305)) then
           kcase=kZgamma
+          new_pspace = .true.
           nqcdjets=0
           ndim=7
           n2=0
@@ -5643,12 +5780,17 @@ c--     '  f(p1)+f(p2) --> Z^0 (no BR) +gamma(p5)' (removebr=.true.)
             q1=-1._dp
             l1=le
             r1=re
-            if (zerowidth .eqv. .false.) then
-            write(6,*)
-              write(6,*)'Setting removebr to .false. in order to ensure'
-            write(6,*)'lepton-photon singularity can be removed'
-            removebr=.false.
-          endif
+c-- parameters for phase space
+            doipsgen=.true.
+            maxipsgen=2
+            if ((zerowidth .eqv. .false.) .and. (removebr .eqv. .true.) ) then
+              if (rank == 0) then
+                write(6,*)
+                write(6,*)'Setting removebr to .false. in order to ensure'
+                write(6,*)'lepton-photon singularity can be removed'
+              endif
+              removebr=.false.
+            endif
             if (removebr) then
               plabel(3)='ig'
               plabel(4)='ig'
@@ -5662,12 +5804,19 @@ c-- 305 '  f(p1)+f(p2) --> Z^0(-->3*(nu(p3)+nu~(p4)))-(sum over 3 nu)+gamma(p5)'
             q1=zip
             l1=ln*sqrt(3._dp)
             r1=rn*sqrt(3._dp)
+            if (removebr) then
+              plabel(3)='ig'
+              plabel(4)='ig'
+              call branch(brwen,brzee,brznn,brtau,brtop,brcharm)
+              BrnRat=brznn
+            endif
           endif
 
 c-----------------------------------------------------------------------
 
         elseif ((nproc == 302) .or. (nproc == 307)) then
           kcase=kZgajet
+          new_pspace = .true.
           nqcdjets=1
           ndim=10
           n2=0
@@ -5691,12 +5840,17 @@ c--     '  f(p1)+f(p2) --> Z^0 (no BR) +gamma(p5)+jet(p6)' (removebr=.true.)
             q1=-1._dp
             l1=le
             r1=re
-            if (zerowidth .eqv. .false.) then
-            write(6,*)
-              write(6,*)'Setting removebr to .false. in order to ensure'
-            write(6,*)'lepton-photon singularity can be removed'
-            removebr=.false.
-          endif
+c-- parameters for phase space
+            doipsgen=.true.
+            maxipsgen=2
+            if ((zerowidth .eqv. .false.) .and. (removebr .eqv. .true.)) then
+              if (rank == 0) then
+                write(6,*)
+                write(6,*)'Setting removebr to .false. in order to ensure'
+                write(6,*)'lepton-photon singularity can be removed'
+              endif
+              removebr=.false.
+            endif
             if (removebr) then
               plabel(3)='ig'
               plabel(4)='ig'
@@ -5818,6 +5972,7 @@ c-----------------------------------------------------------------------
 c-- 304 '  f(p1)+f(p2) --> Z^0(e^-(p3)+e^+(p4))+gamma(p5)+f(p6)+f(p7)'
 c-- 309 '  f(p1)+f(p2) --> Z^0(-->3*(nu(p3)+nu~(p4))+gamma(p5)+f(p6)+f(p7)'
         kcase=kZga2jt
+        new_pspace = .true.
         nqcdjets=2
         ndim=13
         n2=0
@@ -7976,9 +8131,7 @@ c--- set flags to true unless we're doing W+2 jet or Z+2 jet
       subroutine nprocinvalid()
       implicit none
       include 'types.f'
-      
-      integer:: nproc
-      common/nproc/nproc
+      include 'nproc.f'
 
       write(6,*) 'chooser: Unimplemented case'
       write(6,*) 'nproc=',nproc      

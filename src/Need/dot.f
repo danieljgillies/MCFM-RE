@@ -13,3 +13,22 @@
       return
       end
 
+      function dotvec(pi,pj)
+      implicit none
+      include 'types.f'
+      real(dp):: dotvec, pi(4), pj(4)
+      
+      dotvec=pi(4)*pj(4)-pi(1)*pj(1)-pi(2)*pj(2)-pi(3)*pj(3)
+      return
+      end
+
+      function massvec(p)
+        implicit none
+        include 'types.f'
+
+        real(dp) :: massvec
+        real(dp), intent(in) :: p(4)
+
+        massvec=p(4)*p(4)-p(1)*p(1)-p(2)*p(2)-p(3)*p(3)
+      end
+

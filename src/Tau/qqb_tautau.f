@@ -21,6 +21,7 @@
       include 'zcouple.f'
       include 'ewcharge.f'
       include 'first.f'
+      include 'mpicommon.f'
       integer:: j,nu
       real(dp):: msq(-nf:nf,-nf:nf),p(mxpart,4),pks(4,10)
       real(dp):: RMT,RGT,RMW,RGW,RMB,RMTLO,RMTUP
@@ -45,6 +46,8 @@ c---- Fill common blocks for Kleiss and Stirling
          rmtup=zip
          GS_KS=sqrt(gsq)
          GW_KS=sqrt(gwsq/eight)
+!$omp master
+         if (rank.eq.0) then
          write(6,*) 
          write(6,*) 'rmw',rmw
          write(6,*) 'rmt',rmt
@@ -53,12 +56,14 @@ c---- Fill common blocks for Kleiss and Stirling
          write(6,*) 'GS_KS',GS_KS
          write(6,*) 'GW_KS',GW_KS
          write(6,*) 
+         endif
+!$omp end master
       endif
 
 c---step one change momentum notation into the notation of Kleiss and Stirling
 c----My notation
-*     q(-p1) +qbar(-p2) -->  tau^+(nubar_tau(p6)+nu_e(p7)+e+(p8))               
-*                           +tau^-(nu_tau(p5)+e-(p3)+nubar_e(p4))             
+*     q(-p1) +qbar(-p2) -->  tau^+(nubar_tau(p6)+nu_e(p7)+e+(p8))
+*                           +tau^-(nu_tau(p5)+e-(p3)+nubar_e(p4))
 c----KS notation
 c---qbar(p1)+q(p2) = tau^+(nubar_tau(p3)+e^-(p4)+nubar_e(p5))
 c                   +tau^-(nu_tau(p6)+nu_e(p7)+e^+(p8))

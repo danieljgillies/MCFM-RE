@@ -33,11 +33,14 @@ c---   br,wwbr,zzbr,tautaubr : the LO calculated values
 c---- if true, uses the input b-mass in the Yukawa coupling and normalizes
 c---- the H->bb cross-section according to the best value from Spira
 c---- if false, instead runs the b-mass to the Higgs mass and uses the LO Br
-
+c---- At present this improved treatment is only implemented for WH, ZH processes
+      FixBrHbb=.false.
       if(hdecaymode=='bqba') then 
-         FixBrHbb=.true.
-      else
-         FixBrHbb=.false.
+         if ((kcase == kWHbbar) .or. (kcase == kZHbbar)
+     &  .or. (kcase == kWHbbdk) .or. (kcase == kZHbbdk)
+     &  .or. (kcase == kWH1jet) .or. (kcase == kZH1jet)) then
+           FixBrHbb=.true.
+         endif
       endif
 
 c---  mb_eff is the bottom mass used in the Yukawa coupling

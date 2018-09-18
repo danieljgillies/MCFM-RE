@@ -16,7 +16,6 @@
       include 'mxpart.f'
       include 'qcdcouple.f'
       include 'zprods_decl.f'
-      include 'qlfirst.f'
       integer:: ip(5)
       complex(dp):: A5LOm,A5NLOm,A5LOp,A5NLOp
 

@@ -1,3 +1,3 @@
-      double precision scale,musq
+      real(dp)::scale,musq
       common/pvscale/scale,musq
 !$omp threadprivate(/pvscale/)

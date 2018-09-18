@@ -1,15 +1,13 @@
       subroutine a6treeb_anom(j1,j2,j3,j4,j5,j6,za,zb,a6b_1,a6b_2,a6b_3)
       implicit none
       include 'types.f'
-      
 c---  tree-level amplitude for WW
 c---  hep-ph/9907305 Eq. 10 (multiplied by a factor of (-i))
 c---  Note that this reduces to the SM result (a6treeb)
 c---  when delg1=0, delk=0, lambda=0
-      include 'constants.f'
-      include 'nf.f'
-      include 'mxpart.f'
       include 'cplx.h'
+      include 'constants.f'
+      include 'mxpart.f'
       include 'sprods_com.f'
       include 'zprods_decl.f'
       integer:: j1,j2,j3,j4,j5,j6
@@ -20,7 +18,7 @@ c--- statement function
       z2(i1,i2,i3,i4)=za(i1,i2)*zb(i2,i4)+za(i1,i3)*zb(i3,i4)
  
 c--- a6b_1 should be dressed with coupling 
-c---  (2._dp+delg1_v+delk_v+lambda_v)
+c---  (2._dp+delg1_v+delk_v)
       a6b_1=(za(j1,j3)*zb(j2,j4)*z2(j6,j1,j2,j5)
      &      +za(j1,j6)*zb(j2,j5)*z2(j3,j5,j6,j4))
      &      /(2._dp*s(j1,j2)*s(j3,j4)*s(j5,j6))
@@ -34,6 +32,14 @@ c--- a6b_3 should be dressed with coupling
 c---  lambda_v/wmass**2
       a6b_3=z2(j1,j3,j4,j2)*z2(j3,j1,j2,j5)*z2(j6,j1,j2,j4)
      &      /(2._dp*s(j1,j2)*s(j3,j4)*s(j5,j6))
+
+c--- a6b_4 should be dressed with coupling 
+c---  (lambda_v/wmass**2)
+      a6b_3=a6b_3+
+     &     (za(j1,j3)*zb(j2,j4)*z2(j6,j1,j2,j5)*s(j5,j6)
+     &      +za(j1,j6)*zb(j2,j5)*z2(j3,j5,j6,j4)*s(j3,j4))
+     &      /(2._dp*s(j1,j2)*s(j3,j4)*s(j5,j6))
+
   
       return
       end
@@ -41,18 +47,15 @@ c---  lambda_v/wmass**2
 
       subroutine a7treeb_anom(j1,j2,j3,j4,j5,j6,j7,za,zb,
      & a7b_1,a7b_2,a7b_3)
-      implicit none
-      include 'types.f'
 c---  real amplitude for WW
 c---  hep-ph/9907305 Eq. 12 (multiplied by a factor of (-i))
 c---  Note that this reduces to the SM result (a7treeb)
 c---  when delg1=0, delk=0, lambda=0
-      
-
-      include 'constants.f'
-      include 'nf.f'
-      include 'mxpart.f'
+      implicit none
+      include 'types.f'
       include 'cplx.h'
+      include 'constants.f'
+      include 'mxpart.f'
       include 'sprods_com.f'
       include 'zprods_decl.f'
       integer:: j1,j2,j3,j4,j5,j6,j7
@@ -66,7 +69,7 @@ c--- statement function
       t127=s(j1,j2)+s(j1,j7)+s(j2,j7)
 
 c--- a7b_1 should be dressed with coupling 
-c---  (2._dp+delg1_v+delk_v+lambda_v)
+c---  (2._dp+delg1_v+delk_v)
       a7b_1=(za(j1,j3)*z2(j1,j2,j7,j4)*z2(j6,j3,j4,j5)
      &      -za(j1,j6)*z2(j1,j2,j7,j5)*z2(j3,j5,j6,j4))
      &      /(2._dp*za(j1,j7)*za(j7,j2)*s(j3,j4)*s(j5,j6)*t127)
@@ -82,6 +85,13 @@ c---  lambda_v/wmass**2
       a7b_3=(z2(j1,j3,j4,j2)*za(j2,j1)+z2(j1,j3,j4,j7)*za(j7,j1))
      &      *z2(j3,j4,j6,j5)*z2(j6,j3,j5,j4)
      &      /(2._dp*za(j1,j7)*za(j7,j2)*s(j3,j4)*s(j5,j6)*t127)
+
+      a7b_3=a7b_3
+     &     +(za(j1,j3)*z2(j1,j2,j7,j4)*z2(j6,j3,j4,j5)*s(j5,j6)
+     &      -za(j1,j6)*z2(j1,j2,j7,j5)*z2(j3,j5,j6,j4)*s(j3,j4))
+     &      /(2._dp*za(j1,j7)*za(j7,j2)*s(j3,j4)*s(j5,j6)*t127)
+
+
   
       return
       end
@@ -91,15 +101,13 @@ c---  lambda_v/wmass**2
      & a6b_1,a6b_2,a6b_3,a6b_4)
       implicit none
       include 'types.f'
-      
 c---  tree-level amplitude for WZ
 c---  hep-ph/9907305 Eq. 14 (multiplied by a factor of (-i))
 c---  Note that this reduces to the SM result (a6treeb)
 c---  when delg1=0, delk=0, lambda=0
-      include 'constants.f'
-      include 'nf.f'
-      include 'mxpart.f'
       include 'cplx.h'
+      include 'constants.f'
+      include 'mxpart.f'
       include 'sprods_com.f'
       include 'zprods_decl.f'
       integer:: j1,j2,j3,j4,j5,j6
@@ -142,9 +150,7 @@ c---  hep-ph/9907305 Eq. 15 (multiplied by a factor of (-i))
 c---  Note that this reduces to the SM result (a7treeb)
 c---  when delg1=0, delk=0, lambda=0
       include 'constants.f'
-      include 'nf.f'
       include 'mxpart.f'
-      include 'cplx.h'
       include 'sprods_com.f'
       include 'zprods_decl.f'
       integer:: j1,j2,j3,j4,j5,j6,j7

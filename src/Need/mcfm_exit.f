@@ -10,7 +10,6 @@
       include 'constants.f'
       include 'nf.f'
       include 'mxpart.f'
-      include 'cplx.h'
       include 'mpif.h'
       include 'efficiency.f'
       include 'kprocess.f'
@@ -20,12 +19,14 @@
       include 'bypart.f'
       include 'histo.f'
       include 'taucut.f'
+      include 'ehisto.f'
+      include 'reweight.f'
       include 'mpicommon.f'
       integer ierr
       integer(kind=8) collect,sihis(nplot,maxnbin),siuscore(nplot),
      & sioscore(nplot),sient(nplot)
       double precision slord_bypart(-1:1,-1:1),shist(nplot,maxnbin),
-     & shavg(nplot),shint(nplot),shsig(nplot)
+     & shavg(nplot),shint(nplot),shsig(nplot),sehist(4,1000,100)
 
 c--- APPLgrid - to use grids
 c      include 'constants.f'
@@ -52,9 +53,18 @@ c--- APPLgrid -end
       if (rank.eq.0) then
 c--- Print-out the value of the integral and its error
       write(6,*) 
-      if (xinteg < 1d7) then 
+      if (reweight /= one) then
+        write(6,*) 'WARNING: integral has been reweighted, the'
+        write(6,*) 'result below is not a physical cross-section'
+        write(6,*)
+      endif
+      if (xinteg < 1d3) then 
         write(6,53)'Value of final ',trim(part),' integral is',
      &   xinteg,' +/-',xinteg_err, ' fb'
+      else if (xinteg < 1d6) then
+        write(6,53)'Value of final ',trim(part),' integral is',
+     &   xinteg/1d3,' +/-',xinteg_err/1d3, ' pb'
+        write(6,*) '(WARNING: result in picobarns)'
       else 
         write(6,53)'Value of final ',trim(part),' integral is',
      &   xinteg/1d6,' +/-',xinteg_err/1d6, ' nb'
@@ -88,18 +98,19 @@ c---  normalized by sigma(gg->H, finite mt)/sigma(gg->H, mt-> infinity)
       endif
 c--- Print-out a summary of the effects of jets and cuts
 
-      call mpi_reduce(ntotshot,collect,1,mpi_integer8,
+      call mpi_reduce(ntotshot,collect,1,MPI_INTEGER8,
      .     mpi_sum,0,mpi_comm_world,ierr)
       ntotshot=collect
-      call mpi_reduce(ntotzero,collect,1,mpi_integer8,
+      call mpi_reduce(ntotzero,collect,1,MPI_INTEGER8,
      .     mpi_sum,0,mpi_comm_world,ierr)
       ntotzero=collect
-      call mpi_reduce(njetzero,collect,1,mpi_integer8,
+      call mpi_reduce(njetzero,collect,1,MPI_INTEGER8,
      .     mpi_sum,0,mpi_comm_world,ierr)
       njetzero=collect
-      call mpi_reduce(ncutzero,collect,1,mpi_integer8,
+      call mpi_reduce(ncutzero,collect,1,MPI_INTEGER8,
      .     mpi_sum,0,mpi_comm_world,ierr)
       ncutzero=collect
+      
       
       if (rank == 0) write(6,*)
       if ((rank == 0) .and. (usescet .eqv. .false.)) then
@@ -124,7 +135,7 @@ c--- through the jet and cut routines
         endif 
       endif
 
-      call mpi_reduce(lord_bypart,slord_bypart,9,mpi_double_precision,
+      call mpi_reduce(lord_bypart,slord_bypart,9,MPI_DOUBLE_PRECISION,
      .     mpi_sum,0,mpi_comm_world,ierr)
       if ((rank.eq.0) .and. (usescet .eqv. .false.))then
       lord_bypart(:,:)=slord_bypart(:,:)
@@ -164,8 +175,8 @@ c--- If we've calculated PDF errors, present results using
 c--- new implementation of PDF uncertainty (9/2013)
 
       if (PDFerrors) then
-      call mpi_reduce(PDFxsec,PDFarray,1001,
-     .     mpi_double_precision,mpi_sum,0,mpi_comm_world,ierr)
+        call mpi_reduce(PDFxsec,PDFarray,1001,
+     .     MPI_DOUBLE_PRECISION,mpi_sum,0,mpi_comm_world,ierr)
       if (rank.eq.0) then
 !        PDFarray(:)=PDFxsec(:)
         call computepdfuncertainty(PDFarray,PDFcentral,
@@ -193,6 +204,7 @@ c------ loop over output units
         close(91)
       endif
       
+
    56 format('* PDF error set ',i3,' -->',f15.3,' fb  *')
    57 format('*   ',a16,f14.3,' fb      *')
    58 format(a44)
@@ -200,32 +212,38 @@ c------ loop over output units
    60 format('*   ',a16,f14.2,' %       *')
       endif
 
+ 
       if (bin) then
 c--- Finalize the histograms, if we're not filling ntuples instead
-      call mpi_reduce(hist,shist,nplot*maxnbin,mpi_double_precision,
+      call mpi_reduce(hist,shist,nplot*maxnbin,MPI_DOUBLE_PRECISION,
      .     mpi_sum,0,mpi_comm_world,ierr)
          hist(:,:)=shist(:,:)
-      call mpi_reduce(havg,shavg,nplot,mpi_double_precision,
+      call mpi_reduce(havg,shavg,nplot,MPI_DOUBLE_PRECISION,
      .     mpi_sum,0,mpi_comm_world,ierr)
          havg(:)=shavg(:)
-      call mpi_reduce(hint,shint,nplot,mpi_double_precision,
+      call mpi_reduce(hint,shint,nplot,MPI_DOUBLE_PRECISION,
      .     mpi_sum,0,mpi_comm_world,ierr)
          hint(:)=shint(:)
-      call mpi_reduce(hsig,shsig,nplot,mpi_double_precision,
+      call mpi_reduce(hsig,shsig,nplot,MPI_DOUBLE_PRECISION,
      .     mpi_sum,0,mpi_comm_world,ierr)
          hsig(:)=shsig(:)
-      call mpi_reduce(ihis,sihis,nplot*maxnbin,mpi_integer8,
+      call mpi_reduce(ihis,sihis,nplot*maxnbin,MPI_INTEGER8,
      .     mpi_sum,0,mpi_comm_world,ierr)
          ihis(:,:)=sihis(:,:)
-      call mpi_reduce(iuscore,siuscore,nplot,mpi_integer8,
+      call mpi_reduce(iuscore,siuscore,nplot,MPI_INTEGER8,
      .     mpi_sum,0,mpi_comm_world,ierr)
          iuscore(:)=siuscore(:)
-      call mpi_reduce(ioscore,sioscore,nplot,mpi_integer8,
+      call mpi_reduce(ioscore,sioscore,nplot,MPI_INTEGER8,
      .     mpi_sum,0,mpi_comm_world,ierr)
          ioscore(:)=sioscore(:)
-      call mpi_reduce(ient,sient,nplot,mpi_integer8,
+      call mpi_reduce(ient,sient,nplot,MPI_INTEGER8,
      .     mpi_sum,0,mpi_comm_world,ierr)
          ient(:)=sient(:)
+      if (PDFerrors) then
+        call mpi_reduce(ehist,sehist,4*1000*100,MPI_DOUBLE_PRECISION,
+     .                  mpi_sum,0,mpi_comm_world,ierr)
+        ehist(:,:,:)=sehist(:,:,:)
+      endif
          if (creatent .eqv. .false.) then
             if (dswhisto .eqv. .false.) then
 c---  Traditional MCFM histograms
@@ -236,14 +254,13 @@ c---  DSW histograms - store the information
                call dswhfill(200,0.5_dp,xinteg)
                call dswhfill(200,1.5_dp,xinteg_err)
 c---  DSW histograms - output and close file
-               call NTfinalize
             endif
+         else
+            call NTfinalize
          endif
       endif
 c--- APPLgrid - creating grid
-c      if (creategrid)then
-c       call write_grid(xinteg)
-c      endif
+c     call write_grid(xinteg)
 c--- APPLgrid - end
 
 c--- Write out references 

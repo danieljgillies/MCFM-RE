@@ -4,13 +4,14 @@
 C---  Fixes Diii using 5.48
 c---  knowing D00ii with a correction of order Delta*Diiii
 
+      include 'types.f'
       include 'pvDnames.f'
       include 'pvDv.f'
       include 'Darraydef.f'
       include 'Darrays.f'
       integer ep,N0,j,i1,i2,i3,n
-      double precision DetGr,Xtwiddle0(3),Gtwiddle(3,3)
-      double complex Shat4(3,z3max,-2:0),Shat4s(3,z3max,-2:0)
+      real(dp):: DetGr,Xtwiddle0(3),Gtwiddle(3,3)
+      complex(dp):: Shat4(3,z3max,-2:0),Shat4s(3,z3max,-2:0)
        
       do ep=-2,0
       do n=1,3

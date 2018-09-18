@@ -20,7 +20,7 @@ c---  where non-jet four vectors are set equal to the incoming q
       include 'kprocess.f'
       include 'plabel.f'
       real(dp):: q(mxpart,4),qjet(mxpart,4),qfinal(mxpart,4)
-      real(dp):: Rsep,Rmin,aetarap
+      real(dp):: Rsep,Rmin,aetarap,etjeti,aei
       integer:: i,j,k,l,nu,iter,maxjet,ajet,jetindex(mxpart),isub
       character*2 finallabel(mxpart)
       real(dp):: protoq(20,4),deltarq,deltarj,et,etmax,net,
@@ -419,15 +419,15 @@ c        write(*,*) 'Jet ',i,'(',jetlabel(i),')',jetindex(i)
 c        write(*,*) 'pt: ',getet(qjet(i,4),qjet(i,1),
 c     &               qjet(i,2),qjet(i,3)),' vs min. ',ptjetmin
 c        write(*,*) 'ay: ',aetarap(i,qjet),' vs max. ',etajetmax
-        if ((getet(qjet(i,4),qjet(i,1),qjet(i,2),qjet(i,3))
-     &          > ptjetmin) .and.
-     &      (aetarap(i,qjet) > etajetmin) .and.
-     &      (aetarap(i,qjet) < etajetmax)) then  
-        ajet=ajet+1
-        do nu=1,4
-          qfinal(jetindex(ajet),nu)=qjet(i,nu)
-        enddo
-        jetlabel(ajet)=jetlabel(i)
+        etjeti=getet(qjet(i,4),qjet(i,1),qjet(i,2),qjet(i,3))
+        aei=aetarap(i,qjet)
+        if ((etjeti > ptjetmin) .and. (etjeti < ptjetmax) .and.
+     &      (aei > etajetmin) .and. (aei < etajetmax)) then  
+          ajet=ajet+1
+          do nu=1,4
+            qfinal(jetindex(ajet),nu)=qjet(i,nu)
+          enddo
+          jetlabel(ajet)=jetlabel(i)
         endif
       enddo
       

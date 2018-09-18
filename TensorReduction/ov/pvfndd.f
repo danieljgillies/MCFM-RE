@@ -1,10 +1,12 @@
-      double complex function pvfndd(n,x,iep)
+      function pvfndd(n,x,iep)
 C----Implementation of DD Eq. 4.11
+        use mod_qcdloop_c
       implicit none
+      include 'types.f'
       include 'TRonshellcutoff.f'
       integer j,n,infty
-      double complex xm1,x,cln,cone
-      double precision iep
+      complex(dp):: pvfndd,xm1,x,cone
+      real(dp):: iep
       parameter(cone=(1d0,0d0),infty=16) ! number of terms in sum
       
       xm1=x-cone

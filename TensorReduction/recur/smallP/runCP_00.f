@@ -1,5 +1,6 @@
       subroutine runCP_00(m0sq,Gr,Bzero0,N0)
       implicit none
+      include 'types.f'
       include 'TRconstants.f'
       include 'pvCnames.f'
       include 'pvCv.f'
@@ -7,8 +8,8 @@
       include 'Carrays.f'
       integer ep,N0,m,n,np
       parameter(np=2)
-      double precision m0sq,Gr(np,np)
-      double complex Bzero0(-2:0),bit,pole
+      real(dp):: m0sq,Gr(np,np)
+      complex(dp):: Bzero0(-2:0),bit,pole
        
       do ep=-2,0
       bit=czip

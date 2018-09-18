@@ -13,9 +13,9 @@ c--- For itno>0, this is an intermediate result only
       include 'histo.f'
       include 'ehisto.f'
       include 'outputoptions.f'
-      include 'vanillafiles.f'
       include 'irregbins_incl.f'
       include 'iterat.f'
+      include 'accumhist.f'
       integer j,nlength,itno,itmx,nplotmax,nempty
       character*255 runname,outfiledat,outfiletop,outfileerr
 c--F  Add gnuplot output and root output
@@ -32,6 +32,9 @@ c      character*255 outfilepwg
       common/nplotmax/nplotmax
       common/scaleplots/scalefac,scaleplots
 
+! copy over final histograms
+        hist(:,:)=finalhist(:,:)
+
 c---- SSbegin
       call userhistofin(xsec,xsec_err,itno,itmx)
 c---- SSend
@@ -43,15 +46,7 @@ c--- call to POWHEG-style histofin if requested
       if (itno == 0) then
       write(6,*)
       write(6,*) '****************************************************'
-      if (vanillafiles) then
-        write(6,*) 'output file name normally  ',runname(1:nlength)
-        runname='mcfm-output'
-        nlength=11
-        write(6,*)
-        write(6,*) '  but renamed to: ',runname
-      else
-        write(6,*) 'output files  ',runname(1:nlength)
-      endif
+      write(6,*) 'output files  ',runname(1:nlength)
       write(6,*) '****************************************************'
       call flush(6)
       scaleplots=.false.
@@ -127,22 +122,24 @@ c--- write out run info to top of files
 
 
 c--- make sure to scale results by the maximum number of iterations
-      if (itno == 0) then
-        itscale=1._dp/real(itmx,dp)
-        mop='V'
-      else
-        itscale=1._dp/real(itno,dp)
-        mop='U'
-      endif
+!      if (itno == 0) then
+!        itscale=1._dp/real(itmx,dp)
+!        itscale=1._dp ! no need to scale if using updatehisto
+!        mop='V'
+!      else
+!        itscale=1._dp/real(itno,dp)
+!        mop='U'
+!      endif
       
-c--- calculate the errors in each plot (and store in 2*maxhisto+j)
-      do j=1,nplotmax
-      if (verbose) then
-c        write(6,*) 'Calculating errors for plot ',j
-        call flush(6)
-      endif
-      call mopera(j,mop,maxhisto+j,2*maxhisto+j,itscale,1._dp)
-      enddo
+!c--- calculate the errors in each plot (and store in 2*maxhisto+j)
+!      do j=1,nplotmax
+!      if (verbose) then
+!c        write(6,*) 'Calculating errors for plot ',j
+!        call flush(6)
+!      endif
+!! don't do this if using updatehisto
+!      call mopera(j,mop,maxhisto+j,2*maxhisto+j,itscale,1._dp)
+!      enddo
 
       do j=1,nplotmax
       if (verbose) then
@@ -157,12 +154,17 @@ c--- ensure that MFINAL doesn't turn off booking for intermediate results
       endif
       enddo
 
-c--- Perform integrals on plots if required
+c--- If required
+c--- perform integrals on plots
+c--- or compute relative EW corrections
 c--- or compute FB asymmetry (at end of run only)
       if (itno == 0) then
         do j=1,nplotmax
           if (index(title(j),'+INTEGRAL+') > 0) then
           call integratehisto(j)
+          endif
+          if (index(title(j),'+RELEW+') > 0) then
+            call relativeewhisto(j)
           endif
           if (index(title(j),'+FB+') > 0) then
             call FBhisto(j)
@@ -202,7 +204,7 @@ c        write(6,*) 'Writing .top for plot ',j
         call mrootplot(j,2*maxhisto+j,'x','y')
       endif
       if ((PDFerrors) .and. (IHISTOMATCH(j) .ne. 0)) then
-        call emtop(j,2*maxhisto,'x','y',linlog(j))
+        call emtop(j,2*maxhisto+j,'x','y',linlog(j))
       endif
       enddo
       if (writetop) close(unit=99)

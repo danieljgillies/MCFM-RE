@@ -1,11 +1,12 @@
       subroutine pvswitch6(q1,F0,F1,F2,F3,F4,F5,F6,F6a)
       implicit none
+      include 'types.f'
       include 'TRydef.f'
       integer n1,n2,n3,n4,n5,n6,ep
-      double complex F0(-2:0),F1(y1max,-2:0),F2(y2max,-2:0),
+      complex(dp):: F0(-2:0),F1(y1max,-2:0),F2(y2max,-2:0),
      . F3(y3max,-2:0),F4(y4max,-2:0),F5(y5max,-2:0),
      . F6(y6max,-2:0),F6a(y6max,-2:0)
-      double precision q1(4)
+      real(dp):: q1(4)
 
       do ep=-2,0
       do n1=1,4

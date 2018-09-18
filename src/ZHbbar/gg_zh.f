@@ -23,6 +23,7 @@
       include 'masses.f'
       include 'first.f'
       include 'cutoff.f' 
+      include 'nproc.f'
       real(kind=dp):: p(mxpart,4),msqgg
       complex(kind=dp):: ampbox_mt(2,2,2),amptri_mt(2,2,2)
       complex(kind=dp):: ampbox_mb(2,2,2),amptri_mb(2,2,2),amptot(2,2,2)
@@ -31,8 +32,6 @@
       integer:: h1,h2,h3,j,k
       real(kind=dp):: s56,msqgamgam
       real(kind=dp):: v1(2),ggHZ_eft,cutoff_orig
-      integer:: nproc
-      common/nproc/nproc
       
       msqgg=zip
       
@@ -52,12 +51,6 @@ c--- numerical safety cut
          return 
       endif
       
-      if(first) then 
-         call qlinit
-         first=.false.
-      endif
-
-
       ampbox_mt(:,:,:)=czip
       amptri_mt(:,:,:)=czip
       ampbox_mb(:,:,:)=czip
@@ -169,6 +162,7 @@ c--- numerical safety cut
 
 
       subroutine fill_basis_int_ggzh(i1,i2,i3,i4,mt2)
+        use mod_qcdloop_c
       implicit none 
       include 'types.f'
       include 'constants.f' 
@@ -185,7 +179,6 @@ c--- numerical safety cut
       parameter(d25_12=1,d15_12=2,d15_25=3)
       integer:: c25_Z,cH_25,c12,c15_H,cZ_15,c12_Z_H
       parameter(c25_Z=1,cH_25=2,c12=3,c15_H=4,cZ_15=5,c12_Z_H=6)
-      complex(kind=dp):: qlI4,qlI3
       common/ggZH_basisint/D0,C0
 !$omp threadprivate(/ggZH_basisint/)
       

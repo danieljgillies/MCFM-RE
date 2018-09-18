@@ -67,7 +67,6 @@ c--- fill strings of gamma matrices on first pass
         swapxz=.true.
         call fillgam
         call TRsetmaxindex(2,2,0) ! Only need up to Cij and Dij
-        call qlinit
         call pvArraysetup
         itotal=0
         ibadpoint=0

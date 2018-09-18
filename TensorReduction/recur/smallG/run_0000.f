@@ -3,15 +3,15 @@
       implicit none
 C------Fixes D0000 using 5.46
 C-----knowing D00 with correction of order Delta D00ii
+      include 'types.f'
       include 'TRconstants.f'
       include 'pvDnames.f'
       include 'pvDv.f'
       include 'Darraydef.f'
       include 'Darrays.f'
       integer ep,N0,k,l,n,m
-      double precision DetGr,Gtwiddle(3,3),Gtt(3,3,3,3),f(3)
-      double complex Shati00(3,-2:0),S0000(-2:0),Si00m(3,3,-2:0),
-     . bit,pole
+      real(dp):: DetGr,Gtwiddle(3,3),Gtt(3,3,3,3),f(3)
+      complex(dp):: Shati00(3,-2:0),S0000(-2:0),Si00m(3,3,-2:0),bit,pole
 
        
       do ep=-2,0

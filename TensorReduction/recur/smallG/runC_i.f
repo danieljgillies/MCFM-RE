@@ -1,5 +1,6 @@
       subroutine runC_i(j,i1,DetGr,Xtwiddle0,Gtwiddle,Shat2,N0)
       implicit none
+      include 'types.f'
       include 'TRconstants.f'  
       include 'pvCnames.f'  
       include 'pvCv.f'  
@@ -7,8 +8,8 @@
       include 'Carrays.f'  
       integer ep,N0,j,i1,n,np
       parameter(np=2)
-      double precision DetGr,Xtwiddle0(np),Gtwiddle(np,np)
-      double complex Shat2(np,np,-2:0),Shat2s(np,np,-2:0),bit
+      real(dp):: DetGr,Xtwiddle0(np),Gtwiddle(np,np)
+      complex(dp):: Shat2(np,np,-2:0),Shat2s(np,np,-2:0),bit
        
       do ep=-2,0
       bit=czip

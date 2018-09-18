@@ -1,13 +1,14 @@
       subroutine runCP_i(k,i1,f,Gr,Shat2,N0)
       implicit none
+      include 'types.f'
       include 'pvCnames.f'
       include 'pvCv.f'
       include 'Carraydef.f'
       include 'Carrays.f'
       integer ep,N0,k,i1,np
       parameter(np=2)
-      double precision f(np),Gr(np,np)
-      double complex Shat2(np,np,-2:0)
+      real(dp):: f(np),Gr(np,np)
+      complex(dp):: Shat2(np,np,-2:0)
        
       do ep=-2,0
       Cv(ci(i1)+N0,ep)=

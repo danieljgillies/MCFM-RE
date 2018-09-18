@@ -109,19 +109,41 @@ c -- transverse momenta
       ptmu=pt(4,p) 
       ptem=pt(9,p) 
       ptep=pt(10,p) 
-      ptj1=pt(jetindex(1),p)
-      ptj2=pt(jetindex(2),p)
-      ptj3=pt(jetindex(3),p)
-      ptj4=pt(jetindex(4),p)
       
 c -- pseudorapidities
       etamu=etarap(4,p)
       etaem=etarap(9,p)
       etaep=etarap(10,p)
+
+c --- jet quantities: set out of bounds if not enough jets
+      if (jets > 0) then
+      ptj1=pt(jetindex(1),p)
       etaj1=etarap(jetindex(1),p)
-      etaj2=etarap(jetindex(2),p)
-      etaj3=etarap(jetindex(3),p)
-      etaj4=etarap(jetindex(4),p)
+      else
+        ptj1=-1._dp
+        etaj1=999._dp
+      endif
+      if (jets > 1) then
+        ptj2=pt(jetindex(2),p)
+        etaj2=etarap(jetindex(2),p)
+      else
+        ptj2=-1._dp
+        etaj2=999._dp
+      endif
+      if (jets > 2) then
+        ptj3=pt(jetindex(3),p)
+        etaj3=etarap(jetindex(3),p)
+      else
+        ptj3=-1._dp
+        etaj3=999._dp
+      endif
+      if (jets > 3) then
+        ptj4=pt(jetindex(4),p)
+        etaj4=etarap(jetindex(4),p)
+      else
+        ptj4=-1._dp
+        etaj4=999._dp
+      endif
 
 c -- quantities for Z:
       mZ=twomass(9,10,p)

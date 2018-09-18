@@ -26,7 +26,7 @@ c---                    ipow = +1 (normal kt), ipow = -1 ("anti-kt")
       include 'is_functions_com.f'
 
       real(dp):: q(mxpart,4),qjet(mxpart,4),qfinal(mxpart,4)
-      real(dp):: pt,Rmin,dijmin,dkmin,ayrap
+      real(dp):: pt,Rmin,dijmin,dkmin,ayrap,pti,ayi
       integer:: i,nu,iter,nmin1,nmin2,maxjet,nk,
      & ajet,jetindex(mxpart),isub,ipow
       logical:: jetmerge,failed,is_hadronic
@@ -158,14 +158,15 @@ c        write(*,*) 'pt: ',pt(i,qjet),' vs min. ',ptjetmin
 c        write(*,*) 'aeta: ',aetarap(i,qjet),' vs min. ',etajetmin
 c        write(*,*) 'aeta: ',aetarap(i,qjet),' vs max. ',etajetmax
 
-        if ((pt(i,qjet) >= ptjetmin) .and.
-     &      (ayrap(i,qjet) >= etajetmin) .and.
-     &      (ayrap(i,qjet) <= etajetmax)) then 
-        ajet=ajet+1
-        do nu=1,4
-          qfinal(jetindex(ajet),nu)=qjet(i,nu)
-        enddo
-        jetlabel(ajet)=jetlabel(i)
+        pti=pt(i,qjet)
+        ayi=ayrap(i,qjet)
+        if ((pti >= ptjetmin) .and. (pti <= ptjetmax) .and.
+     &      (ayi >= etajetmin) .and. (ayi <= etajetmax)) then 
+          ajet=ajet+1
+          do nu=1,4
+            qfinal(jetindex(ajet),nu)=qjet(i,nu)
+          enddo
+          jetlabel(ajet)=jetlabel(i)
         endif
       enddo
       

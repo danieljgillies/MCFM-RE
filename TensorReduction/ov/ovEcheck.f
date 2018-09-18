@@ -1,15 +1,16 @@
       subroutine ovEcheck(rank,q1,q2,q3,q4,m1s,m2s,m3s,m4s,m5s,
      & FE0,FE1,FE2,FE3,FE4,FE5,failed)
       implicit none
+      include 'types.f'
       include 'TRydef.f'
       include 'pvverbose.f'
       integer n2,n3,n4,ep,nu,rank,epmin
 c     integer n5
-      double precision q1(4),q2(4),q3(4),q4(4),p2(4),p3(4),p4(4),
+      real(dp):: q1(4),q2(4),q3(4),q4(4),p2(4),p3(4),p4(4),
      & p23(4),p34(4),Eacc
-      double precision q1Dq1,q2Dq2,q3Dq3,q4Dq4,m1s,m2s,m3s,m4s,m5s,
+      real(dp):: q1Dq1,q2Dq2,q3Dq3,q4Dq4,m1s,m2s,m3s,m4s,m5s,
      & f1,f2,f3,f4
-      double complex FE0(-2:0),FE1(y1max,-2:0),FE2(y2max,-2:0),
+      complex(dp):: FE0(-2:0),FE1(y1max,-2:0),FE2(y2max,-2:0),
      & FE3(y3max,-2:0),FE4(y4max,-2:0),FE5(y5max,-2:0),
      & FD01(-2:0),FD11(y1max,-2:0),FD21(y2max,-2:0),
      & FD31(y3max,-2:0),FD41(y4max,-2:0),FD51(y5max,-2:0),
@@ -30,8 +31,8 @@ c     integer n5
      & FD35a(y3max,-2:0),FD45a(y4max,-2:0),
      & trhs,tq
       parameter(epmin=-2) ! Only check finite pieces
-
       logical failed
+      include 'cplx.h'
       
       failed=.false.
 
@@ -366,7 +367,7 @@ c     & -FE4(y4(3,3,n3,n4),ep)
 c     & -m1s*FE2(y2(n3,n4),ep)
 c      trhs= tq
 c     & -FD25a(y2(n3,n4),ep)
-c     & +dcmplx(sing4(ep))
+c     & +cplx1(sing4(ep))
 c      call checkaccuracy(trhs,tq,Eacc,failed) 
 c      enddo
 c      enddo
@@ -477,7 +478,7 @@ c     & -FE5(y5(3,3,n3,n4,n5),ep)
 c     & -m1s*FE3(y3(n3,n4,n5),ep)
 c      trhs= tq 
 c     & -FD34a(y3(n3,n4,n5),ep)
-c     & +dcmplx(sing5(ep))  
+c     & +cplx1(sing5(ep))  
 c      call checkaccuracy(trhs,tq,Eacc,failed) 
 c      enddo
 c      enddo

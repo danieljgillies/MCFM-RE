@@ -264,6 +264,8 @@ c           goto 68
 c         if (debuglarge/debugsmall < xtoler*1d2) 
 c     &       debugsmall=debuglarge/xtoler
 
+         write (*,*) "       msq/msqs   msq           msqs"
+
          do jj=-nflav,nflav
          do kk=-nflav,nflav
          

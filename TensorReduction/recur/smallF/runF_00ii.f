@@ -3,6 +3,7 @@ C---  Expression for rearrangement of Eq. 5.70
 C---  Calculates D00ii
 C---  Small terms of order f(i)*Dijk,Gr(i,j)*Dijkl
       implicit none
+      include 'types.f'
       include 'pvDnames.f'
       include 'pvDv.f'
       include 'Darraydef.f'
@@ -10,8 +11,8 @@ C---  Small terms of order f(i)*Dijk,Gr(i,j)*Dijkl
       include 'pvweenumber.f' 
       integer ep,N0,i1,i2,np
       parameter(np=3)
-      double precision f(np),Gr(np,np),den
-      double complex Shat4(np,z3max,-2:0)
+      real(dp):: f(np),Gr(np,np),den
+      complex(dp):: Shat4(np,z3max,-2:0)
        
       do ep=-2,0
       if (i1 .eq. i2) then

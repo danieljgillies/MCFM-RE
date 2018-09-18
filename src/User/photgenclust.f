@@ -19,7 +19,7 @@ c---- any partons lie in cone Rij < delta_0
       include 'frag.f'
       real(dp):: pin(mxpart,4),Rmin,pjet(mxpart,4),
      & pfinal(mxpart,4)
-      real(dp):: dijmin,dkmin,aetarap,pt,Rgen
+      real(dp):: dijmin,dkmin,aetarap,pt,Rgen,pti,aei
       integer:: isub,i,nu,iter,ipow,nmin1,nmin2,maxjet,jetindex(mxpart) 
       integer:: nk,ajet
       logical:: jetmerge,insideacone,inclusive_inside_cone,
@@ -141,10 +141,11 @@ c--- if passed frix and is in isolation cone then do not apply cuts
 c--- will add to jet tally
            softjet=softjet+1
          else
+           pti=pt(i,pjet)
+           aei=aetarap(i,pjet)
 c--- if jet doesnt lie within photon cone apply cuts
-           if ((pt(i,pjet) >= ptjetmin) .and. 
-     &         (aetarap(i,pjet) >= etajetmin) .and.
-     &         (aetarap(i,pjet) <= etajetmax)) then
+           if ((pti >= ptjetmin) .and. (pti <= ptjetmax) .and.
+     &         (aei >= etajetmin) .and. (aei <= etajetmax)) then
              ajet=ajet+1
              do nu=1,4
                pfinal(jetindex(ajet),nu)=pjet(i,nu)

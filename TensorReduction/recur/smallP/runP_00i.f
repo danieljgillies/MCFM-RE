@@ -1,5 +1,6 @@
       subroutine runP_00i(i1,m0sq,Gr,Czero1,N0)
       implicit none
+      include 'types.f'
       include 'TRconstants.f'
       include 'pvDnames.f'
       include 'pvDv.f'
@@ -7,8 +8,8 @@
       include 'Darrays.f'
       integer ep,N0,i1,m,n,np
       parameter(np=3)
-      double precision m0sq,Gr(np,np)
-      double complex Czero1(z1max,-2:0),bit,pole
+      real(dp):: m0sq,Gr(np,np)
+      complex(dp):: Czero1(z1max,-2:0),bit,pole
        
       do ep=-2,0
       bit=czip

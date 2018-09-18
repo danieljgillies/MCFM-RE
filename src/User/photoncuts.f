@@ -32,7 +32,8 @@
       real(dp):: ptm,ptm1,ptm2,pt3,pt4,aygam
       integer:: countlept,leptindex(mxpart),countgamm,gammindex(mxpart),
      & countjet,jetindex(mxpart)
-      real(dp):: pjet(mxpart,4),pt,etarap,R,pt1,pt2,pth,pts,s34
+      real(dp):: pjet(mxpart,4),pt,etarap,R,pt1,pt2,pth,pts,s34,
+     & eta1,eta2,eta3,eta4
       save countlept,countgamm,countjet,
      & leptindex,gammindex,jetindex
       logical, save :: CMScrack
@@ -41,7 +42,7 @@
 !$omp threadprivate(CMScrack)
 
       photoncuts=.false.
-      
+
       if (first) then
       first=.false.   
       CMScrack=(index(runstring,'CMScrack') > 0)
@@ -51,8 +52,12 @@ c--- write-out the cuts we are using
       write(6,*)
       write(6,*)  '****************** Photon cuts *********************'
       write(6,*)  '*                                                  *'
-      write(6,99) '*   pt(photon 1)         >   ',gammpt,
+      if (gammptmax > 0.99e6_dp) then
+        write(6,99) '*   pt(photon 1)         >   ',gammptmin,
      &                '                *'
+      else
+        write(6,97) gammptmin,'    pt(photon)     ',gammptmax,'GeV'
+      endif
       write(6,99) '*   pt(photon 2)         >   ',gammpt2,
      &                '                *'
       if((kcase==ktrigam) .or. (kcase==kfourga))then 
@@ -63,8 +68,7 @@ c--- write-out the cuts we are using
          write(6,99) '*   pt(photon 4)         >   ',gammpt3,
      &        '                *'
       endif
-      write(6,99) '*   eta(photon)          <   ',gammrap,
-     &                '                *'
+      write(6,97) gammrapmin,'   |eta(photon)|   ',gammrapmax,'   '
       write(6,99) '*   R(photon,lepton)     >   ',Rgalmin,
      &                '                *'
       write(6,99) '*   R(photon,photon)     >   ',Rgagamin,
@@ -117,8 +121,10 @@ c--- initialize counters and arrays that will be used to perform cuts
       endif
 C     Basic pt and rapidity cuts for photon
       if (countgamm == 1) then
-          if (     (pt(gammindex(1),pjet) < gammpt) .or.
-     &    (abs(etarap(gammindex(1),pjet)) > gammrap)) then
+          eta1=abs(etarap(gammindex(1),pjet))
+          pt1=pt(gammindex(1),pjet)
+          if ( (pt1 < gammptmin) .or. (pt1 > gammptmax) .or.
+     &    (eta1 > gammrapmax) .or. (eta1 < gammrapmin)) then
             photoncuts=.true.
             return
           endif
@@ -126,12 +132,14 @@ C     Basic pt and rapidity cuts for photon
       if (countgamm == 2) then
         pt1=pt(gammindex(1),pjet) 
         pt2=pt(gammindex(2),pjet) 
+        eta1=abs(etarap(gammindex(1),pjet))
+        eta2=abs(etarap(gammindex(2),pjet))
         pth=max(pt1,pt2)
         pts=min(pt1,pt2)
-        if ( ( pth < gammpt) .or.
+        if ( ( pth < gammptmin) .or. (pth > gammptmax) .or. 
      &       ( pts < gammpt2) .or.
-     &       (abs(etarap(gammindex(1),pjet)) > gammrap) .or.
-     &       (abs(etarap(gammindex(2),pjet)) > gammrap) ) then
+     &       (eta1 > gammrapmax) .or. (eta1 < gammrapmin) .or.
+     &       (eta2 > gammrapmax) .or. (eta2 < gammrapmin) ) then
           photoncuts=.true.
           return
         endif
@@ -141,15 +149,18 @@ C     Basic pt and rapidity cuts for photon
         pt1=pt(gammindex(1),pjet) 
         pt2=pt(gammindex(2),pjet)
         pt3=pt(gammindex(3),pjet)
+        eta1=abs(etarap(gammindex(1),pjet))
+        eta2=abs(etarap(gammindex(2),pjet))
+        eta3=abs(etarap(gammindex(3),pjet))
         pth=max(pt1,pt2,pt3)
         pts=min(pt1,pt2,pt3)
         ptm=pt1+pt2+pt3-pts-pth
-        if ( ( pth < gammpt) .or.
+        if ( ( pth < gammptmin) .or. (pth > gammptmax) .or. 
      &       ( ptm < gammpt2) .or.
      &       ( pts < gammpt3) .or.
-     &       (abs(etarap(gammindex(1),pjet)) > gammrap) .or.
-     &       (abs(etarap(gammindex(2),pjet)) > gammrap) .or.
-     &       (abs(etarap(gammindex(3),pjet)) > gammrap) ) then
+     &       (eta1 > gammrapmax) .or. (eta1 < gammrapmin) .or.
+     &       (eta2 > gammrapmax) .or. (eta2 < gammrapmin) .or.
+     &       (eta3 > gammrapmax) .or. (eta3 < gammrapmin) ) then
           photoncuts=.true.
           return
         endif
@@ -160,6 +171,10 @@ C     Basic pt and rapidity cuts for photon
         pt2=pt(gammindex(2),pjet)
         pt3=pt(gammindex(3),pjet)
         pt4=pt(gammindex(4),pjet)
+        eta1=abs(etarap(gammindex(1),pjet))
+        eta2=abs(etarap(gammindex(2),pjet))
+        eta3=abs(etarap(gammindex(3),pjet))
+        eta4=abs(etarap(gammindex(4),pjet))
         pth=max(pt1,pt2,pt3,pt4)
         pts=min(pt1,pt2,pt3,pt4)
         do i=1,4 
@@ -176,14 +191,14 @@ C     Basic pt and rapidity cuts for photon
         enddo
         ptm1=max(pt(gammindex(im1),pjet),pt(gammindex(im2),pjet))
         ptm2=min(pt(gammindex(im1),pjet),pt(gammindex(im2),pjet))
-        if ( ( pth < gammpt) .or.
+        if ( ( pth < gammptmin) .or. (pth > gammptmax) .or. 
      &       ( ptm1 < gammpt2) .or.
      &       ( ptm2 < gammpt3) .or.
      &       ( pts < gammpt3) .or.
-     &       (abs(etarap(gammindex(1),pjet)) > gammrap) .or.
-     &       (abs(etarap(gammindex(2),pjet)) > gammrap) .or.
-     &       (abs(etarap(gammindex(3),pjet)) > gammrap) .or.
-     &       (abs(etarap(gammindex(4),pjet)) > gammrap) ) then
+     &       (eta1 > gammrapmax) .or. (eta1 < gammrapmin) .or.
+     &       (eta2 > gammrapmax) .or. (eta2 < gammrapmin) .or.
+     &       (eta3 > gammrapmax) .or. (eta3 < gammrapmin) .or.
+     &       (eta4 > gammrapmax) .or. (eta4 < gammrapmin) ) then
           photoncuts=.true.
           return
         endif
@@ -318,6 +333,7 @@ c--- DEBUG: removed all isolation
       
  99   format(1x,a29,f6.2,a17)
  98   format(' *          ',f8.2,'  <   ',a3,'  < ',f8.2,'           *')
+ 97   format(' *  ',f9.3,' < ',a18,' < ',f9.3,a4,'  *')
       end
  
  

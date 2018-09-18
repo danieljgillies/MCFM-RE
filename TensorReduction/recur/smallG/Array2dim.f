@@ -1,4 +1,5 @@
       subroutine Array2dim
+      include 'types.f'
       include 'Carraydef.f'
       integer n1,n2,n3,n4,n5,n6,n7,i
       integer nn2(2),nn3(3),nn4(4),nn5(5),nn6(6),nn7(7)

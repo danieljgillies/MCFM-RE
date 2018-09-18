@@ -3,6 +3,7 @@ C---  Expression for rearrangement of Eq. 5.66
 C---  Calculates C00
 C---  Small terms of order f(i)*Ci,Gr(i,j)*Cij
       implicit none
+      include 'types.f'
       include 'pvCnames.f'
       include 'pvCv.f'
       include 'Carraydef.f'
@@ -10,8 +11,8 @@ C---  Small terms of order f(i)*Ci,Gr(i,j)*Cij
       include 'pvweenumber.f' 
       integer ep,N0,i1,np
       parameter(np=2)
-      double precision f(np),Gr(np,np)
-      double complex Shat2(np,np,-2:0)
+      real(dp):: f(np),Gr(np,np)
+      complex(dp):: Shat2(np,np,-2:0)
        
       do ep=-2,0
       Cv(cc00+N0,ep)=

@@ -22,7 +22,6 @@
       include 'phot_dip.f'
       include 'includect.f'
       include 'TRtensorcontrol.f'
-      include 'qlfirst.f'
       include 'frag.f'
       include 'histo.f'
       include 'irregbins_incl.f'
@@ -37,13 +36,14 @@ C -- GZ
       include 'epinv2.f'
       include 'ehisto.f'
       include 'mpicommon.f'
+      include 'nproc.f'
 
 c--- for APPLgrid
 c      include 'ptilde.f'
 c      include 'APPLinclude.f'
       real(dp):: rtsmin,p1ext(4),p2ext(4),p(mxpart,4),val
       integer:: j,k
-      character*72 inputfile,workdir
+      character*256 inputfile,workdir
       common/rtsmin/rtsmin
       common/pext/p1ext,p2ext
       data p/mxpart*3._dp,mxpart*4._dp,mxpart*0._dp,mxpart*5._dp/
@@ -57,8 +57,6 @@ c      include 'APPLinclude.f'
       maxcindex=3
       maxdindex=4
       maxeindex=5
-* Flag to control whether QCDLoop needs to be called yet, if appropriate
-      qlfirst=.true.
 * Set all plots to linear scale by default
       linlog(:)='lin'
 * Set up ebook initial settings
@@ -114,10 +112,14 @@ c--- Note: version 6.4 onwards, scale cutoff with c.o.m. energy
 * Setup for histograms with irregular bins
       nirreg=0
       irregbin= (/ (.false.,j=1,maxhisto) /)
+
+      ! zero accumulation histogram
+      call zeroaccumhist()
                  
 * npart=9 is a dummy value, to ensure that all histograms are included
       npart=9
       val=1.e-15_dp   
+      nprocbelow = nproc
       call nplotter(p,val,val**2,1)
        
       do j=1,mxpart

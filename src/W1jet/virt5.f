@@ -18,7 +18,8 @@
       include 'qcdcouple.f'
       include 'kprocess.f'
       include 'zprods_decl.f'
-      real(dp):: virt5,virt5ax
+      real(dp):: virt5
+      complex(dp):: virt5ax
       common/virt5ax/virt5ax
       integer:: ip(5)
       complex(dp):: A5LOm,A5NLOm,A5LOp,A5NLOp,A5axp,A5axm
@@ -29,16 +30,18 @@ c   0--> qb_R(1)+q_L(2)+l_L(3)+a_R(4)+g_L(5)
 c   0--> qb_R(1)+q_L(2)+l_L(3)+a_R(4)+g_R(5)
       call A5NLO(ip(2),ip(1),ip(4),ip(3),ip(5),zb,za,A5LOp,A5NLOp,A5axp)
 
+!      write(6,*) 'A5LO',A5LOm,A5lop
+!      write(6,*) 'A5ax',A5axm,A5axp
+!      write(6,*)
+
       virt5ax=zero
       if (kcase == kZ_1jet) then
       virt5ax=
-     & +ason2pi*(real(conjg(A5LOp)*A5axp,dp)
-     &          +real(conjg(A5LOm)*A5axm,dp))
+     & +ason2pi*(conjg(A5LOp)*A5axp+conjg(A5LOm)*A5axm)
       endif
 
       virt5=
-     & +ason2pi*(real(conjg(A5LOp)*A5NLOp,dp)
-     &          +real(conjg(A5LOm)*A5NLOm,dp))
+     & +ason2pi*real(conjg(A5LOp)*A5NLOp+conjg(A5LOm)*A5NLOm,dp)
 
       return
       end

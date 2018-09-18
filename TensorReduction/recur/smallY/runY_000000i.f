@@ -3,14 +3,15 @@
 C---  Expression for D000000i obtained from 5.50, following the comment after 
 C     5.50 on how to add adding additional "00" pairs
 C---  (similar to Eq. 5.56b but with "0000" added) 
+      include 'types.f'
       include 'pvDnames.f' 
       include 'pvDv.f' 
       include 'Darraydef.f' 
       include 'Darrays.f' 
       integer ep,N0,k,l,i1,np
       parameter(np=3)
-      double precision Xtwiddle(0:np,0:np),Gtwiddle(np,np)
-      double complex Shat7zzzz(np,z2max,-2:0)
+      real(dp):: Xtwiddle(0:np,0:np),Gtwiddle(np,np)
+      complex(dp):: Shat7zzzz(np,z2max,-2:0)
 
       if ((i1 .eq. l) .or. (i1 .eq. 0)) then
       return

@@ -141,10 +141,11 @@ c     we are renormalising the weights by the bin width
       ENDIF
       END
 
-      SUBROUTINE MOPERA(I,OPER,J,K,X,Y)
+      SUBROUTINE MOPERA(I,OPER,J,K,X,Y,ncall)
       implicit none
       include 'types.f'
       integer I,J,K,L
+      integer(kind=8), intent(in) :: ncall
       real(dp) XAVG,XSQAVG,XNORM,X,Y
       CHARACTER OPER*1
       include 'histo.f'
@@ -195,7 +196,8 @@ c     we are renormalising the weights by the bin width
         XSQAVG=HIST(J,L)*X
 c--- need extra factor to account for renormalization by bin width
         XSQAVG=XSQAVG/hdel(i)
-        XNORM=(IENT(I)+IUSCORE(I)+IOSCORE(I))*X
+c       XNORM=(IENT(I)+IUSCORE(I)+IOSCORE(I))*X
+        XNORM=ncall
         IF(XNORM.NE.0._dp) THEN
         HIST(K,L)=sqrt(X*ABS(XSQAVG-XAVG**2/XNORM))
         HIST(I,L)=XAVG
@@ -207,9 +209,10 @@ c--- need extra factor to account for renormalization by bin width
         XSQAVG=HIST(J,L)*X
 c--- need extra factor to account for renormalization by bin width
         XSQAVG=XSQAVG/hdel(i)
-        XNORM=(IENT(I)+IUSCORE(I)+IOSCORE(I))*X
+c       XNORM=(IENT(I)+IUSCORE(I)+IOSCORE(I))*X
+        XNORM=ncall
         IF(XNORM.NE.0._dp) THEN
-        HIST(K,L)=sqrt(X*ABS(XSQAVG-XAVG**2/XNORM))
+        HIST(K,L)=sqrt(X*ABS(XSQAVG-XAVG**2/XNORM)*(XNORM/(XNORM-1)))
 c        HIST(I,L)=XAVG ! removed from 'V'
         ELSE
         HIST(K,L)=0._dp
@@ -342,7 +345,7 @@ c      ENDIF
       
       IF(BOOK(N).NE.'YES') RETURN
 c      WRITE(99,100) TITLE(N),BTIT,LTIT,SCALE,HMIN(N),HMAX(N)
-      WRITE(99,101) TITLE(N),TITLE(N),TITLE(N),SCALE,HMIN(N),HMAX(N)
+      WRITE(99,101) trim(TITLE(N)),trim(TITLE(N)),trim(TITLE(N)),SCALE,HMIN(N),HMAX(N)
 c  100 FORMAT( /1x,                               
 c     &' SET WINDOW Y 2.5 TO 7.'/,1X,
 c     &' SET WINDOW X 2.5 TO 10.'/,1X,
@@ -370,7 +373,7 @@ c     &' SET ORDER X Y DY ')
      &' SET WINDOW Y 2.5 TO 7.'/,1X,
      &' SET WINDOW X 2.5 TO 10.'/,1X,
      &' SET SYMBOL 5O SIZE 1.8'/,1X,
-     &' TITLE TOP SIZE=3','"',A,/1X,
+     &' TITLE TOP SIZE=3','"',A,'"',/1X,
      &' TITLE BOTTOM ','"',A,'"',/1X,
      &' TITLE LEFT ','"dS/d',A,' [fb]"',/1X,
      &' CASE       ','" G"',/1X,

@@ -1,9 +1,10 @@
       subroutine checkaccuracy(trhs,tq,prec,failed) 
       implicit none
+      include 'types.f'
 c      include 'pvverbose.f'
-      double precision prec
-      double complex trhs,tq 
-      logical failed
+      real(dp)::prec
+      complex(dp):: trhs,tq 
+      logical:: failed
 
 c--- equation we are testing is tq+trhs=0
 

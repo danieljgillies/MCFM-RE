@@ -56,6 +56,7 @@ c--- converts integer kcase to corresponding 6-character string
       if (k == kggZZbx) kcasestring='ggZZbx'
       if (k == kHZZqgI) kcasestring='HZZqgI'
       if (k == kHi_Zga) kcasestring='Hi_Zga'
+      if (k == kHi_Zaj) kcasestring='Hi_Zaj'
       if (k == kHVV_tb) kcasestring='HVV_tb' 
       if (k == kHVVint) kcasestring='HVVint'
       if (k == kHVVHpi) kcasestring='HVVHpi'
@@ -85,6 +86,7 @@ c--- converts integer kcase to corresponding 6-character string
       if (k == kWtbndk) kcasestring='Wtbndk'
       if (k == khttjet) kcasestring='httjet'
       if (k == kggfus1) kcasestring='ggfus1'
+      if (k == khjetma) kcasestring='hjetma'
       if (k == kattjet) kcasestring='attjet'
       if (k == kHWWjet) kcasestring='HWWjet'
       if (k == kHZZjet) kcasestring='HZZjet'
@@ -203,7 +205,12 @@ c--- converts integer kcase to corresponding 6-character string
       if (k == kWHbbdk) kcasestring='WHbbdk'
       if (k == kZHbbdk) kcasestring='ZHbbdk'
       if (k == kgg2gam) kcasestring='gg2gam'
-      
+      if (k == kh2jmas) kcasestring='h2jmas'
+      if (k == kWga2jt) kcasestring='Wga2jt'
+      if (k == ktt_mix) kcasestring='tt_mix'
+      if (k == ktwo_ew) kcasestring='two_ew'
+      if (k == kgg2lep) kcasestring='gg2lep' 
+
       if (kcasestring == 'failed') then
         write(6,*) 'Unexpected kcase in kcasestring: ',k
         stop

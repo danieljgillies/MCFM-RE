@@ -1,7 +1,8 @@
       subroutine pvvcalc(p2,p3,p4,p5,v2,v3,v4,v5)
       implicit none
-      double precision p2(4),p3(4),p4(4),p5(4),v2(4),v3(4),v4(4),v5(4)
-      double precision v2Dp2,v3Dp3,v4Dp4,v5Dp5
+      include 'types.f'
+      real(dp):: p2(4),p3(4),p4(4),p5(4),v2(4),v3(4),v4(4),v5(4)
+      real(dp):: v2Dp2,v3Dp3,v4Dp4,v5Dp5
       integer j
       v2(1)=+(p3(2)*p4(3)*p5(4)+p3(4)*p4(2)*p5(3)+p3(3)*p4(4)*p5(2)
      .       -p3(2)*p4(4)*p5(3)-p3(3)*p4(2)*p5(4)-p3(4)*p4(3)*p5(2))

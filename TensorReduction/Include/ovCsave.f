@@ -1,4 +1,4 @@
-      double complex
+      complex(dp)::
      & FC0save(Ncmax,-2:0),
      & FC1save(Ncmax,y1max,-2:0),
      & FC2save(Ncmax,y2max,-2:0),

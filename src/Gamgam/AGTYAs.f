@@ -16,6 +16,7 @@
       implicit none
       include 'types.f'
       real(dp):: Asx
+      include 'constants.f'
       include 'zeta.f'
       real(dp)::s,t,u,Lx,Ly,Li4x,Li4y,Li4z,Li3x,Li3y,Li2x
 

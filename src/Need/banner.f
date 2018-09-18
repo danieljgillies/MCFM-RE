@@ -1,7 +1,7 @@
       block data codeversion_data
       
       include 'codeversion.f'
-      data codeversion/'8.0'/      
+      data codeversion/'8.1'/      
       data      prelim/.false./      ! if true, print warning message
       end
 
@@ -46,12 +46,14 @@ c--- warning message, if necessary
 
       write(6,*) '*                                                *'
       write(6,*) '* MCFM, v'//codeversion//
-     &                          '                  June 2nd, 2016  *'
+     &                          '                   December 2017  *'
       write(6,*) '*                                                *'
       write(6,*) '* Authors: John Campbell, Keith Ellis,           *'
-      write(6,*) '*          Walter Giele, Ciaran Williams         *'
+      write(6,*) '*          Walter Giele, Tobias Neumann,         *'
+      write(6,*) '*          Ciaran Williams                       *'
       write(6,*) '*         (johnmc@fnal.gov, ellis@fnal.gov,      *'
-      write(6,*) '*          giele@fnal.gov,ciaranwi@buffalo.edu)  *'
+      write(6,*) '*          giele@fnal.gov,tneumann@fnal.gov,     *'
+      write(6,*) '*          ciaranwi@buffalo.edu)                 *'
       write(6,*) '*                                                *'
       write(6,*) '* For details see:                               *'
       write(6,*) '*                                                *'
@@ -61,6 +63,14 @@ c--- warning message, if necessary
       write(6,*) '*    C. Williams,  arXiv:1605.08011              *'
       write(6,*) '*    (overview of NNLO implementation in MCFM)   *'
       write(6,*) '*                                                *'
+      write(6,*) '*  A study of weak corrections to Drell-Yan,     *'
+      write(6,*) '*   top-quark pair and di-jet production at      *'
+      write(6,*) '*    high energies with MCFM                     *'
+      write(6,*) '*   J. M. Campbell, D. Wackeroth, J. Zhou,       *'
+      write(6,*) '*   arXiv:1608.03356 (weak corrections in MCFM)  *'
+      write(6,*) '*                                                *'
+      write(6,*) '*  arXiv:1708.02925 (Zgamma at NNLO)             *'
+      write(6,*) '*  arXiv:1609.00367 (NLO H+jet with mass effects)*'
       write(6,*) '*  arXiv:1603.02663 (diphotons at NNLO)          *'
       write(6,*) '*  arXiv:1601.00658 (VH at NNLO)                 *'
       write(6,*) '*                                                *'

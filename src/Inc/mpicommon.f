@@ -1,3 +1,3 @@
-      integer rank,size
-      common /mpi/ rank,size
+      integer rank,world_size
+      common /mpi/ rank,world_size
 

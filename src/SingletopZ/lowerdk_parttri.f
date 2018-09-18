@@ -1,4 +1,5 @@
       subroutine lowerdk_parttri(q,ylower,first)
+        use mod_qcdloop_c
       implicit none
       include 'types.f'
       
@@ -15,7 +16,7 @@
       include 'decl_kininv.f'
       integer:: k1,k2,ep,epmin
       complex(dp):: prW,prt,ylower(2,-2:0),
-     & qlI2,qlI3,izb,
+     & izb,
      & vert16x1,vert25x5,vert25x6,
      & vert25x7,vert25x8,vert25x9,vert25x10,vert25x11,vert25x12,
      & vert25x13,vert25x14,vert25x15,vert25x16,vert25x17,vert25x18,

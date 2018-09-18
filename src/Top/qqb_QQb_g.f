@@ -177,16 +177,15 @@ C      %%CITATION = NUPHA,B282,642;%%
       include 'cplx.h'
       include 'sprods_com.f'
       include 'breit.f'
-      include 'first.f'
+!      include 'first.f'
       integer:: i1,i2,i3,i4,i5
       real(dp):: xm2,xm4,res
       real(dp):: P13,P14,P15,P23,P24,P25,P12,P35,P34,P45,S12
 
-      if (first) then
-      first=.false.
-      write(6,*) 'Heavy Quark mass:',mass2
-      endif 
-
+!      if (first) then
+!      first=.false.
+!      write(6,*) 'Heavy Quark mass:',mass2
+!      endif 
 
       xm2=mass2**2
       XM4=XM2**2

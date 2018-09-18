@@ -84,13 +84,13 @@
       end
 
       subroutine fill_qcdloop_gggaga(ss,tt,uu,mt2)
+        use mod_qcdloop_c
       implicit none
       include 'types.f'
       include 'constants.f'
       include 'scale.f'
       real(dp):: ss,tt,uu,mt2
-      complex(dp):: qlI4,qlI3,qlI2
-      complex(dp) D0(3),C0(3),B0(3)
+      complex(dp):: D0(3),C0(3),B0(3)
       common/basis_int_gggaga/D0,C0,B0
 !$omp threadprivate(/basis_int_gggaga/) 
 
@@ -131,7 +131,6 @@
       include 'mxpart.f'
       include 'constants.f'
       include 'zprods_decl.f'
-      include 'first.f'
       complex(dp):: D0(3),C0(3),B0(3)
       common/basis_int_gggaga/D0,C0,B0
 !$omp threadprivate(/basis_int_gggaga/) 
@@ -142,11 +141,6 @@
       complex(dp):: kcp
 
       kcp=im
-      
-      if(first) then
-         first=.false.
-         call qlinit()
-      endif
       
       amp(2,2,2,2) = zb(i1,i2)*zb(i3,i4)
      &     /(za(i1,i2)*za(i3,i4))
@@ -164,7 +158,6 @@
       include 'mxpart.f'
        include 'constants.f'
       include 'zprods_decl.f'
-      include 'first.f' 
       integer i1,i2,i3,i4
       complex(dp):: amp(2,2,2,2),qlI4,qlI3
       complex(dp):: kcp
@@ -179,10 +172,6 @@
       kcp=im
 !      mt2=(0.4255266775_dp)**2
 
-      if(first) then
-         call qlinit()
-         first=.false.
-      endif
       amp(:,:,:,:)=czip
       ss=real(za(i1,i2)*zb(i2,i1))
       tt=real(za(i1,i3)*zb(i3,i1))
@@ -458,7 +447,7 @@
       common/basis_int_gggaga/D0,C0,B0
 !$omp threadprivate(/basis_int_gggaga/) 
       logical swapi
-      complex temp
+      complex(dp):: temp
       
       if(swapi) then
          temp=D0(1)

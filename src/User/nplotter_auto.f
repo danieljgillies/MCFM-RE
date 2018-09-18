@@ -20,6 +20,7 @@ c
       include 'histo.f'
       include 'outputflags.f'
       include 'mcfmplotinfo.f'
+      include 'scalevar.f'
       real(dp):: p(mxpart,4),wt,wt2,tiny
       integer:: n,nplotmax,j,m,i1,i2,i3,i4,ilomomenta
       integer tag
@@ -123,18 +124,29 @@ c--- four-particle plots
         endif
         j=j+1
       enddo
-         
+
+      call bookplot(n,tag,'total cross', 0.5d0,wt,wt2,0d0,100d0,1d0,'lin')
+      n=n+1
+
 c--- additional plots that may be present at NLO
       if ((abs(p(imaxmom+1,4))>tiny) .or. (tag==tagbook)) then
         call autoplot1(p,imaxmom+1,tag,wt,wt2,n)
       else
-        n=n+2
+        if (doscalevar) then
+          n=n+14
+        else
+          n=n+2
+        endif
       endif
 c--- additional plots that may be present at NNLO
       if ((abs(p(imaxmom+2,4))>tiny) .or. (tag==tagbook)) then
         call autoplot1(p,imaxmom+2,tag,wt,wt2,n)
       else
-        n=n+2
+        if (doscalevar) then
+          n=n+14
+        else
+          n=n+2
+        endif
       endif
 
 ************************************************************************

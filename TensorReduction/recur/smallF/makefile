@@ -9,13 +9,9 @@ ifeq ($(origin FC),environment)
 else
     FC = gfortran
 endif
-FFLAGS 	= -O2 -fno-f2c -g -I$(INCPATH1) -I$(INCPATH2) -Iobj -Jobj
+FFLAGS 	= -O2 -fno-f2c -fopenmp -g -I$(INCPATH1) -I$(INCPATH2) -Iobj -Jobj
 
 LIBRARY	      = libsmallF.a
-
-
-# -----------------------------------------------------------------------------
-# Specify the object files. 
 
 OBJS = \
 Cfill_recur4.o \
@@ -45,27 +41,13 @@ runF_iii.o \
 runF_iiii.o \
 runF_iiiii.o
 
-
 $(LIBRARY):	$(OBJS) 
 		ar cru $(LIBRARY) $(patsubst %,obj/%,$(OBJS)) 
 		ranlib $(LIBRARY)
 		mv $(LIBRARY) ..
  
-
-# -----------------------------------------------------------------------------
-
-
-
 all:		$(LIBRARY)
 
-
-# -----------------------------------------------------------------------------
-
 clean:
-	- rm -f obj/*.o *.s *.prj *.a *~ core
-
-# -----------------------------------------------------------------------------
-
-# DO NOT DELETE
-
+	- rm -f obj/*.o ../$(LIBRARY)
 

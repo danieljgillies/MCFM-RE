@@ -2,11 +2,12 @@
 C----from F0,F1,F2 calculate F2a which has all denominators
 C----shifted by q1
       implicit none
+      include 'types.f'
       include 'TRydef.f'
       integer n1,n2,ep
-      double complex F0(-2:0),F1(y1max,-2:0),F2(y2max,-2:0),
-     . F2a(y2max,-2:0)
-      double precision q1(4)
+      complex(dp):: F0(-2:0),F1(y1max,-2:0),F2(y2max,-2:0),
+     & F2a(y2max,-2:0)
+      real(dp):: q1(4)
       do ep=-2,0
       do n1=1,4
       do n2=n1,4

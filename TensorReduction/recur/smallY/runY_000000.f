@@ -5,14 +5,15 @@ C     5.50 on how to add adding additional "00" pairs
 C---  Calculates D0000
 C---  Small terms of order Xtwiddle(0,k)*D00i,Xtwiddle(0,0)*D00ii
 C---  Denominator Gtwiddle(k,l)
+      include 'types.f'
       include 'pvDnames.f' 
       include 'pvDv.f' 
       include 'Darraydef.f' 
       include 'Darrays.f' 
       integer ep,N0,k,l,np
       parameter(np=3)
-      double precision Xtwiddle(0:np,0:np),Gtwiddle(np,np)
-      double complex Shat6zzzz(np,z1max,-2:0)
+      real(dp):: Xtwiddle(0:np,0:np),Gtwiddle(np,np)
+      complex(dp):: Shat6zzzz(np,z1max,-2:0)
 
       do ep=-2,0
          Dv(dd000000+N0,ep) =  

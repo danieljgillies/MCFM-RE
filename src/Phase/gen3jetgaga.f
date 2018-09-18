@@ -51,12 +51,12 @@ C---p1+p2 --> p3+p4+p5
       rtson2=0.5_dp*sqrts
 
      
-      hmin=1._dp/sqrt(rtson2**2+gammpt**2)
-      hmax=1._dp/gammpt
+      hmin=1._dp/sqrt(rtson2**2+gammptmin**2)
+      hmax=1._dp/gammptmin
       delh=hmax-hmin
 
       h=hmin+r(6)*delh  
-      pt3=sqrt(1._dp/h**2-gammpt**2)
+      pt3=sqrt(1._dp/h**2-gammptmin**2)
       xjac=xjac*delh/h**3/rtson2**2
       etamax=sqrts/2._dp/pt3
       if (etamax**2 <= 1._dp) then

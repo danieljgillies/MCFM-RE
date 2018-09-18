@@ -15,6 +15,7 @@
       include 'phot_dip.f'
       include 'z_dip.f'
       include 'lastphot.f'
+      include 'mpicommon.f'
       real(dp):: p(mxpart,4)
       integer:: isub,nd,imode
       integer:: phot_id ! refers to which photon we are isolating
@@ -35,11 +36,15 @@ c---   imode=2 : fixed cut for all epsilon_h
 ! Check if no isolation required
       if ((abs(cone_ang) < 1.e-4_dp).or.(abs(epsilon_h) < 1.e-4_dp)) then
         if (first) then
+!$omp master
+        if (rank == 0) then
         write(6,*)'****************************************************'
         write(6,*)'*                                                  *'
         write(6,*)'*         No photon isolation cuts applied         *'
         write(6,*)'*                                                  *'
         write(6,*)'****************************************************'
+        endif
+!$omp end master
         first=.false.
       endif
         return
@@ -81,20 +86,28 @@ c       endif
        
 c--- write out isolation parameters
        if    (first .and. (imode == 1)) then 
+!$omp master
+        if (rank == 0) then
         write(6,*)'************** Photons Isolated     ****************'
         write(6,*)'*                                                  *'
         write(6,99)'*    E_t(had) in cone',cone_ang,' < ',epsilon_h,
      &   ' E_t(phot)     *'
         write(6,*)'*                                                  *'
         write(6,*)'****************************************************'
+        endif
+!$omp end master
         first=.false.
       elseif (first .and. (imode == 2)) then
+!$omp master
+        if (rank == 0) then
         write(6,*)'************** Photons Isolated     ****************'
         write(6,*)'*                                                  *'
         write(6,96)'* E_t (had) in cone',cone_ang,' < ',epsilon_h,
      &   'GeV    *'
         write(6,*)'*                                                  *'
         write(6,*)'****************************************************'
+        endif
+!$omp end master
         first=.false.
       endif
       

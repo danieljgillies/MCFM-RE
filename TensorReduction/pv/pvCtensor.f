@@ -3,6 +3,8 @@
       implicit none
 C     q1,q2 are the momenta in the propagators
 C     m1s,m2s,m3s are the squares of the masses in the propagators
+      include 'types.f'
+      include 'TRconstants.f'
       include 'pvCnames.f'
       include 'pvCv.f'
       include 'TRydef.f'
@@ -14,11 +16,11 @@ C     m1s,m2s,m3s are the squares of the masses in the propagators
       include 'pvverbose.f'
       include 'pvCitry.f'
       include 'TRmetric.f'
-      double complex FC0(-2:0),FC1(y1max,-2:0),FC2(y2max,-2:0),
+      complex(dp):: FC0(-2:0),FC1(y1max,-2:0),FC2(y2max,-2:0),
      . FC3(y3max,-2:0),FC4(y4max,-2:0),FC5(y5max,-2:0),FC6(y6max,-2:0),
      . FC7(y7max,-2:0)
-      double precision p1Dp1,p2Dp2,p3Dp3,q1(4),q2(4)
-      double precision m1s,m2s,m3s,
+      real(dp):: p1Dp1,p2Dp2,p3Dp3,q1(4),q2(4)
+      real(dp):: m1s,m2s,m3s,
      . pvSPK,
      . pvSPKK,pvSDDP,
      . pvSPKKK,pvSPPKK,
@@ -26,9 +28,9 @@ C     m1s,m2s,m3s are the squares of the masses in the propagators
      . pvSDDDDP,pvSDDPPP,pvSDDPPK,pvSPPPKK,pvSPPPPK,
      . pvSDDDDDD,pvSDDDDPP,pvSDDDDPK,pvSDDPPPP,pvSDDPPPK,pvSDDPPKK,
      . pvSDDPKKK,pvSPPPPPK,pvSPPPPKK,pvSPPPKKK
-      double precision q1save(4),q2save(4)
-      integer n1,n2,n3,n4,n5,n6,n7,ep,C0i,pvCcache,itry
-      logical failed
+      real(dp)::q1save(4),q2save(4)
+      integer:: n1,n2,n3,n4,n5,n6,n7,ep,C0i,pvCcache,itry
+      logical:: failed
       common/q12save/q1save,q2save
       logical,save:: first=.true.
 !$omp threadprivate(first,/q12save/)
@@ -49,6 +51,8 @@ c---    itry=2            small G and small Y recursion
       call pvarraysetup
       endif
       
+      pvrespectmaxcindex=.true.
+
       q1save(:)=q1(:)
       q2save(:)=q2(:)
 
@@ -58,7 +62,7 @@ c      p2(nu)=q2(nu)-q1(nu)
       p1Dp1=q1(4)**2-q1(1)**2-q1(2)**2-q1(3)**2
       p3Dp3=q2(4)**2-q2(1)**2-q2(2)**2-q2(3)**2
       p2Dp2=p1Dp1+p3Dp3
-     . -2d0*(q1(4)*q2(4)-q1(1)*q2(1)-q1(2)*q2(2)-q1(3)*q2(3))
+     . -two*(q1(4)*q2(4)-q1(1)*q2(1)-q1(2)*q2(2)-q1(3)*q2(3))
 
 c--- point from which to continue
    11 continue
@@ -94,8 +98,8 @@ c      write(6,*)
       FC1(n1,ep)=+Cv(C0i+cc1,ep)*q1(n1)+Cv(C0i+cc2,ep)*q2(n1)
       enddo
       enddo
-
-
+    
+ 
       do ep=-2,0
       do n1=1,4
       do n2=n1,4

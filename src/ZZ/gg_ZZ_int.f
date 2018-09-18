@@ -1,4 +1,5 @@
       subroutine gg_ZZ_int(p,msq)
+        use mod_qcdloop_c
       implicit none
       include 'types.f'
       
@@ -13,7 +14,6 @@ c--- The effect of massive bottom and top quark loops is included
       include 'ewcouple.f'
       include 'qcdcouple.f'
       include 'noglue.f'
-      include 'qlfirst.f'
       include 'interference.f'
       include 'kappa.f'
       integer:: h1,h2,h34,h56
@@ -35,11 +35,6 @@ c--- set this to true to include massive bottom quark
       includebottom=.true.
 c--- set this to true to include massive top quark
       includetop=.true.
-
-      if (qlfirst) then
-        qlfirst=.false. 
-        call qlinit
-      endif
 
 c--- if neither contribution is included print warning message and stop
       if ((includegens1and2 .eqv. .false.) .and.

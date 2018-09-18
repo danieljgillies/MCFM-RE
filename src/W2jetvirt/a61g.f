@@ -2,12 +2,10 @@
       implicit none
       include 'types.f'
       complex(dp):: a61g
-      
 C---hep-ph/9708239, Eqn 2.13
       include 'constants.f'
       include 'nf.f'
       include 'mxpart.f'
-      include 'cplx.h'
       include 'zprods_decl.f'
       integer:: j1,j2,j3,j4,j5,j6
       character*9 st
@@ -25,12 +23,10 @@ C---hep-ph/9708239, Eqn 2.13
       implicit none
       include 'types.f'
       complex(dp):: a63g
-      
 C---hep-ph/9708239, Eqn 2.13
       include 'constants.f'
       include 'nf.f'
       include 'mxpart.f'
-      include 'cplx.h'
       include 'zprods_decl.f'
       integer:: j1,j2,j3,j4,j5,j6
       character*9 st,stamp(6)
@@ -97,12 +93,10 @@ c---                         and (q,qb , g, g) [for 5 and 6]
       implicit none
       include 'types.f'
       complex(dp):: a64vg
-      
 C---hep-ph/9708239, Eqn 2.13
       include 'constants.f'
       include 'nf.f'
       include 'mxpart.f'
-      include 'cplx.h'
       include 'zprods_decl.f'
       integer:: j1,j2,j3,j4,j5,j6
       character*9 st
@@ -116,12 +110,10 @@ C---hep-ph/9708239, Eqn 2.13
       implicit none
       include 'types.f'
       complex(dp):: a64axg
-      
 C---hep-ph/9708239, Eqn 2.13
       include 'constants.f'
       include 'nf.f'
       include 'mxpart.f'
-      include 'cplx.h'
       include 'zprods_decl.f'
       integer:: j1,j2,j3,j4,j5,j6
       character*9 st
@@ -134,12 +126,10 @@ C---hep-ph/9708239, Eqn 2.13
       implicit none
       include 'types.f'
       complex(dp):: a65axg
-      
 C---hep-ph/9708239, Eqn 2.13
       include 'constants.f'
       include 'nf.f'
       include 'mxpart.f'
-      include 'cplx.h'
       include 'zprods_decl.f'
       character*9 st
       integer:: j1,j2,j3,j4,j5,j6
@@ -152,11 +142,9 @@ C---hep-ph/9708239, Eqn 2.13
       implicit none
       include 'types.f'
       complex(dp):: a6sg
-      
       include 'constants.f'
       include 'nf.f'
       include 'mxpart.f'
-      include 'cplx.h'
       include 'zprods_decl.f'
       include 'sprods_com.f'
       character*9 st
@@ -176,11 +164,9 @@ c--- modified 4/18/00, according to BDK hep-ph/9708239, eq. (8.2)
       implicit none
       include 'types.f'
       complex(dp):: a6fg
-      
       include 'constants.f'
       include 'nf.f'
       include 'mxpart.f'
-      include 'cplx.h'
       include 'zprods_decl.f'
       character*9 st
       integer:: j1,j2,j3,j4,j5,j6
@@ -195,18 +181,34 @@ c--- checked 4/18/00, this piece vanishes identically, eq. (8.3)
       include 'constants.f'
       include 'nf.f'
       include 'mxpart.f'
-      include 'cplx.h'
       include 'zprods_decl.f'
       include 'sprods_com.f'
       include 'masses.f'
-      complex(dp):: a6tg
+      include 'toploops.f'
+      complex(dp):: a6tg,a6sg,Ftexact
       character*9 st
       integer:: j1,j2,j3,j4,j5,j6
-c--- modified 4/18/00, according to BDK hep-ph/9708239, eq. (8.3)
+
       a6tg=czip
-! effects of top-quark loop removed
-!      if (st == 'q+g+g+qb-') 
-!     &  a6tg=one/20._dp*s(j2,j3)/mt**2*a6sg(st,j1,j2,j3,j4,j5,j6,za,zb)
+      if (st == 'q+g+g+qb-') then
+        if (toplight) then
+          if     (toploops == tapprox) then
+c--- modified 4/18/00, according to BDK hep-ph/9708239, eq. (8.3)
+            a6tg=one/20._dp*s(j2,j3)/mt**2
+          elseif (toploops == texact) then
+            a6tg=Ftexact(s(j2,j3),mt**2)
+          endif
+        endif
+      endif
+      a6tg=a6tg*a6sg(st,j1,j2,j3,j4,j5,j6,za,zb)
+
+! Check that asymptotic limit is okay
+!      do k=1,1000
+!      s(j2,j3)=float(k)*1000._dp
+!      write(6,*) sqrt(s(j2,j3)),one/20._dp*s(j2,j3)/mt**2/Ftexact(s(j2,j3),mt**2)
+!      enddo
+!      stop
+      
       return
       end
 
@@ -214,11 +216,9 @@ c--- modified 4/18/00, according to BDK hep-ph/9708239, eq. (8.3)
       implicit none
       include 'types.f'
       complex(dp):: a6vfg
-      
       include 'constants.f'
       include 'nf.f'
       include 'mxpart.f'
-      include 'cplx.h'
       include 'zprods_decl.f'
       character*9 st
       integer:: j1,j2,j3,j4,j5,j6
@@ -230,11 +230,9 @@ c--- modified 4/18/00, according to BDK hep-ph/9708239, eq. (8.3)
       implicit none
       include 'types.f'
       complex(dp):: a6vsg
-      
       include 'constants.f'
       include 'nf.f'
       include 'mxpart.f'
-      include 'cplx.h'
       include 'zprods_decl.f'
       character*9 st
       integer:: j1,j2,j3,j4,j5,j6
@@ -246,11 +244,9 @@ c--- modified 4/18/00, according to BDK hep-ph/9708239, eq. (8.3)
       implicit none
       include 'types.f'
       complex(dp):: a6axg
-      
       include 'constants.f'
       include 'nf.f'
       include 'mxpart.f'
-      include 'cplx.h'
       include 'zprods_decl.f'
       character*9 st
       integer:: j1,j2,j3,j4,j5,j6
@@ -262,11 +258,9 @@ c--- modified 4/18/00, according to BDK hep-ph/9708239, eq. (8.3)
       implicit none
       include 'types.f'
       complex(dp):: a6axslg
-      
       include 'constants.f'
       include 'nf.f'
       include 'mxpart.f'
-      include 'cplx.h'
       include 'zprods_decl.f'
       character*9 st
       integer:: j1,j2,j3,j4,j5,j6

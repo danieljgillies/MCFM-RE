@@ -23,12 +23,13 @@ c---                1  --> counterterm for real radiation
       include 'histo.f'
       include 'jetlabel.f'
       include 'outputflags.f'
+      include 'ewcorr.f'
       real(dp):: p(mxpart,4),wt,wt2
       real(dp):: yrap,pt,yraptwo,pttwo,r
 c---  Z->e+e-(31) or b bbar(33): both measured, rapidities and momenta of 3 and 4 can
 c---  be calculated, also the invariant mass m34
       real(dp):: y3,y4,y5,y34,pt3,pt4,pt5,pt34,m34,r35
-      real(dp):: costheta,p3(4),p4(4),p34(4)
+      real(dp):: costheta,p3(4),p4(4),p34(4),wt_ew
       integer:: switch,n,nplotmax
       integer tag
       logical, save::first=.true.
@@ -126,6 +127,30 @@ c---   llplot:  equal to "lin"/"log" for linear/log scale
       n=n+1
       call bookplot(n,tag,'pt3',pt3,wt,wt2,0._dp,4000._dp,50._dp,'lin')
       n=n+1
+c-- for EW corrections, this is the histogram without them
+      if (kewcorr /= knone) then
+        call bookplot(n,tag,'m34 - no EW',m34,wt_noew,wt_noew**2,
+     &   0._dp,8000._dp,100._dp,'lin')
+        n=n+1
+        wt_ew=wt_noew+wt
+        call bookplot(n,tag,'m34 - with EW',m34,wt_ew,wt_ew**2,
+     &   0._dp,8000._dp,100._dp,'lin')
+        n=n+1
+        call bookplot(n,tag,'m34 - +RELEW+',m34,wt_ew,wt_ew**2,
+     &   0._dp,8000._dp,100._dp,'lin')
+        n=n+1
+        call bookplot(n,tag,'pt3 - no EW',pt3,wt_noew,wt_noew**2,
+     &   0._dp,4000._dp,50._dp,'lin')
+        n=n+1
+        call bookplot(n,tag,'pt3 - with EW',pt3,wt_ew,wt_ew**2,
+     &   0._dp,4000._dp,50._dp,'lin')
+        n=n+1
+        call bookplot(n,tag,'pt3 - +RELEW+',pt3,wt_ew,wt_ew**2,
+     &   0._dp,4000._dp,50._dp,'lin')
+        n=n+1
+      else
+        wt_ew=wt
+      endif
 
       call bookplot(n,tag,'y3',y3,wt,wt2,-6._dp,6._dp,0.2_dp,'lin')
       n=n+1
@@ -159,33 +184,33 @@ c--- (see for example Eq.(3) of PLB718 (2013) 752)
 c--- these histograms must be kept
       if ((costheta > 0._dp) .or. (tag == tagbook)) then
         call bookplot(n, tag,'m34 forward lepton',
-     &   m34,wt,wt2,40._dp,200._dp,5._dp,'lin')
+     &   m34,wt_ew,wt_ew**2,40._dp,200._dp,5._dp,'lin')
       endif
       n=n+1
       if ((costheta <= 0._dp) .or. (tag == tagbook)) then
         call bookplot(n, tag,'m34 backward lepton',
-     &   m34,wt,wt2,40._dp,200._dp,5._dp,'lin')
+     &   m34,wt_ew,wt_ew**2,40._dp,200._dp,5._dp,'lin')
       endif
       n=n+1
 c--- placeholder for lepton FB asymmetry (will be filled properly in histofin)
       call bookplot(n, tag,'lepton +FB+ asymmetry',
-     & m34,wt,wt2,40._dp,200._dp,5._dp,'lin')
+     & m34,wt_ew,wt_ew**2,40._dp,200._dp,5._dp,'lin')
       n=n+1
 
 c--- these histograms must be kept
       if ((costheta > 0._dp) .or. (tag == tagbook)) then
         call bookplot(n, tag,'m34 forward lepton',
-     &   m34,wt,wt2,200._dp,8000._dp,200._dp,'lin')
+     &   m34,wt_ew,wt_ew**2,200._dp,8000._dp,200._dp,'lin')
       endif
       n=n+1
       if ((costheta <= 0._dp) .or. (tag == tagbook)) then
         call bookplot(n, tag,'m34 backward lepton',
-     &   m34,wt,wt2,200._dp,8000._dp,200._dp,'lin')
+     &   m34,wt_ew,wt_ew**2,200._dp,8000._dp,200._dp,'lin')
       endif
       n=n+1
 c--- placeholder for lepton FB asymmetry (will be filled properly in histofin)
       call bookplot(n, tag,'lepton +FB+ asymmetry',
-     & m34,wt,wt2,200._dp,8000._dp,200._dp,'lin')
+     & m34,wt_ew,wt_ew**2,200._dp,8000._dp,200._dp,'lin')
       n=n+1
 
 

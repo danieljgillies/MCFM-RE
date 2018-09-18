@@ -1,4 +1,5 @@
       subroutine gg_hZZ_tb(p,msq)
+        use mod_qcdloop_c
       implicit none
       include 'types.f'
       
@@ -11,7 +12,6 @@ c--- The exact result for massive bottom and top quark loops is included
       include 'cplx.h'
       include 'ewcouple.f'
       include 'qcdcouple.f'
-      include 'qlfirst.f'
       include 'interference.f'
       include 'kappa.f'
       integer:: h1,h2,h34,h56
@@ -22,11 +22,6 @@ c--- The exact result for massive bottom and top quark loops is included
      & ggH_bquark_swap(2,2,2,2),ggH_tquark_swap(2,2,2,2),
      & ggH_6_swap(2,2,2,2),Ahiggs_swap,Mamp,Samp
 
-      if (qlfirst) then
-        qlfirst=.false. 
-        call qlinit
-      endif
-      
       msq(:,:)=0._dp
       
       call getggHZZamps(p,ggH_bquark,ggH_tquark,ggH_6)

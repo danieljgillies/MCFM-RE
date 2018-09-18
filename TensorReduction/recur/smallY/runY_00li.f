@@ -4,14 +4,15 @@ C---  Expression for Eq. 5.58b
 C---  Calculates D00li, requires D00ll
 C---  Small terms of order Xtwiddle(0,k)*Diii,Xtwiddle(0,0)*Diiii
 C---  Denominator Gtwiddle(k,l)
+      include 'types.f'
       include 'pvDnames.f' 
       include 'pvDv.f' 
       include 'Darraydef.f' 
       include 'Darrays.f' 
       integer ep,N0,k,l,i1,np
       parameter(np=3)
-      double precision Xtwiddle(0:np,0:np),Gtwiddle(np,np)
-      double complex Shat4(np,z3max,-2:0)
+      real(dp):: Xtwiddle(0:np,0:np),Gtwiddle(np,np)
+      complex(dp):: Shat4(np,z3max,-2:0)
 
       if ((i1 .eq. l) .or. (i1 .eq. 0)) then
       return

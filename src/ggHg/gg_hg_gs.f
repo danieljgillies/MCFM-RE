@@ -1,4 +1,41 @@
+      
       subroutine gg_hg_gs(p,msq)
+        implicit none
+        include 'types.f'
+        include 'nf.f'
+        include 'maxd.f'
+        include 'mxpart.f'
+
+        real(dp), intent(in) :: p(mxpart,4)
+        real(dp), intent(out) :: msq(maxd,-nf:nf,-nf:nf)
+
+        integer, parameter :: iglue1 = 5, iglue2 = 6
+
+        external gg_hg, gg_hg_gvec
+
+        call gg_hg_gs_internal(p,iglue1,iglue2,gg_hg,gg_hg_gvec,msq)
+
+      end subroutine
+
+      subroutine gg_hg_zgam_gs(p,msq)
+        implicit none
+        include 'types.f'
+        include 'nf.f'
+        include 'maxd.f'
+        include 'mxpart.f'
+
+        real(dp), intent(in) :: p(mxpart,4)
+        real(dp), intent(out) :: msq(maxd,-nf:nf,-nf:nf)
+
+        integer, parameter :: iglue1 = 6, iglue2 = 7
+
+        external gg_hzgamg, gg_hg_zgam_gvec
+
+        call gg_hg_gs_internal(p,iglue1,iglue2,gg_hzgamg,gg_hg_zgam_gvec,msq)
+
+      end subroutine
+      
+      subroutine gg_hg_gs_internal(p,iglue1,iglue2,sub_tree,sub_tree_gvec,msq)
       implicit none
       include 'types.f'
 ************************************************************************
@@ -21,7 +58,11 @@ c                            -->b(p3)+bbar(p4)
       integer:: j,k,nd
 c --- remember: nd will count the dipoles
       
-      real(dp):: p(mxpart,4),msq(maxd,-nf:nf,-nf:nf)
+      real(dp), intent(in) :: p(mxpart,4)
+      integer, intent(in) :: iglue1,iglue2
+      external sub_tree,sub_tree_gvec
+      real(dp), intent(out) :: msq(maxd,-nf:nf,-nf:nf)
+
       real(dp):: 
      & msq15_2(-nf:nf,-nf:nf),msq25_1(-nf:nf,-nf:nf),
      & msq16_2(-nf:nf,-nf:nf),msq26_1(-nf:nf,-nf:nf),
@@ -38,36 +79,35 @@ c --- remember: nd will count the dipoles
      & sub56_1(4),sub56_2(4),sub56_1v,sub56_2v,
      & sub26_5v,sub26_1v,sub16_5v,sub16_2v,sub15_2v,sub15_6v,sub25_6v,
      & sub25_1v
-      external gg_hg,gg_hg_gvec
       
       ndmax=6
 
 c--- calculate all the initial-initial dipoles
-      call dips(1,p,1,5,2,sub15_2,sub15_2v,msq15_2,msq15_2v,
-     & gg_hg,gg_hg_gvec)
-      call dips(2,p,2,5,1,sub25_1,sub25_1v,msq25_1,msq25_1v,
-     & gg_hg,gg_hg_gvec)
-      call dips(3,p,1,6,2,sub16_2,sub16_2v,msq16_2,msq16_2v,
-     & gg_hg,gg_hg_gvec)
-      call dips(4,p,2,6,1,sub26_1,sub26_1v,msq26_1,msq26_1v,
-     & gg_hg,gg_hg_gvec)
+      call dips(1,p,1,iglue1,2,sub15_2,sub15_2v,msq15_2,msq15_2v,
+     & sub_tree,sub_tree_gvec)
+      call dips(2,p,2,iglue1,1,sub25_1,sub25_1v,msq25_1,msq25_1v,
+     & sub_tree,sub_tree_gvec)
+      call dips(3,p,1,iglue2,2,sub16_2,sub16_2v,msq16_2,msq16_2v,
+     & sub_tree,sub_tree_gvec)
+      call dips(4,p,2,iglue2,1,sub26_1,sub26_1v,msq26_1,msq26_1v,
+     & sub_tree,sub_tree_gvec)
 
 c--- now the basic initial final ones
-      call dips(5,p,1,5,6,sub15_6,sub15_6v,msq15_6,msq15_6v,
-     & gg_hg,gg_hg_gvec)
+      call dips(5,p,1,iglue1,iglue2,sub15_6,sub15_6v,msq15_6,msq15_6v,
+     & sub_tree,sub_tree_gvec)
 c--- called for final initial the routine only supplies new values for
 c--- sub... and sub...v and msqv
-      call dips(5,p,5,6,1,sub56_1,sub56_1v,dummy,msq56_1v,
-     & gg_hg,gg_hg_gvec)
-      call dips(5,p,1,6,5,sub16_5,sub16_5v,msq16_5,msq16_5v,
-     & gg_hg,gg_hg_gvec)
+      call dips(5,p,iglue1,iglue2,1,sub56_1,sub56_1v,dummy,msq56_1v,
+     & sub_tree,sub_tree_gvec)
+      call dips(5,p,1,iglue2,iglue1,sub16_5,sub16_5v,msq16_5,msq16_5v,
+     & sub_tree,sub_tree_gvec)
 
-      call dips(6,p,2,6,5,sub26_5,sub26_5v,msq26_5,msq26_5v,
-     & gg_hg,gg_hg_gvec)
-      call dips(6,p,5,6,2,sub56_2,sub56_2v,dummy,msq56_2v,
-     & gg_hg,gg_hg_gvec)
-      call dips(6,p,2,5,6,sub25_6,sub25_6v,msq25_6,msq25_6v,
-     & gg_hg,gg_hg_gvec)
+      call dips(6,p,2,iglue2,iglue1,sub26_5,sub26_5v,msq26_5,msq26_5v,
+     & sub_tree,sub_tree_gvec)
+      call dips(6,p,iglue1,iglue2,2,sub56_2,sub56_2v,dummy,msq56_2v,
+     & sub_tree,sub_tree_gvec)
+      call dips(6,p,2,iglue1,iglue2,sub25_6,sub25_6v,msq25_6,msq25_6v,
+     & sub_tree,sub_tree_gvec)
 
       msq(:,:,:)=0._dp
 

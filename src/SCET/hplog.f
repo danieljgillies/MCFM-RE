@@ -81,7 +81,7 @@
         call eval1dhplat0(x,nw,Hc1,Hc2,Hc3,Hc4, 
      $                          Hr1,Hr2,Hr3,Hr4,Hi1,Hi2,Hi3,Hi4,n1,n2) 
         return 
-      elseif ( x.eq.1_dp ) then
+      elseif ( x.eq.1._dp ) then
 *        print*, ' eval1dhpl:      x = ',x,', call eval1dhplin1 ' 
         call eval1dhplin1(x,nw,Hc1,Hc2,Hc3,Hc4, 
      $                          Hr1,Hr2,Hr3,Hr4,Hi1,Hi2,Hi3,Hi4,n1,n2) 
@@ -101,7 +101,7 @@
         call eval1dhplatminf(x,nw,Hc1,Hc2,Hc3,Hc4, 
      $                          Hr1,Hr2,Hr3,Hr4,Hi1,Hi2,Hi3,Hi4,n1,n2) 
         return 
-      elseif ( x.eq.-1_dp ) then
+      elseif ( x.eq.-1._dp ) then
 *        print*, ' eval1dhpl:      x = ',x,', call eval1dhplinm1 ' 
         call eval1dhplinm1(x,nw,Hc1,Hc2,Hc3,Hc4, 
      $                          Hr1,Hr2,Hr3,Hr4,Hi1,Hi2,Hi3,Hi4,n1,n2) 

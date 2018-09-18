@@ -36,7 +36,7 @@
      & atreez_423156(2,2,2),atreez_241356(2,2,2),
      & a61z_123456(2,2,2),a61z_214356(2,2,2),
      & a61z_423156(2,2,2),a61z_241356(2,2,2),
-     & mmsq_vec(2,2),mmsq_ax(2,2),vcouple(2)
+     & mmsq_vec0(2,2),mmsq_vect(2,2),mmsq_ax(2,2),vcouple(2),tcouple(2)
       integer:: nu,j,k,polq,polb,polz
       save scalesq
 
@@ -88,7 +88,7 @@ c     0 ---> b(p6)+g(p1)+g(p2)+bb(p5)+e^+(p4)+e^-(p3)
       pswap(6,nu)=p(3,nu)
       enddo
       call spinoru(6,pswap,za,zb)
-      call xzqqgg_v(mmsq,mmsq_vec,mmsq_ax)
+      call xzqqgg_v(pswap,mmsq,mmsq_vec0,mmsq_vect,mmsq_ax)
       
 c---  Now transform momenta into a notation 
 c---  suitable for calling the BDKW function with notation which is 
@@ -120,11 +120,12 @@ c--     q (-p1)+b (-p5)+l-(-p4) ---> q+(p2)+b (p6)+e-(p3)
 c--- compute correct vector-like coupling for diagrams with Z coupled to a loop
       vcouple(1)=czip
       vcouple(2)=czip
-      do j=1,nf
       do polz=1,2
+      do j=1,nf
       vcouple(polz)=vcouple(polz)
      & +Q(j)*q1+0.5_dp*(vQ(j,1)+vQ(j,2))*v2(polz)*prop
       enddo
+      tcouple(polz)=Q(2)*q1+0.5_dp*(vQ(2,1)+vQ(2,2))*v2(polz)*prop
       enddo
       
 c--- set-up amplitudes first, to improve efficiency
@@ -180,8 +181,10 @@ c--- set-up amplitudes first, to improve efficiency
       if ((j == 0) .and. (k == 0)) then
         msqv(j,k)=msqv(j,k)+mmsq(polq,polz)*(
      &    abs(Q(flav)*q1+vQ(flav,polq)*v2(polz)*prop)**2)
-     &            +real(mmsq_vec(polq,polz)
+     &            +real(mmsq_vec0(polq,polz)
      &   *conjg(Q(flav)*q1+vQ(flav,polq)*v2(polz)*prop)*vcouple(polz))
+     &            +real(mmsq_vect(polq,polz)
+     &   *conjg(Q(flav)*q1+vQ(flav,polq)*v2(polz)*prop)*tcouple(polz))
      &            +real(mmsq_ax(polq,polz)
      &   *conjg(Q(flav)*q1+vQ(flav,polq)*v2(polz)*prop)
      &   *(v2(polz)*prop)/sin2w)

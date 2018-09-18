@@ -13,8 +13,8 @@ c--- each parton configuration
       include 'msq_cs.f'
       include 'msqv_cs.f'
       integer:: i,j,k,n
-      real(dp):: msq_dip(6,0:2,-nf:nf,-nf:nf),dsub(4),sub_dip(6,4)
-     &                ,msq_dipv(6,0:2,-nf:nf,-nf:nf),dsubv,sub_dipv(6)
+      real(dp):: msq_dip(6,0:2,-nf:nf,-nf:nf),dsub(4),sub_dip(6,4),
+     &           msq_dipv(6,0:2,-nf:nf,-nf:nf),dsubv,sub_dipv(6)
       
       do i=0,2
         do j=-nf,nf

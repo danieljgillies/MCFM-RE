@@ -1,4 +1,5 @@
       function D2six(k1,k2,k3,k4,k5,k6)
+        use mod_qcdloop_c
       implicit none
       include 'types.f'
       complex(dp):: D2six
@@ -13,7 +14,7 @@ C----- multiplied by a factor of -C(0)/2
       include 'sprods_com.f'
       include 'masses.f'
       include 'scale.f'
-      complex(dp):: qlI4,qlI3,IntC(4),IntD
+      complex(dp):: IntC(4),IntD
       real(dp):: s12,s34,s56,s134,s156,C(0:4),mtsq
       integer:: e,k1,k2,k3,k4,k5,k6
       mtsq=mt**2

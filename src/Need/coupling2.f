@@ -7,7 +7,6 @@ c--- value of nflav and makes CKM matrix diagonal if necessary
       include 'constants.f'
       include 'nf.f'
       include 'mxpart.f'
-      include 'cplx.h'
       include 'masses.f'
 c      include 'ewcouple.f'
       include 'qcdcouple.f'
@@ -25,6 +24,7 @@ c      include 'ewinput.f'
       include 'kpart.f'
       include 'nproc.f'
       include 'taucut.f'
+      include 'scalevar.f'
       real(dp):: alphas,cmass,bmass
       real(dp):: Vud,Vus,Vub,Vcd,Vcs,Vcb
       common/cabib/Vud,Vus,Vub,
@@ -141,6 +141,17 @@ c--- special write-out for stop+b case
       write(6,*) '****************************************************'
  49   format(' *  ',a20,f12.8,16x,'*')
  50   format(' *  ',6x,a8,i1,a25,8x,'*')
+      endif
+
+      if (verbose .and. doscalevar) then
+      write(6,*)
+      write(6,*) '****************************************************'
+      write(6,*) '*                                                  *'
+      write(6,*) '*     Computing scale variation in histograms      *'
+      write(6,51) maxscalevar
+      write(6,*) '*                                                  *'
+      write(6,*) '****************************************************'
+ 51   format(' *    using ',i1,'-point variation by a factor of two    *')
       endif
       
       return

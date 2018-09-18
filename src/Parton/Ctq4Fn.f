@@ -71,7 +71,7 @@ C             If data file not initialized, do so.
             Stop
          Endif
          IU= NextUt()
-	 filename=checkpath('Pdfdata/'//Flnm(Iset))
+         filename=checkpath('Pdfdata/'//Flnm(Iset))
          Open(IU, File=filename, Status='OLD', Err=100)
          Call ReadTbl (IU)
          Close (IU)

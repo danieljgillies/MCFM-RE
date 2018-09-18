@@ -5,13 +5,14 @@ c--- of floating points using precision given by EPS
 c--- extended so that original matrix a is not destroyed
       SUBROUTINE ovdsvdcmp(ain,a,m,n,w,v)
       implicit none
+      include 'types.f'
       INTEGER m,n,NMAX
-      DOUBLE PRECISION ain(m,n),a(m,n),v(n,n),w(n)
+      REAL(DP):: ain(m,n),a(m,n),v(n,n),w(n)
       PARAMETER (NMAX=500)
 CU    USES ovd.
       INTEGER i,its,j,jj,k,l,nm
-      DOUBLE PRECISION anorm,c,f,g,h,s,scale,x,y,z,rv1(NMAX),ovdpythag
-      double precision EPS
+      REAL(DP):: anorm,c,f,g,h,s,scale,x,y,z,rv1(NMAX),ovdpythag
+      real(dp):: EPS
       parameter(EPS=1d-8)
       a=ain
       g=0.0d0

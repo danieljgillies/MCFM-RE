@@ -111,16 +111,16 @@ c      xmax=1._dp/ptjetmin
 
       if (ijet <= nphots) then
         if     ((nphots == 3) .or. (nphots == 4)) then
-          ptmin_part=min(gammpt,gammpt2,gammpt3)
+          ptmin_part=min(gammptmin,gammpt2,gammpt3)
         elseif (nphots == 2) then
-          ptmin_part=min(gammpt,gammpt2)
+          ptmin_part=min(gammptmin,gammpt2)
         elseif (nphots == 1) then
-          ptmin_part=gammpt
+          ptmin_part=gammptmin
         else
           write(6,*) 'Unexpected # photons in gen_photons_jets: ',nphots
           stop
         endif
-        etamax_part=gammrap
+        etamax_part=gammrapmax
 c        pbreak_part=0._dp
         if (kpart==kreal) then
 c--- cannot generate exactly to match, since dipoles transform photon
@@ -140,7 +140,7 @@ c--- cannot generate exactly to match
 c          ptmin_part=0._dp
 c--- attempt to generate jets to balance photon for dirgam,
           if (kcase==kdirgam) then
-            ptmin_part=gammpt
+            ptmin_part=gammptmin
 c          else
 c            pbreak_part=pbreak
           endif
@@ -214,7 +214,7 @@ c         write(6,*) 'etamax**2 <= 1._dp in gen_photons_jets.f',etamax**2
       if ((kpart==klord) .or. (kpart==kvirt)) then
 c--- rapidity constrained: need to check identity of last parton
         if (njets == 0) then
-          lastmax=gammrap
+          lastmax=gammrapmax
         else
           lastmax=etajetmax
         endif

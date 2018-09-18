@@ -7,7 +7,9 @@ c--- Note that the inputs AMZ and NLOOP are not used
       DOUBLE PRECISION Q,AMZ,alphasPDF
       INTEGER NLOOP
             
+!$omp critical(alphasLHAPDF)
       ALPHAS=alphasPDF(Q)
+!$omp end critical(alphasLHAPDF)
 
       RETURN
       END

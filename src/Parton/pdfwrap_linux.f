@@ -51,6 +51,9 @@
       elseif     (pdlabel .eq. 'mrs04nn') then
       amz=0.1167d0
       nlooprun=3
+      elseif     (pdlabel .eq. 'mrstqed') then
+      amz=0.1205d0
+      nlooprun=2
       elseif     (pdlabel .eq. 'mrs02nl') then
       amz=0.1197d0 
       nlooprun=2
@@ -333,6 +336,11 @@ C   10     CTEQ4LQ  Low Q0                  0.114        0.7      cteq4lq.tbl
       call SetCT14(TableFile)
       amz=0.118d0
       nlooprun=3
+      elseif (pdlabel .eq. 'CT14qed') then
+      TableFile='ph0.00_Proton.pds'
+      call SetCT14_qed(TableFile)
+      amz=0.118d0
+      nlooprun=2
 
       elseif (pdlabel .eq. 'NN2.3NL') then
       gridname='Pdfdata/NNPDF23_nlo_as_0118.LHgrid'
@@ -383,6 +391,7 @@ c--- need a value here: Lambda = 200 MeV
         write(6,*) '    CT14.LL      (LO)'
         write(6,*) '    CT14.NL      (NLO)'
         write(6,*) '    CT14.NN      (NNLO)'
+        write(6,*) '    CT14qed      (NLO+photon)'
         write(6,*) '    NN2.3NL      (NLO)'
         write(6,*) '    NN2.3NN      (NNLO)'
         write(6,*) '    NN3.0LO      (LO)'

@@ -2,6 +2,7 @@
      . Shat5,Bzero4,N0)
       implicit none
 C---  Expression for Eq. 5.61
+      include 'types.f'
       include 'TRconstants.f' 
       include 'pvCnames.f' 
       include 'pvCv.f' 
@@ -9,9 +10,9 @@ C---  Expression for Eq. 5.61
       include 'Carrays.f' 
       integer ep,N0,i,j,i1,i2,i3,i4,n,m,np
       parameter(np=2)
-      double precision 
+      real(dp):: 
      . Xtwiddle(0:np,0:np),Gtwiddle(np,np),f(np),Gtt(np,np,np,np)
-      double complex Shat5(np,z4max,-2:0),Bzero4(z4max,-2:0),
+      complex(dp):: Shat5(np,z4max,-2:0),Bzero4(z4max,-2:0),
      . bit,pole
 
 

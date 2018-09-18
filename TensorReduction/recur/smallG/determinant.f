@@ -1,7 +1,9 @@
       subroutine determinant(N,Nphy,Y,det)
-      integer N
-      double precision Y(Nphy,NPhy), det
-      double precision 
+      implicit none
+      include 'types.f'
+      integer::N,Nphy
+      real(dp):: Y(Nphy,NPhy), det
+      real(dp):: 
      . y11,y12,y13,y14,y15,y16,
      . y21,y22,y23,y24,y25,y26,
      . y31,y32,y33,y34,y35,y36,

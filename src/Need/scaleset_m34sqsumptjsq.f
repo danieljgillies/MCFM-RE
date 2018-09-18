@@ -21,6 +21,7 @@ c--- and the sum is over the pt-squared of each jet in the event
       if((kcase==kW_1jet) .or.
      &   (kcase==kZ_1jet) .or.
      &   (kcase==kggfus1) .or.
+     &   (kcase==khjetma) .or.
      &   (kcase==kW_2jet) .or.
      &   (kcase==kZ_2jet) .or.
      &   (kcase==kggfus2) .or.

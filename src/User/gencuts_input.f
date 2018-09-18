@@ -41,11 +41,11 @@
       include 'jetlabel.f'
       include 'notag.f'
       include 'taucut.f'
-      logical:: first,passedlept,is_lepton,is_photon,is_neutrino,
+      include 'first.f'
+      logical:: passedlept,is_lepton,is_photon,is_neutrino,
      & is_hadronic,failed
-      integer:: njets,j,k,countb,bindex(mxpart),jindex,kindex,ib1,ib2
-      integer:: countlept,leptindex(mxpart),countnu,
-     & countjet,jetindex(mxpart),pntr,nuindex(mxpart)
+      integer:: njets,j,k,jindex,kindex,ib1,ib2
+      integer:: countjet,jetindex(mxpart),pntr
       real(dp):: pjet(mxpart,4),etvec(4),pZj(4),mZj
       real(dp):: pt,etarap,etmiss,evtmisset,R,Rcut,etaj,etak,
      & etalept,mll,jetpt,jetrap,mnul,etabuffer
@@ -54,7 +54,7 @@
       real(dp):: dphi_ll,m_ll,mtrans,scut1,scut2
       real(dp):: phill,phillcut,etajet2cut,mllcut,mnulcut
       real(dp):: mZjcut,ptcheck,aetacheck
-      integer:: ilep,igam,inu,countljet, countbjet,reconstr_top
+      integer:: ilep,igam,inu,countljet,countbjet,reconstr_top
       real(dp):: pljet(mxpart,4),pbjet(mxpart,4)
       common/stopvars/ht,qeta,mlbnu,merecon,reconcorr
       common/hwwvars/dphi_ll,m_ll,mtrans,scut1,scut2
@@ -66,7 +66,9 @@
       parameter(phillcut=1.2_dp,etajet2cut=2.5_dp,mllcut=15._dp)
       parameter(mZjcut=40._dp,mnulcut=30._dp)
       data first/.true./
-      save first,countlept,countnu,countb,leptindex,nuindex,bindex
+      integer, save :: countlept,countnu,countb,
+     &   leptindex(mxpart),nuindex(mxpart),bindex(mxpart)
+!$omp threadprivate(countlept,countnu,countb,leptindex,nuindex,bindex)
 
       gencuts_input=.false.
       
@@ -106,17 +108,23 @@ c--- write-out the cuts we are using
       write(6,*)
       write(6,*)  '****************** Generic cuts ********************'
       write(6,*)  '*                                                  *'
-      write(6,99) '*        pt(lepton)      >   ',leptpt,
-     &                ' GeV            *'
-      write(6,99) '*      |eta(lepton)|     <   ',leptrap,
-     &                '                *'
+      if (leptptmax > 0.99e6_dp) then
+        write(6,99) '*        pt(lepton)      >   ',leptptmin,
+     &                  ' GeV            *'
+      else
+        write(6,98) leptptmin,'    pt(lepton)     ',leptptmax,'GeV'
+      endif
+      write(6,98) leptrapmin,'   |eta(lepton)|   ',leptrapmax,'   '
       write(6,99) '*       pt(missing)      >   ',misspt,
      &                ' GeV            *'
-      if ((leptpt2 .ne. zip) .or. (leptrap2 .ne. zip)) then
-      write(6,99) '*     pt(2nd lepton)    >   ',leptpt2,
-     &                ' GeV            *'
-      write(6,99) '*   |eta(2nd lepton)|   <   ',leptrap2,
-     &                '                *'
+      if ((leptpt2min .ne. zip) .or. (leptrap2max .ne. zip)) then
+      if (leptpt2max > 0.99e6_dp) then
+        write(6,99) '*        pt(lepton)      >   ',leptpt2min,
+     &                  ' GeV            *'
+      else
+        write(6,98) leptpt2min,'  pt(2nd lepton)   ',leptpt2max,'GeV'
+      endif
+      write(6,98) leptrap2min,' |eta(2nd lepton)| ',leptrap2max,'   '
       endif
       if     (kcase==kWgamma) then
       if (mtrans34cut < zip) then
@@ -182,7 +190,8 @@ C     Basic pt and rapidity cuts for lepton
       if     (countlept == 1) then
           ptcheck=pt(leptindex(1),pjet)
           aetacheck=abs(etarap(leptindex(1),pjet))
-          if ((ptcheck < leptpt) .or. (aetacheck > leptrap)) then
+          if ((ptcheck < leptptmin) .or. (ptcheck > leptptmax)
+     &   .or. (aetacheck > leptrapmax) .or. (aetacheck < leptrapmin)) then
             gencuts_input=.true.
             return
           endif
@@ -199,7 +208,8 @@ c--- loop over all the lepton possibilities for lepton 1 (j)
           passedlept=.true.
           ptcheck=pt(leptindex(j),pjet)
           aetacheck=abs(etarap(leptindex(j),pjet))
-          if ((ptcheck < leptpt) .or. (aetacheck > leptrap)) then
+          if ((ptcheck < leptptmin) .or. (ptcheck > leptptmax)
+     &   .or. (aetacheck > leptrapmax) .or. (aetacheck < leptrapmin)) then
             passedlept=.false.
             goto 78
           endif
@@ -212,7 +222,8 @@ c--- loop over all the lepton possibilities for lepton 1 (j)
             if (k .ne. j) then
              ptcheck=pt(leptindex(k),pjet)
              aetacheck=abs(etarap(leptindex(k),pjet))
-              if ((ptcheck< leptpt2).or.(aetacheck> leptrap2))then
+             if ((ptcheck < leptpt2min) .or. (ptcheck > leptpt2max)
+     &      .or. (aetacheck > leptrap2max) .or. (aetacheck < leptrap2min)) then
                 passedlept=.false.
               endif
               if ((aetacheck > leptveto2min) .and.
@@ -502,9 +513,13 @@ c-- cuts on b-quarks
       if (bbproc) then
         call getbs(pjet,ib1,ib2)
         if ( (abs(etarap(ib1,pjet)) > etabjetmax)
-     &  .or. (pt(ib1,pjet) < ptbjetmin) ) gencuts_input=.true. 
+     &  .or. (abs(etarap(ib1,pjet)) < etabjetmin)
+     &  .or. (pt(ib1,pjet) < ptbjetmin)
+     &  .or. (pt(ib1,pjet) > ptbjetmax) ) gencuts_input=.true.
         if ( (abs(etarap(ib2,pjet)) > etabjetmax)
-     &  .or. (pt(ib2,pjet) < ptbjetmin) ) gencuts_input=.true. 
+     &  .or. (abs(etarap(ib2,pjet)) < etabjetmin)
+     &  .or. (pt(ib2,pjet) < ptbjetmin)
+     &  .or. (pt(ib2,pjet) > ptbjetmax) ) gencuts_input=.true.
       endif
 
 c--- completed basic cuts
@@ -529,6 +544,7 @@ C--- if there are jet-like particles (see above), do more cuts
  
       return
 
+   98 format(' *  ',f9.3,' < ',a18,' < ',f9.3,a4,'  *')
    99 format(1x,a29,f6.2,a17)
       
 

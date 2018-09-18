@@ -1,24 +1,26 @@
       subroutine ovCcheck(rank,q1,q2,m0s,m1s,m2s,
      & FC0,FC1,FC2,FC3,failed)
       implicit none
+      include 'types.f'
       include 'TRconstants.f'
       include 'TRydef.f'
       include 'TRmetric.f'
       include 'pvverbose.f'
       integer n2,n3,ep,nu,rank,epmin
-      double precision q1(4),q2(4),p2(4),f1,f2,Cacc
-      double precision q1Dq1,q2Dq2,q1Dq2,s12,m0s,m1s,m2s
-      double precision sing2(-2:0),sing3(-2:0)
-      double complex FB01(-2:0),FB11(y1max,-2:0),FB21(y2max,-2:0)
-      double complex FB02(-2:0),FB12(y1max,-2:0),FB22(y2max,-2:0)
-      double complex FB03(-2:0),FB13(y1max,-2:0),FB23(y2max,-2:0)
-      double complex FB13a(y1max,-2:0),FB23a(y2max,-2:0)
-      double complex B00(-2:0)
-      double complex FC0(-2:0),FC1(y1max,-2:0),FC2(y2max,-2:0),
+      real(dp):: q1(4),q2(4),p2(4),f1,f2,Cacc
+      real(dp):: q1Dq1,q2Dq2,q1Dq2,s12,m0s,m1s,m2s
+      real(dp):: sing2(-2:0),sing3(-2:0)
+      complex(dp):: FB01(-2:0),FB11(y1max,-2:0),FB21(y2max,-2:0)
+      complex(dp):: FB02(-2:0),FB12(y1max,-2:0),FB22(y2max,-2:0)
+      complex(dp):: FB03(-2:0),FB13(y1max,-2:0),FB23(y2max,-2:0)
+      complex(dp):: FB13a(y1max,-2:0),FB23a(y2max,-2:0)
+      complex(dp):: B00(-2:0)
+      complex(dp):: FC0(-2:0),FC1(y1max,-2:0),FC2(y2max,-2:0),
      & FC3(y3max,-2:0),trhs,tq
       logical failed
       integer ierr
       parameter(epmin=0) ! Only check finite pieces
+      include 'cplx.h'
       
       failed=.false.
       ierr=0
@@ -134,7 +136,7 @@ c--- check for rank 2
      & -FC2(y2(3,3),ep)
      & -m0s*FC0(ep)-FB03(ep)
       trhs=
-     & +dcmplx(sing2(ep))
+     & +cplx1(sing2(ep))
       call checkaccuracy(trhs,tq,Cacc,failed) 
       if (failed) then
         ierr=20
@@ -198,7 +200,7 @@ c--- check for rank 2
      & -FC3(y3(3,3,n3),ep)
      & -m0s*FC1(n3,ep)-FB13a(n3,ep)
       trhs=
-     & +dcmplx(sing3(ep))
+     & +cplx1(sing3(ep))
       call checkaccuracy(trhs,tq,Cacc,failed) 
       if (failed) then
         ierr=30

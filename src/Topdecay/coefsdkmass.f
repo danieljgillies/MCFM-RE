@@ -1,4 +1,5 @@
       subroutine coefsdkmass(s12,mt,mb,ct,c0L,c0R,c1L,C1R)
+        use mod_qcdloop_c
       implicit none
       include 'types.f'
       
@@ -20,8 +21,7 @@ C     the integrated counterterm for top semi-leptonic decay, ct
       real(dp)::s12,mb,mt,ct,
      & rsq,omrsq,eta,wlog,rlog,mulog,lambda,
      & rb,rbsq,rwsq,Zt,Zb,mtsq,mbsq,lnrbsq,ddilog
-      complex(dp)::B0f1,B0f2,C0(-2:0),c0L,c0R,c1L,C1R,s12log,lnrat,
-     & qlI3,qlI2
+      complex(dp)::B0f1,B0f2,C0(-2:0),c0L,c0R,c1L,C1R,s12log,lnrat
       real(dp)::P0,P3,PP,PM,W0,WP,WM,YP,YW,z,om,omsq
       real(dp)::P0b,P3b,PMb,PPb,Ypb,Ywb,be,besq
 c     Statement functions.

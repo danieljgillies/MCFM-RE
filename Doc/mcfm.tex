@@ -1,5 +1,14 @@
-\documentclass[12pt]{article}
+% !TeX spellcheck = en_US
+% !TeX encoding = UTF-8
+\documentclass{article}
 \usepackage{hyperref}
+\usepackage[parfill]{parskip}
+
+\usepackage[style=numeric-comp,backend=biber,eprint=true,url=true]{biblatex}
+%\DeclareFieldFormat[article]{title}{}
+\renewbibmacro{in:}{}
+
+\addbibresource{mcfm.bib}
 
 \begin{document}
 \def\GeV{\mbox{GeV}}
@@ -23,10 +32,11 @@
 \def\MCFM{{\tt MCFM }}
 \def\pow{{\lower.12ex\hbox{\texttt{\char`\^}}}}
 
+
 \thispagestyle{empty}
 \vspace*{3cm}
 \begin{center}
-{\Huge MCFM v8.0} \\
+{\Huge MCFM v8.1} \\
 \vspace*{0.5cm}
 \Large{A Monte Carlo for FeMtobarn} \\
 \Large{processes at Hadron Colliders} \\
@@ -38,9 +48,10 @@
 John M. Campbell ({\tt johnmc@fnal.gov}) \\
 R. Keith Ellis ({\tt ellis@fnal.gov}) \\
 Walter Giele ({\tt giele@fnal.gov}) \\
+Tobias Neumann ({\tt tneumann@fnal.gov }) \\
 Ciaran Williams ({\tt ciaranwi@buffalo.edu}) \\
 \vspace*{1.5cm}
-{\it \small Updated: May 25, 2016}
+{\it \small Updated: \today}
 \end{center}
 
 \newpage
@@ -85,7 +96,7 @@ for NNLO calculations please refer to:
 
 Other relevant references, corresponding to publications associated with the
 implementation of specific processes at NLO and NNLO, are listed
-in Appendix~\ref{MCFMrefs}.  Appendices~\ref{changelog8.0}--\ref{changelog} contain
+in Appendix~\ref{MCFMrefs}.  Appendices~\ref{changelog8.1}--\ref{changelog} contain
 a record of changes to the code since v6.0.
 
 \section{Installation}
@@ -94,12 +105,25 @@ The tar'ed and gzip'ed package may be downloaded from
 the \MCFM home-page at {\tt http://mcfm.fnal.gov}.
 After extracting, the source can be initialized by running the
 {\tt ./Install} command and then compiled with {\tt make}. The
-{\tt ./Install} script may be edited prior to running, to include
+makefile may be edited prior to running, to include
 the locations of the CERNLIB and LHAPDF libraries, if desired.
-The code has been developed and tested under Redhat Linux and Mac OSX,
-using the compiler {\tt gfortran}. Please report
-any compilation problems under other operating systems to the authors.
-Note that, as of version 6.0, the code requires a Fortran90 compiler.
+The code requires and only supports the GNU compiler collection with at least
+version 4.9 including the C++11 compiler g++ and the Fortran compiler gfortran.
+
+If your GNU Fortran and GNU C++ compiler commands are different than gfortran
+and g++ you should export the environment variables FC and CXX to match the
+names of the gfortran and g++ compiler commands before running the Install
+script or the makefile.
+
+Please ensure that your compiler is working and can produce executable program
+files. For example when your compiler has been installed into a non-standard
+location you probably need to append the compiler library path to {\tt
+LD\_LIBRARY\_PATH } ({\tt DYLD\_FALLBACK\_LIBRARY\_PATH} on OS X).  This can be
+achieved, for example, as follows:
+\begin{verbatim}
+export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/home/user/local/lib
+\end{verbatim}
+
 
 The directory structure of the installation is as follows:
 \begin{itemize}
@@ -107,79 +131,54 @@ The directory structure of the installation is as follows:
 \item {\tt Bin}. The directory containing the executable {\tt mcfm\_omp},
 and various essential files -- notably the options file {\tt input.DAT}.
 \item {\tt Bin/Pdfdata}. The directory containing the PDF data-files.
-\item {\tt obj\_omp}. The object files produced by the compiler. 
+\item {\tt obj}. The object files produced by the compiler. 
 \item {\tt src}. The Fortran source files in various subdirectories.
-\item {\tt QCDLoop}. The source files to version 1.95 of the Fortran
-library QCDLoop~\cite{Ellis:2007qk}. The location of these libraries
-is set in the {\tt makefile} (by {\tt QLDIR} and {\tt FFDIR}) and may be
-changed to reflect existing installations if desired. 
+\item {\tt qcdloop-2.0.2}. The source files to the
+library QCDLoop~\cite{Carrazza:2016gav,Ellis:2007qk}.
+\item {\tt TensorReduction} General tensor reduction code based on the work of Passarino and 
+Veltman \cite{Passarino:1978jh} and Oldenborgh and Vermaseren \cite{vanOldenborgh:1989wn}.
 \end{itemize}
-The files which it is most likely that the user will need to modify
-are located in {\tt src/User}. It is convenient, if one wants to 
-modify one of these files, (or any other file in the subdirectories of the 
-{\tt src} directory),
-to copy it first to the directory where the user has installed MCFM.
-The makefile will use this file in preference to the identically named
-file in the sub-directories of {\tt src}.
+%The files which it is most likely that the user will need to modify
+%are located in {\tt src/User}. It is convenient, if one wants to 
+%modify one of these files, (or any other file in the subdirectories of the 
+%{\tt src} directory),
+%to copy it first to the directory where the user has installed MCFM.
+%The makefile will use this file in preference to the identically named
+%file in the sub-directories of {\tt src}.
  
 \subsection{OpenMP and MPI}
-As of version 7.0, \MCFM has been modified 
-using OpenMP (Open multi-processing)  to implement multi-threading. 
-By using OpenMP, \MCFM compiled with the appropriate flags
-will execute on any processor, 
-automatically adjusting to the number of available threads.
-The integration routine Vegas now distributes the event evaluation over the threads, 
-and combines all events at the end of every iteration to
-optimize the numerical integration.
-Special care has been taken that the results of the
-Monte Carlo integration are independent of the 
-number of threads used.
+\MCFM uses OpenMP (Open Multi-Processing) to implement multi-threading and will automatically adjust to the 
+number of available cpu threads. The multi-threading is implemented with respect to the integration routine 
+Vegas, which distributes the event evaluations over the threads and combines all events at the end of 
+every iteration.
 
-In version 8.0 the OpenMP version of MCFM is compiled by default.  To revert
-to a single core version, the user should first ensure
-that all the libraries are compiled appropriately.  This is achieved
-by running the command {\tt ./Install\_noomp}, in direct analogy with the
-normal {\tt Install} script described above.  After this is complete,
-the {\tt makefile} must be edited and the value of the variable
-{\tt USEOMP} changed to {\tt NO}.  This is specified near the top
-of the file and care must be taken to ensure that no trailing characters
-are included.  The code can then be compiled using {\tt make},
-with the resulting executable {\tt mcfm} placed in the {\tt Bin}
-directory.  Note that the associated object files are stored in an
-additional subdirectory, {\tt obj}.  The use of this version
-of the code is otherwise identical to the ordinary one, apart from
-the replacement of {\tt ./mcfm\_omp} by {\tt ./mcfm}.
-
-Two environment variables are useful when using the OMP version of MCFM.
+Two environment variables are useful when using the OMP version of \MCFM.
 The first, {\tt OMP\_STACKSIZE} may need to be set in order for the program
 to run correctly.  On some systems, depending on the OMP implementation,
 the program will crash when calculating some of the more complicated processes,
-for example $W+2$~jet production at NLO.  Setting this
+for example $W+2$~jet production at NLO. Setting this
 variable to {\tt 16000}, for instance in the Bash shell by using the
 command {\tt export OMP\_STACKSIZE=16000}, has been found to be sufficient
-for all processes.  The second useful variable is {\tt OMP\_NUM\_THREADS}
-which may be used to directly control the number of threads used during
+for all processes.  The second useful variable {\tt OMP\_NUM\_THREADS}
+may be used to directly control the number of threads used during
 OMP execution (the default is the maximum number of threads available
 on the system).
 
-In version 8.0 it is also possible to run MCFM on a cluster using MPI
-(Message Passing Interface).  To run in this  mode, edit the flag {\tt USEMPI}
-in the makefile to {\tt YES} and specify compilers in the makefile
-that are MPI-capable.  The appropriate lines to edit may be found by
-searching for the default compilers in the distributed version,
-which are located in {\tt /usr/local/openmpi}.  Note that, in MPI mode, the code
-also automatically uses the OpenMP improvements.
+It is also possible to run \MCFM using the MPI (Message Passing Interface).
+To run in this mode, change the flag {\tt USEMPI} in the makefile to {\tt YES} and specify the MPI compiler 
+wrappers and compilers in the makefile. By default the OpenMPI compiler wrappers mpifort and mpic++ are set 
+to use gfortran and g++.
 
-\subsection{Installation as a library}
-It is also possible to compile all of \MCFM as a library.
-This can be of use if the user desires to use routines of \MCFM 
-in association with another program. This is achieved by the make command
-{\tt make mcfmlib}.  The \MCFM executable can also be compiled using
-the library with {\tt make mcfmalt}.
+%\subsection{Installation as a library}
+%It is also possible to compile all of \MCFM as a library.
+%This can be of use if the user desires to use routines of \MCFM 
+%in association with another program. This is achieved by the make command
+%{\tt make mcfmlib}.  The \MCFM executable can also be compiled using
+%the library with {\tt make mcfmalt}.
  
 \section{Input parameters}
 \label{Input_parameters}
-\MCFM now allows the user to choose between a number of schemes
+\MCFM allows the user to choose between a number of schemes
 for defining the electroweak couplings. These choices are summarized
 in Table~\ref{ewscheme}. The scheme is selected by modifying the
 value of {\tt ewscheme} in {\tt src/User/mdata.f} prior to compilation, 
@@ -214,9 +213,7 @@ values. $M_W$ and $M_Z$ are taken from ref.~\cite{Amsler:2008zzb}.}
 \end{center}
 \end{table}
 
-Starting from version 5.2 of the code, the default scheme has been
-changed from {\tt ewscheme=-1} (as in previous versions) to
-{\tt ewscheme=+1}. As described below, this corresponds to a scheme
+The default scheme corresponds to {\tt ewscheme=+1}. As described below, this corresponds to a scheme
 in which the top quark mass is an input parameter so that it is
 more suitable for many processes now included in the program.
 
@@ -305,6 +302,7 @@ segmentation faults.
 {\tt CT14.LL}  & 0.130  & 1     & \cite{Dulat:2015mca} \\
 {\tt CT14.NL}  & 0.118  & 2     & \cite{Dulat:2015mca} \\
 {\tt CT14.NN}  & 0.118  & 3     & \cite{Dulat:2015mca} \\
+{\tt CT14qed}  & 0.118  & 2     & \cite{Schmidt:2015zda} \\
 \hline
 {\tt NN2.3NL}  & 0.118  & 2     & \cite{Ball:2012cx} \\
 {\tt NN2.3NN}  & 0.118  & 3     & \cite{Ball:2012cx} \\
@@ -322,54 +320,23 @@ listed in Appendix~\ref{olderPDFs}.
 \label{pdlabelrecent}}
 \end{table}
 
-By editing the {\tt Makefile}, it is straightforward to switch to
-either the {\tt PDFLIB} or the {\tt LHAPDF} parton distribution
-function implementations.
+By editing the {\tt makefile}, one can switch to the {\tt LHAPDF} parton distribution function 
+implementations. This requires setting the flag {\tt PDFROUTINES} to {\tt LHAPDF} in the {\tt makefile}.
+If the library is not in one of the standard include and linker paths one must first set the variable {\tt 
+LHAPDFLIB} in the makefile to point to the directory that contains libLHAPDF. This version of \MCFM has been 
+explicitly tested against {\tt LHAPDF-6.2.1}. 
 
-To use {\tt PDFLIB}, one must first set the variable {\tt CERNLIB}
-in the makefile to point to the directory that contains
-{\tt libpdflib804.a} and then modify {\tt PDFROUTINES} to
-take the value {\tt PDFLIB}. The parameters to choose the
-pdf set are then specified in {\tt Bin/input.DAT}.
+The parameters to choose the pdf set are then provided in {\tt Bin/input.DAT} - 
+the name of the group and the integer specifying the set.
+%\MCFM expects to find the LHAPDF grids in a sub-directory of {\tt Bin} called
+%{\tt PDFsets}. It is easiest to simply create a symbolic link of the directory where the
+%grids actually reside to a subdirectory of {\tt Bin} called {\tt PDFsets}.
 
-To use {\tt LHAPDF}, one must first set the variable {\tt LHAPDFLIB}
-in the makefile to point to the directory that contains
-{\tt libLHAPDF.a} and then modify {\tt PDFROUTINES} to
-take the value {\tt LHAPDF}. Note that, in newer versions of LHAPDF,
-it may be easier to link against the static LHAPDF libraries by passing
-a ``{\tt -static}'' flag to the compiler via the {\tt FFLAGS} variable
-in the makefile, rather than using the (default) shared libraries.
-Particularly when compiling against both LHAPDF and CERNLIB, it may
-be useful to link only LHAPDF in a static manner. This can be achieved
-using g77, for instance, by replacing
- ``{\tt -lLHAPDF}'' with ``{\tt -Wl,-Bstatic -lLHAPDF -Wl,-Bdynamic}''
-in the makefile. This version of \MCFM has been explicitly tested
-against {\tt LHAPDF-5.5.0}.
-
-If at the first execution of mcfm the following error appears:
+If at the first execution of mcfm the library libLHAPDF cannot be found, you can add your LHAPDF library 
+path to the environment variable {\tt LD\_LIBRARY\_PATH} as follows:
 \begin{verbatim}
-./mcfm: error while loading shared libraries: libLHAPDF.so.0: cannot open
-shared object file: No such file or directory
+export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/home/user/newpath/lib
 \end{verbatim}
-
-you should add the following lines to the shell (bash) login script :
-\begin{verbatim}
-export LHAPDFSYS=/yourpath/LHAPDF-X.Y.Z
-export PATH=${PATH}:${LHAPDFSYS}/bin
-export LD_LIBRARY PATH=${LD_LIBRARY PATH}:${LHAPDFSYS}/lib
-\end{verbatim}
-
-The parameters to choose the
-pdf set are then provided in {\tt Bin/input.DAT} - 
-the name of the group and the integer specifying 
-the set.
-\MCFM expects to find the LHAPDF grids in a sub-directory of {\tt Bin} called
-{\tt PDFsets}. It is easiest to simply create a symbolic link of the directory where the
-grids actually reside to a subdirectory of {\tt Bin} called {\tt PDFsets}.
-
-One may always return to the built-in distributions by resetting
-{\tt PDFROUTINES} to take the value {\tt NATIVE}  in the makefile,
-(and recompiling).
 
 \section{Benchmark results at NNLO }
 \label{sec:NNLO}
@@ -386,7 +353,7 @@ m_b = 4.66~\mbox{GeV} \,,
 \end{eqnarray}
 and we use the NNLO CT14 pdf set (i.e. {\tt pdlabel} is {\tt CT14.NN}) with
 $\mu_F = \mu_R = Q^2$ (i.e. we set {\tt dynamicscale} equal to
-either {\tt m(34)} or {\tt m(3456)}, as appropriate).
+either {\tt m(34)} or {\tt m(345)} or {\tt m(3456)}, as appropriate).
 Our generic set of cuts is,
 \begin{eqnarray}
 && p_T(\mbox{lepton}) > 20~\mbox{GeV} \,, \quad
@@ -401,10 +368,14 @@ For $Z$ production we also impose a minimum $Z^*$ virtuality ({\tt m34min})
 of $40$~GeV.
 
 For providing benchmark runs we choose a set of integration parameters
-that provides approximately 1\% (or smaller) Monte Carlo uncertainties.
+that provides approximately 1\% (or smaller) Monte Carlo uncertainties for the NLO cross sections.
 These are {\tt itmx1 = 4}, {\tt itmx2 = 10} and {\tt ncall1 = ncall2 = 400000}.
-We set {\tt taucut} to {\tt 1\%acc} to achieve a similar level of uncertainty
-in the total NNLO predictions from power corrections that have been neglected. 
+For the NNLO coefficients we use {\tt itmx1 = 4}, {\tt itmx2 = 10} and {\tt ncall1 = ncall2 = 800000} and 
+set {\tt taucut} to {\tt 1\%acc}. This gives the reader an impression of the reached integration uncertainty 
+compared to the approx. 1\% error due to neglected power corrections. For the NNLO cross sections the 
+required computing time is about one week of CPU-time, depending on the process. Corresponding input files 
+for each process number can be found in the directory {\tt Bin/benchmarks}.
+
 Our benchmarks are shown in Table~\ref{NNLObenchmarks}.  These benchmark cross-sections
 may not be sufficiently accurate for all phenomenological applications but they should
 be able to be reproduced relatively easily, even on a desktop machine.
@@ -412,16 +383,19 @@ be able to be reproduced relatively easily, even on a desktop machine.
 \begin{table}
 \begin{center}
 \begin{tabular}{|l|l|l|l|} \hline
-Process & {\tt nproc} & $\sigma_{NLO} \pm \delta\sigma_{NLO}^{MC} $ & $\sigma_{NNLO} \pm \delta\sigma_{NNLO}^{MC} \pm \delta\sigma_{NNLO}^{pc}$ \\ 
+Process & {\tt nproc} & $\sigma_\mathrm{NLO} \pm \delta\sigma_\mathrm{NLO}^\mathrm{MC} $ & 
+$\sigma_\mathrm{NNLO} \pm 
+\delta\sigma_\mathrm{NNLO}^\mathrm{MC} \pm \delta\sigma_\mathrm{NNLO}^\mathrm{pc}$ \\ 
 \hline
-$W^+$ & {\tt 1}    & $4.218 \pm 0.002$ nb & $4.327 \pm 0.038 \pm 0.043$ nb\\
-$W^-$ & {\tt 6}    & $3.314 \pm 0.001$ nb & $3.256 \pm 0.035 \pm 0.033$ nb\\
-$Z  $ & {\tt 31}   & $884.9 \pm 0.3$ pb & $897.1 \pm 5.2 \pm 9.0$ pb\\
-$H  $ & {\tt 112}  & $1.395 \pm 0.001$ pb & $1.857 \pm 0.007 \pm 0.019$ pb\\
-$\gamma\gamma  $ & {\tt 285}  & $27.90 \pm 0.01$ pb & $43.62 \pm 0.09 \pm 0.44$ pb\\
-$W^+H$ & {\tt 91}    & $2.203 \pm 0.002$ fb & $2.279 \pm 0.011 \pm 0.023$ fb\\
-$W^-H$ & {\tt 96}    & $1.495 \pm 0.001$ fb & $1.533 \pm 0.006 \pm 0.015$ fb\\
-$ZH$   & {\tt 110}   & $0.7537 \pm 0.0004$ fb & $0.8453 \pm 0.0021 \pm 0.0085$ fb\\
+$W^+$ & {\tt 1}    & $4.220 \pm 0.002$ nb & $4.19 \pm 0.02 \pm 0.043$ nb\\
+$W^-$ & {\tt 6}    & $3.315 \pm 0.001$ nb & $3.23 \pm 0.01 \pm 0.033$ nb\\
+$Z  $ & {\tt 31}   & $885.2 \pm 0.3$ pb & $878 \pm 3 \pm 9$ pb\\
+$H  $ & {\tt 112}  & $1.395 \pm 0.001$ pb & $1.865 \pm 0.004 \pm 0.019$ pb\\
+$\gamma\gamma  $ & {\tt 285}  & $27.94 \pm 0.01$ pb & $43.60 \pm 0.06 \pm 0.44$ pb\\
+$W^+H$ & {\tt 91}    & $2.208 \pm 0.002$ fb & $2.268 \pm 0.007 \pm 0.023$ fb\\
+$W^-H$ & {\tt 96}    & $1.494 \pm 0.001$ fb & $1.519 \pm 0.004 \pm 0.015$ fb\\
+$ZH$   & {\tt 110}   & $0.7535 \pm 0.0004$ fb & $0.846 \pm 0.001 \pm 0.0085$ fb\\
+$Z\gamma$ & {\tt 300} & $959 \pm 8$ fb & $1268 \pm 22 $ fb \\
 \hline
 \end{tabular}
 \caption{Benchmark cross-sections at NLO and NNLO, using the parameters
@@ -434,12 +408,11 @@ uncertainty due to neglected power corrections at NNLO.}
 
 \section{Runtime options}
 
-{\tt mcfm} execution is performed in the {\tt Bin/} directory,
+\MCFM execution is performed in the {\tt Bin/} directory,
 with syntax:
 \begin{center}
-{\tt mcfm [}{\it mydir}{\tt ] [}{\it myfile}{\tt .DAT]}
+{\tt mcfm\_omp [}{\it mydir}{\tt ] [}{\it myfile}{\tt .DAT]}
 \end{center}
-The executable {\tt mcfm} is automatically moved to {\tt Bin} by the makefile.
 If no command line options are given, then {\tt mcfm} will default
 to using the file {\tt input.DAT} in the current directory for
 choosing options\footnote{Note that this is very different from
@@ -491,8 +464,6 @@ as well as unweighted events, for some processes. Please refer to
 Section~\ref{subsec:otheroutput} for further details.
 \item {\tt creatent}. {\it See above.}
 \item {\tt dswhisto}. {\it See above.}
-\item {\tt creategrid}. Flag to control whether or not to write out a grid file suitable for
-further processing by APPLgrid.  Please contact the APPLgrid authors for further information.
 \item {\tt writerefs}. Flag to control whether or not the program writes a list
 of appropriate references to the output at the end of the run. 
 \item {\tt writetop}. Flag to control whether or not a Topdrawer histogram output file
@@ -610,6 +581,7 @@ the code are then,
 \mu_{\rm ren} = {\tt scale} \times \mu_0 \;, \qquad
 \mu_{\rm fac} = {\tt facscale} \times \mu_0 \;, \qquad
 \mu_{\rm frag} = \mu_{\rm ren} \;. \nonumber
+\label{eq:dynscale}
 \end{equation}
 Note that, for simplicity, the fragmentation scale (relevant only for processes
 involving photons) is set equal to the renormalization scale.
@@ -631,7 +603,8 @@ exceeds a maximum of $60$ TeV (PDF) or $990$ GeV (fragmentation) this value is s
 {\tt sqrt(M\pow 2+pt5\pow 2)} & $M^2 + \vec{p_T}_5^2$ & $M=$~mass of particle 3+4 \\
 {\tt sqrt(M\pow 2+ptj1\pow 2)} & $M^2 + \vec{p_T}_{j_1}^2$ & $M=$~mass(3+4), $j_1=$ leading $p_T$ jet \\
 {\tt pt(photon)} & $\vec{p_T}_\gamma^2$ & \\
-{\tt HT} & $\sum_{i=1}^n {p_T}_i$ & $n$ final state particles (partons, not jets) \\
+{\tt pt(j1)} & $\vec{p_T}_{j_1}^2$ & \\
+{\tt HT} & $\sum_{i=1}^n {p_T}_i$ & $n$ particles (partons, not jets) \\
 \hline 
 \hline\end{tabular}
 \end{center}
@@ -643,6 +616,26 @@ calculation of all relevant scales using the given reference scale-squared $\mu_
 Although not really dynamic scales, note that the strings `{\tt MW}', `{\tt MZ}',
 `{\tt MH}' and `{\tt mt}' may be used as shorthand to indicate values of $\mu_0$ equal to
 $M_W$, $M_Z$, $M_H$ and $m_t$. 
+
+An additional option may be used to compute the effect of scale uncertainty in a process.  This is
+achieved by adding the string {\tt +scalevar} to the end of the usual option for {\tt dynamicscale}.
+This performs a variation of the scales used in Eq.~(\ref{eq:dynscale}) by a factor of two, so that it
+surveys the additional possibilities,
+\begin{eqnarray}
+&&
+(2\mu_{\rm ren},2\mu_{\rm fac}),
+(\mu_{\rm ren}/2,\mu_{\rm fac}/2), \nonumber \\ &&
+(2\mu_{\rm ren},\mu_{\rm fac}),
+(\mu_{\rm ren}/2,\mu_{\rm fac}),
+(\mu_{\rm ren},2\mu_{\rm fac}),
+(\mu_{\rm ren},\mu_{\rm fac}/2) \,.
+\label{eq:scalevar}
+\end{eqnarray}
+The histograms corresponding to these different choices are included in the output file, from which an
+envelope of theoretical uncertainty may be constructed by the user.  If only a two-point scale
+variation is required, corresponding to the additional scales in the first line of Eq.~(\ref{eq:scalevar}),
+this may be obtained by specifying {\tt +scalevar2}. In addition,
+this option requires a longer running-time than the case of no scale variation, of course.
 
 \item {\tt zerowidth}. When set to {\tt .true.} then all vector
 bosons are produced on-shell. This is appropriate for calculations
@@ -682,9 +675,9 @@ parameter that yield results that are affected by power corrections
 at the $1$\% and $0.2$\% level can be obtained by using the
 strings {\tt 1\%acc} and {\tt 0.2\%acc} respectively.
 
-\item {\tt ij}. This is the seed for the {\tt VEGAS} integration
+\item {\tt seed}. This is the seed for the {\tt VEGAS} integration
 and can be altered to give different results for otherwise identical
-runs.
+runs. Use 0 for a random seed.
 
 \item {\tt dryrun}. The default value of this parameter is
 {\tt .false.}. When set to {\tt .true.} the pre-conditioning sweeps
@@ -698,6 +691,12 @@ below.
 \item {\tt Gflag}. This only has an effect when running a
 $W+2$~jets or $Z+2$~jets process. Please see section~\ref{subsec:w2jets}
 below.
+
+\item {\tt ewcorr}. Specifies whether or not to compute EW corrections
+for the process.  Default is {\tt none}.  May be set to {\tt exact}
+or {\tt sudakov} for processes {\tt 31} (neutral-current DY),
+{\tt 157} (top-pair production) and {\tt 190} (di-jet production).
+For more details see section~\ref{subsec:EW}.
 
 \begin{center}
 \{blank line\} \\
@@ -717,12 +716,10 @@ inserting the appropriate 7-character code from Table~\ref{pdlabelmrs}
 or~\ref{pdlabelcteq} here.
 As mentioned above, this also sets the value of $\alpha_S(M_Z)$.
 
-\item {\tt NGROUP, NSET}. These integers choose the parton distribution
-functions to be used when using the PDFLIB package.
 \item {\tt LHAPDF group, LHAPDF set}. These choose the parton
 distribution functions to be used when using the LHAPDF package --
-the group is specified by a character string and the set by an integer.
-Please see {\tt http://durpdg.dur.ac.uk/lhapdf/} for further details.
+the group is specified by a character string and the set by an integer.\footnote{Please see 
+\url{https://lhapdf.hepforge.org/} for further details.}
 For appropriate PDF sets choosing a value of -1 for the set number ({\tt  LHAPDF set}) 
 will perform the calculation of the PDF uncertainties (see also
 Section~\ref{sec:histos}, especially the caveat regarding using
@@ -751,7 +748,7 @@ instead contain an extra jet at NLO.
 \item {\tt algorithm.} This specifies the jet-finding algorithm that
 is used, and can take the values
 {\tt ktal} (for the Run II $k_T$-algorithm), {\tt ankt} (for the
-``anti-$k_T$'' algorithm~\cite{Cacciari:2008}), {\tt cone} (for
+``anti-$k_T$'' algorithm~\cite{Cacciari:2008gp}), {\tt cone} (for
 a midpoint cone algorithm), {\tt hqrk} (for a simplified cone
 algorithm designed for heavy quark processes) and {\tt none} (to
 specify no jet clustering at all). The latter option is only a
@@ -760,9 +757,11 @@ without any jet definition: e.g. the single top process,
 $q{\bar q^\prime} \to t{\bar b}$, which is finite as
 $p_T({\bar b}) \to 0$.
 
-\item {\tt ptjet\_min, |etajet|\_min, |etajet|\_max}. These specify the values
-of $p_{T,{\rm min}}$, $|\eta|_{\rm min}$ and $|\eta|_{\rm max}$ for the
-jets that are found by the algorithm. 
+\item {\tt ptjet\_min, |etajet|\_max}. These specify the values
+of $p_{T,{\rm min}}$ and $|\eta|_{\rm max}$ for the
+jets that are found by the algorithm.  A comma-separated pair
+may be used on either line to indicate a range of allowed values for
+$p_T$ and $|\eta|$.
 
 \item {\tt Rcut\_jet}. If the final state of the chosen process contains
 either quarks or gluons then for each event an attempt will be made
@@ -776,10 +775,19 @@ no additional cuts are applied to the events and the remaining
 parameters in this section are ignored. Otherwise, events will
 be rejected according to a set of cuts that is specified below.
 Further options may be implemented by editing {\tt src/User/gencuts.f}.
+A special setting of this parameter, to {\tt LHCb}, invokes a set of
+cuts tailored to the LHCb experiment.  This requires the specification
+of an additional set of parameters, as shown in the file {\tt Bin/lhcb.DAT}.
+The effect of these parameters, as well as the particular LHCb cuts that
+are applied, can be found in the file {\tt src/Need/lhcbcode.f}.\footnote{
+The authors are grateful to Philip Ilten ({\tt philten@cern.ch}) for
+providing this code.}
 
 \item {\tt ptlepton\_min, |etalepton|\_max}. These specify the values
 of $p_{T,{\rm min}}$ and $|\eta|_{\rm max}$ for one of the leptons produced
-in the process.
+in the process.   A comma-separated pair
+may be used on either line to indicate a range of allowed values for
+$p_T$ and $|\eta|$.
 
 \item {\tt etalepton\_veto}. This should be specified as a pair of double
 precision numbers that indicate a rapidity range that should be excluded
@@ -792,6 +800,9 @@ momentum (coming from neutrinos).
 the values of $p_{T,{\rm min}}$ and $|\eta|_{\rm max}$ for the remaining
 leptons in the process. This allows for staggered cuts where, for
 instance, only one lepton is required to be hard and central.
+A comma-separated pair
+may be used on either line to indicate a range of allowed values for
+$p_T$ and $|\eta|$.
 
 \item {\tt etalepton(2nd+)\_veto}. This should be specified as a pair of double
 precision numbers that indicate a rapidity range that should be excluded
@@ -851,7 +862,9 @@ pseudo-rapidities of jets $j_1$ and $j_2$: \\
 \item {\tt ptmin\_bjet,  etamax\_bjet}. If {\tt makecuts} is {\tt .true.}
 and a process involving $b$-quarks is being calculated, then these can
 be used to specify {\em stricter} values of $p_T^{\rm min}$
-and $|\eta|^{\rm max}$ for $b$-jets.
+and $|\eta|^{\rm max}$ for $b$-jets.   A comma-separated pair
+may be used on either line to indicate a range of allowed values for
+$p_T$ and $|\eta|$.
 
 \begin{center}
 \{blank line\} \\
@@ -884,9 +897,11 @@ at which the photon fragmentation is evaluated.
 of $p_T^{\rm min}$ for the photon with the largest transverse momentum.
 Note that this cut, together with all the photon cuts specified in this section
 of the input file, are applied even if {\tt makecuts} is set to {\tt .false.}.
+A comma-separated pair may be used to indicate a range of allowed values for $p_T$.
 
 \item {\tt etamax\_photon}. This specifies the value
 of $|y|^{\rm max}$ for any photons produced in the process.
+A comma-separated pair may be used to indicate a range of allowed values for $|\eta|$.
 
 \item {\tt ptmin\_photon(2nd)} and {\tt ptmin\_photon(3rd)}. These specify the values
 of $p_T^{\rm min}$ for the second and third photons, ordered by $p_T$.
@@ -930,7 +945,8 @@ Frixione isolation prescription (see above, Eq.~(\ref{frixeq})).
 \{blank line\} \\
 {\tt [Anomalous couplings of the W and Z] }
 \end{center}
-
+\item {\tt enable}. Boolean flag to enable anomalous coupling contributions. False has the same effect as 
+setting all anomalous couplings to zero, but additionally skips computation of anomalous coupling code parts.
 \item {\tt Delta\_g1(Z)}. {\it See section~\ref{subsec:diboson}.}
 \item {\tt Delta\_K(Z)}. {\it See section~\ref{subsec:diboson}.}
 \item {\tt Delta\_K(gamma)}. {\it See sections~\ref{subsec:diboson} and~\ref{subsec:wgamma}.}
@@ -957,28 +973,10 @@ this variable provides a rescaling of the width of the Higgs boson.  Couplings a
 corresponding cross section close to the Higgs boson peak is unchanged.  Further details of this procedure are given in
 {\tt arXiv:1311.3589}.
 
-\begin{center}
-\{blank line\} \\
-{\tt [How to resume/save a run] }
-\end{center}
-
-\item {\tt readin}. If {\tt .true.}, the program will read in a
-previously saved {\tt VEGAS} grid from the file specified by
-{\tt ingridfile.grid}. Note that this, and the following 3 options,
-have no effect if {\tt part} is set to {\tt tota} (in this case, grids
-are automatically saved and loaded as part of the calculation).
-
-\item {\tt writeout}. If {\tt .true.}, the program will write out
-the {\tt VEGAS} grid at the end of the run, to the file specified by
-{\tt outgridfile.grid}.
-
-\item {\tt ingridfile}.  {\it See above.}
-
-\item {\tt outgridfile}.  {\it See above.}
-
 \end{itemize}
 
-The final section of the input file contains settings for various technical parameters that should not normally need to be changed. Prior to version 5.5, these were set in {\tt technical.DAT}. For backwards compatibility they may still be specified in that file too, although they will be over-ridden by any settings here.
+The final section of the input file contains settings for various technical parameters that should not 
+normally need to be changed.
 \begin{center}
 \{blank line\} \\
 {\tt [Technical parameters that should not normally be changed]}
@@ -996,16 +994,6 @@ special information. Passed in common block \\
 \item {\tt new\_pspace}.  
 A logical variable which can be used during a debugging phase to test alternative versions of the phase space.
 Passed in common block {\tt common/new\_pspace/new\_pspace}.
-\item {\tt virtonly}.  
-A logical variable. The default value for this variable is false.
-If virtonly is set to true, during the running of the real part,
-the effect of real radiation is neglected, and only the effect of the
-integrated dipoles is retained. 
-\item {\tt realonly}.  
-A logical variable. The default value for this variable is false.
-If realonly is set to true, during the running of the real part,
-the effect of integrated dipoles is neglected, and only the effect of the
-real radiation is retained. 
 \item {\tt spira}.  
 A logical variable. If {\tt spira} is true, we calculate the 
 width of the Higgs boson by interpolating from a table
@@ -1029,17 +1017,6 @@ or antiquark in the other hadron (or vice versa) are included.
 A logical variable. 
 The default value is false. If set to true, the gluon-gluon
 initial state is not included.
-\item {\tt vanillafiles}.  
-A logical variable. The default value is false. If set to true, 
-the output files have the generic names 
-{\tt mcfm-output.top} and {\tt mcfm-output.dat}. In addition
-the path to the parton distribution files is truncated so that
-they are expected to be found in the same directory as the executable
-{\tt mcfm}.
-% \item {\tt nmin}
-% A technical parameter used in alternative phase space generating routines.
-% \item {\tt nmax}
-% A technical parameter used in alternative phase space generating routines.
 \item {\tt clustering}
 This logical parameter determines whether clustering is performed to yield
 jets. Only during a debugging phase should this variable be set to false. 
@@ -1084,11 +1061,14 @@ to standard Catani-Seymour subtraction.
 \item {\tt bfi}. 
 A double precision variable which can be used to
 limit the kinematic range for the subtraction of final-initial dipoles
-in the photon fragmentation case. In this version it is not yet operative.
+in the photon fragmentation case.
 \item {\tt bff}. 
 A double precision variable which can be used to
 limit the kinematic range for the subtraction of final-final dipoles
-in the photon fragmentation case. In this version it is not yet operative.
+in the photon fragmentation case.
+\item {\tt mtex}.
+Sets the order $k=0,2,4$ of the $1/m_t^k$ expansion for virtual corrections in the $H+$jet process 200. See 
+section \ref{subsec:hjetma}.
 \end{itemize}
 
 \section{Nuclear collisions}
@@ -1183,7 +1163,7 @@ where {\tt procname} is a label assigned by the program corresponding to
 the calculated process; the remaining labels are as input by the user
 in the file {\tt input.DAT}.
 
-The histograms are filled via the file {\tt src/User/G.f}. 
+The histograms are filled via the file {\tt src/User/nplotter.f}. 
 For the convenience of the user a dummy routine {\tt src/User/userplotter.f}
 has been provided. The user may substitute their own routine to do the plotting,
 by writing and compiling a routine of this name. See section \ref{user}.
@@ -1272,7 +1252,7 @@ format.
 
 \subsubsection{Simple n-tuple output}
 To obtain the simplest n-tuple output, the flag {\tt creatent} should be set
-to {\tt .true.} and the parameter {\tt NTUPLES} in the {\tt Makefile} should be changed
+to {\tt .true.} and the parameter {\tt NTUPLES} in the {\tt makefile} should be changed
 to either {\tt YES} or {\tt FROOT}. When changed to {\tt YES}, each event that enters a histogram
 is also recorded as an n-tuple in the file {\tt outputname\_batchno.rz}. The {\tt batchno}
 starts at zero and is incremented by one every one million events. Each event
@@ -1325,6 +1305,43 @@ The events are written to a file with the extension {\tt .lhe} using the LHE for
 The routines that handle most of the processing can be found in {\tt src/Need/mcfm\_writelhe.f}.
 At present this feature is still under development. 
 
+\section{Electroweak corrections}
+\label{subsec:EW}
+
+As of version 8.1, {\tt MCFM} allows the calculation of weak corrections to a
+selection of processes: {\tt 31} (neutral-current DY),
+{\tt 157} (top-pair production) and {\tt 190} (di-jet production).
+This is controlled by the flag {\tt ewcorr} in the input file.  A complete description
+of the calculations is provided in Ref.~\cite{Campbell:2016dks}.
+
+By setting {\tt ewcorr} to {\tt sudakov}, the program performs a calculation of
+the leading weak corrections to these processes using a Sudakov approximation that
+is appropriate at high energies.   The calculation of the weak corrections using the
+exact form of the one-loop amplitudes is obtained by using the flag {\tt exact}.
+A comparison between the two approaches, together with discussions of the validity of
+the Sudakov approximation, may be found in Ref.~\cite{Campbell:2016dks}.
+
+For the case of top-pair and di-jet production, the weak one-loop corrections contain
+infrared divergences that must be cancelled against corresponding real radiation
+contributions (in much the same manner as a regular NLO QCD calculation).  For this
+reason the screen output will contain two sets of iterations corresponding to the
+virtual and real contributions.
+
+For all processes, performing the calculation of weak
+corrections enables a special mode of phase-space integration that is designed to
+better-sample events produced at high-energies.  For this reason the VEGAS output that
+appears on the screen does not correspond to a physical cross-section -- and a corresponding
+warning message to this effect will be displayed.  In many cases the quantity of most interest
+is the relative correction to the leading order result ($\delta_{\rm wk}$) given by,
+\begin{equation}
+\delta_{\rm wk} = \frac{d\sigma_{\rm wk}^{NLO} - d\sigma^{LO}}{d\sigma^{LO}} \;.
+\end{equation}
+It is straightforward to compute this quantity for a distribution by editing the appropriate
+{\tt nplotter} routine.  This is achieved by filling a histogram with the weight corresponding
+to the LO result, another with the weight for the NLO weak result and then an additional placeholder
+histogram that contains the special string {\tt '+RELEW+'}.  Examples of the syntax and correct calling
+sequence can be seen in the code.
+
 \section{Other user options}
 \label{user}
 There are a number of other user options which are included in the file 
@@ -1352,7 +1369,7 @@ HT threshold, which comes in useful when trying to get precision on
 the tails of some distributions.
                                                            
 \item {\tt subroutine userplotter(pjet, wt,wt2, nd)}
-This subroutine that is called to allow the user to bin their own       
+This subroutine is called to allow the user to bin their own       
 histograms.                                                              
                                                                                                                                    
 Variables passed to this routine:                                                                                               
@@ -1372,7 +1389,7 @@ Variables passed to this routine:
 \end{itemize}
 
 \item {\tt subroutine userwriteinfo(unitno,comment\_string,xsec,xsec\_err,itno)}
-This (currently dummy) subroutine that gets called after \MCFM has written its comments to
+This (currently dummy) subroutine gets called after \MCFM has written its comments to
 one of the output files. It allows the user to write their own comments                                                         
 to that same file.
                                                                                                                                    
@@ -1393,20 +1410,15 @@ Various C routines that may be of use are included in {\tt cxxusercode.cc}.
 
 \label{sec:specific}
 
-Note that, as of version 4.0, the version of each process described in the file{\tt process.DAT} includes 
-all appropriate boson decays. This is the calculation
-that is performed when the parameter {\tt removebr} is set to {\tt .false.} ,
-as indicated above.
-
-In many cases a more simple calculation can be performed by setting this
-parameter to {\tt .true.}, in which case these decays are not performed.
+The processes described in the file {\tt process.DAT} include appropriate boson decays when the parameter 
+{\tt removebr} is set to {\tt .false.}. In many cases a more simple calculation can be performed by setting 
+this parameter to {\tt .true.}, in which case these decays are not performed.
 Technically the full calculation including the decays
 is still performed but cuts are not performed on the decay products and the
 branching ratio is divided out, thus yielding the cross section before decay.
 In the notes below we indicate the simpler processes thus obtained. When running in
-this mode, the parameter {\tt zerowidth} should be set to {\tt .true.} also,
-for consistency. However in certain circumstances, for the sake of comparison,
-it may be useful to run with it set to {\tt .false.} .
+this mode, the parameter {\tt zerowidth} should be set to {\tt .true.} for consistency. However in certain 
+circumstances, for the sake of comparison, it may be useful to run with it set to {\tt .false.}.
 
 \subsection{$W$-boson production, processes 1,6}
 \label{subsec:wboson}
@@ -1573,6 +1585,12 @@ Switching {\tt zerowidth} from {\tt .true.} to {\tt .false.} only affects
 the $W$ bosons from the top quark decay.
 Note that {\tt m34min > 0} is obligatory due to the inclusion of the
 virtual photon diagrams. The calculation may be only be performed at LO.
+
+\subsection{Lepton pair production through photonic initial states, process 310}
+\label{subsec:gg2lep}
+
+This process represents the production of a lepton pair through an electroweak
+process involving two photons in the initial state, $\gamma\gamma \to e^- e^+$.
 
 
 \subsection{$Z+$~jet production, processes 41--43}
@@ -2008,6 +2026,87 @@ Process {\tt 132}  gives the result for the square of the box diagrams alone, i.
 $gg \to Z/\gamma^*+Z/\gamma^* \to e^- e^+ \mu^- \mu^+$.
 
 Process {\tt 133} calculates the interference for the $qg$ initiated process.
+
+For those processes that include contributions from the Higgs boson, the form
+of the Higgs propagator may be changed by editing the file
+{\tt src/Need/sethparams.f}.  If the logical variable {\tt CPscheme} is
+changed from the default value {\tt .false.} to {\tt .true.} then the
+Higgs propagator is computed using the ``bar-scheme'' that is
+implemented in the HTO code of G. Passarino~\cite{Goria:2011wa,Passarino:2010qk}.
+The value of the Higgs boson width has been computed with v1.1 of the
+HTO code, for Higgs masses in the interval $50 < m_H< 1500$~GeV.  These
+values are tabulated, in $0.5$~GeV increments, in the file
+{\tt Bin/hto\_output.dat}.  The widths for other masses in this range
+are obtained by linear interpolation.
+
+\subsubsection{Specifying other final states}
+\label{specifyingZdecays}
+As described above, these processes refer to a final state 
+$e^- e^+ \mu^- \mu^+$.  It is however possible to specify a final state
+that corresponds to a different set of $Z$ boson decays.  This is achieved
+by altering the value of {\tt NPROC} in the input file by appending a
+period, followed by two 2-character strings that identify each of the decays.
+Possible values for the strings, and the corresponding decays, are
+shown in the table below.
+\begin{center}
+\begin{tabular}{ll}
+string & $Z$ decay \\
+\hline
+{\tt el,EL} & $(e^-,e^+)$ \\
+{\tt mu,MU,ml,ML} & $(\mu^-,\mu^+)$ \\
+{\tt tl,TL} & $(\tau^-,\tau^+)$ \\
+{\tt nu,NU,nl,NL} & $(\nu,\bar\nu) \times 3$ \\
+{\tt bq,BQ} & $(b,\bar b)$ \\
+\end{tabular}
+\end{center}
+Note that, for the case of neutrino decays, the sum over three flavours of
+neutrino is performed.  The labelling of the particles in the output is best
+understood by example.  Setting {\tt nproc=132.ELNU} corresponds to the
+process $gg \to Z/\gamma^*+Z/\gamma^* \to e^-(p_3) e^+(p_4) \nu(p_5) \bar\nu(p_6)$.
+Note that the default process corresponds to the string {\tt ELMU} so that,
+for instance {\tt nproc=132.ELMU} is entirely equivalent to
+{\tt nproc=132}.
+The effect of changing the lepton flavour is only seen in the output
+of LHE events, where the correct mass is then used when producing the
+event record.
+
+\subsection{$e^- e^+ \nu_e \bar \nu_e$ production, processes 1281, 1311, 1321}
+These processes compute cross sections relevant for the final state
+$e^- e^+ \nu_e \bar \nu_e$, i.e. with charged leptons and neutrinos from the
+same (electron) doublet.  As a result they receive contributions from diagrams
+with resonant $ZZ$ propagators and resonant $WW$ propagators.  Process
+{\tt 1281} only includes amplitudes containing a Higgs boson {c.f. processes
+{\tt 123} and {\tt 128}. Process
+{\tt 1321} only includes continuum (box-diagram) amplitudes {c.f. processes
+{\tt 127} and {\tt 132}. Process
+{\tt 1311} includes both amplitudes and the effects of the interference
+between them {c.f. processes {\tt 126} and {\tt 131}.
+The effect of the interference between the $WW$ and $ZZ$ diagrams can be assessed
+by, for instance, comparing process {\tt 1281} with the sum of processes
+{\tt 123} and one-third of {\tt 128.ELNU}, where the weighting is to divide out
+the natural sum over three neutrino flavours in process {\tt 128.ELNU}.
+
+Event generation is not available for these processes at present.
+
+\subsection{$e^- e^+ \nu \bar \nu$ production, processes 1282, 1312, 1322}
+These processes compute cross sections relevant for the final state
+$e^- e^+ \nu \bar \nu$, i.e. an electron pair and a sum over all three
+flavours of neutrino.  For muon and tau neutrinos, only $ZZ$ diagrams
+contribute.  For electron neutrinos there are contributions from diagrams
+with resonant $ZZ$ propagators and resonant $WW$ propagators.  Process
+{\tt 1282} only includes amplitudes containing a Higgs boson {c.f. processes
+{\tt 123} and {\tt 128}. Process
+{\tt 1322} only includes continuum (box-diagram) amplitudes {c.f. processes
+{\tt 127} and {\tt 132}. Process
+{\tt 1312} includes both amplitudes and the effects of the interference
+between them {c.f. processes {\tt 126} and {\tt 131}.
+The effect of the interference between the $WW$ and $ZZ$ diagrams can be assessed
+by, for instance, comparing process {\tt 1282} with the sum of processes
+{\tt 123} and {\tt 128.ELNU}.
+
+Event generation is not available for these processes at present.
+
+
 \subsection{$H+b$ production, processes 136--138}
 \label{subsec:Hb}
 
@@ -2249,6 +2348,21 @@ The contribution from radiation in the decay may be calculated separately using
 processes {\tt 182,187}. These process numbers can be used with {\tt part=virt,real}
 only. To ensure consistency, it is far simpler to use {\tt 181,186}
 and this is the recommended approach.
+
+\subsection{$H+$~jet production with finite top-mass effects,\\ process 200}
+\label{subsec:hjetma}
+This process represents the production of a Higgs boson in association with a single jet based on ref.~ \cite{Neumann:2016dny}. Decay modes are currently unsupported/untested. The top-quark mass is taken into account exactly for the born and real-emission parts, as well as for the singular part of the virtual corrections. The finite part of the two-loop virtual corrections are treated in an asymptotic expansion, where the order $k$ of the $1/m_t^{k}$ expansion for $k=0,2,4$ can be set as the mtex parameter in the input file.
+
+\subsection{Di-jet production, processes 190--191}
+\label{subsec:dijet}
+
+Process {\tt 190} represents di-jet production through strong interactions.
+It may be calculated to LO only.
+
+Process {\tt 191} is an ancillary process that is used in the calculation of
+weak one-loop corrections to di-jet production.  When computed at LO it gives the
+contribution of weak (${\cal O}(\alpha^2)$) and mixed weak-strong (${\cal O}(\alpha\alpha_s)$)
+mediated processes to di-jet production.  Please refer to Ref.~\cite{Campbell:2016dks} for details.
 
 \subsection{$H+$~jet production, processes 201--210}
 \label{subsec:hjet}
@@ -2650,7 +2764,7 @@ The Standard Model cross section is obtained by setting $\Delta\kappa^\gamma = \
 
 
 Processes {\tt 300} and {\tt 305} represent the production of a $Z$ boson (or virtual photon for process {\tt 300})
-in association with a real photon. The $Z/\gamma^*$ subsequently decays into 
+in association with a real photon based on ref.~\cite{Campbell:2017aul}. The $Z/\gamma^*$ subsequently decays into 
 either an $e^+ e^-$ pair ({\tt nproc=300}) or neutrinos ({\tt nproc=305}).
 Since these processes include a real photon, the cross section diverges
 when the photon is very soft or in the direction of the beam.
@@ -2659,9 +2773,8 @@ Thus in order to produce sensible results, the input file must supply values for
 and {\tt removebr} are set to {\tt .false.} the decay $Z \to e^- e^+$ ({\tt nproc=300})
 will include photon radiation from both leptons, so that a non-zero {\tt R(photon,lept)\_min}
 should also be supplied. This will ensure that the cross section is well-defined.
-Virtual amplitudes are taken from ref.~\cite{Dixon:1998py}.
 The calculation of processes {\tt 300} may be performed
-at NLO using the Frixione algorithm~\cite{Frixione:1998jh} or standard isolation. 
+at NNLO using the Frixione algorithm~\cite{Frixione:1998jh} or standard isolation. 
 %Processes {\tt 302} and {\tt 307}  represents the production of a $Z$ boson (or virtual photon)
 %in association with a real photon and an additional jet. These processes are also available at NLO including 
 %the full fragmentation processes. Anomalous couplings are not available for these processes. 
@@ -2673,8 +2786,7 @@ For the process {\tt 300}  the role of {\tt mtrans34cut} changes to become a cut
 on the invariant mass on the $M_{345}$ system, i.e. the photon is included with the leptons in the cut. 
 
 \subsubsection{Anomalous $ZZ\gamma$ and $Z\gamma\gamma$ couplings}
-Processes {\tt 300}-{\tt 305} may also be computed including the effect of anomalous couplings between $Z$ bosons
-and photons, making use of the amplitudes calculated in Ref.~\cite{DeFlorian:2000sg}.
+Processes {\tt 300}-{\tt 305} may also be computed including the effect of anomalous couplings between $Z$ bosons and photons.
 Note that, at present, the effect of anomalous couplings is not included in the gluon-gluon
 initiated contributions.
 
@@ -2710,7 +2822,8 @@ h_{2,4}^{Z/\gamma} \rightarrow
  \frac{h_{2,4}^{Z/\gamma}}{(1+\hat{s}/\Lambda^2)^4}, \qquad
 \end{displaymath}
 where $\hat{s}$ is the $Z\gamma$ pair invariant mass. Note that these form factors are slightly
-different from those discussed in Sections~\ref{subsec:diboson} and~\ref{subsec:wgamma}.
+different from those discussed in Sections~\ref{subsec:diboson} and~\ref{subsec:wgamma}. The
+form factors can be modified in {\ttfamily src/Need/set\_anomcoup.f}.
 
 The Standard Model cross section is obtained by setting $h_i^Z = h_i^\gamma = 0$ for $i=1\ldots 4$.
 
@@ -3239,13 +3352,23 @@ As general references for NLO computations with MCFM, please use:
 
 \end{itemize}
 
-When using MCFM 8.0 for NNLO calculations of color-singlet processes please refer to:
+When using MCFM 8.0, or later versions, for NNLO calculations of color-singlet
+processes please refer to:
 \begin{itemize}
 \item 
   R.~Boughezal, J.~M.~Campbell, R.~K.~Ellis, \\
    C.~Focke, W.~Giele, X.~Liu,~F. Petriello and  C.~Williams, \\
   {\it ``Color singlet production at NNLO in MCFM''},
   arXiv:1605.08011.
+\end{itemize}
+
+For calculations of electroweak corrections please refer to:
+\begin{itemize}
+\item
+  J.~M.~Campbell, D.~Wackeroth and J.~Zhou, \\
+  {\it ``A Study of Weak Corrections to Drell-Yan, Top-quark pair and Di-jet
+  Production at High Energies with MCFM''},
+  arXiv:1608.03356.
 \end{itemize}
 
 Additional references to the program may be used depending on the process under study. The relevant papers are:
@@ -3350,7 +3473,12 @@ Additional references to the program may be used depending on the process under 
 \item 
  J.~M.~Campbell, R.~K.~Ellis, Ye~Li and C.~Williams,
   {\it ``Predictions for Diphoton Production at the LHC through NNLO in QCD''},
-  arXiv:1603.02663 [hep-ph].  
+  arXiv:1603.02663 [hep-ph]. 
+  
+\item \fullcite{Neumann:2016dny}
+
+\item \fullcite{Campbell:2017aul}
+
 \end{itemize}
 
 The following publications have also made use of calculations
@@ -3404,6 +3532,7 @@ released in the future.
 29 & $ W^-(\to e^-(p_{3})+\bar{\nu}(p_{4})) +b(p_{5})+\bar{b}(p_{6})+f(p_{7})$   & LO \\
 \hline 
 31 & $ Z(\to e^-(p_{3})+e^+(p_{4}))$   & NNLO \\
+310 & $ Z(\to e^-(p_{3})+e^+(p_{4}))$ [photon induced]   & LO \\
 32 & $ Z(\to 3\times(\nu(p_{3})+\bar{\nu}(p_{4})))$   & NNLO \\
 33 & $ Z(\to b(p_{3})+\bar{b}(p_{4}))$   & NLO \\
 34 & $ Z(\to 3\times(d(p_{5})+\bar{d}(p_{6})))$   & NLO \\
@@ -3518,11 +3647,16 @@ released in the future.
 130 & $ H(\to Z(\to e^-(p3)+e^+(p4)) + Z(\to \mu^-(p5)+\mu^+(p6))$ [$|H|^2$ and H,gg$\rightarrow$ZZ int]& LO \\
 131 & $ Z(\to e^-(p3)+e^+(p4)) + Z(\to \mu^-(p5)+\mu^+(p6)$ [gg only, $|H + gg \rightarrow ZZ|^2$]& LO \\
 132 & $ Z(\to e^-(p3)+e^+(p4)) + Z(\to \mu^-(p5)+\mu^+(p6)$ [(gg$\rightarrow$ZZ) squared]& LO \\
-133 & $ H(\to Z(\to e^-(p3)+e^+(p4)) + Z(\to \mu^-(p5)+\mu^+(p6) + f(p7))$ [intf,no $p_7$ cut]& LO \\
 \hline 
-136 & $ H(\to b(p_{3})+\bar{b}(p_{4})) + b(p_{5}) (+g(p_{6}))$   & NLO \\
-137 & $ H(\to b(p_{3})+\bar{b}(p_{4})) + \bar{b}(p_{5}) (+b(p_{6}))$   & (REAL) \\
-138 & $ H(\to b(p_{3})+\bar{b}(p_{4})) + b(p_{5}) + \bar{b}(p_{6}) [\mbox{both observed}]$   & (REAL) \\
+1281 & $ H(\to e^-(p3)+e^+(p4) \nu_e(p5)+\bar\nu_e(p6)$ [top, bottom loops, exact]& LO \\
+1311 & $ e^-(p3)+e^+(p4)+\nu_e(p5)+\bar\nu_e(p6)$ [gg only, (H + gg$\rightarrow$ZZ) squared]& LO \\
+1321 & $ e^-(p3)+e^+(p4)+\nu_e(p5)+\bar\nu_e(p6)$ [(gg$\rightarrow$ZZ) squared]& LO \\
+\hline 
+1282 & $ H(\to e^-(p3)+e^+(p4)+\nu(p5)+\bar\nu(p6)$ [top, bottom loops, exact]& LO \\
+1312 & $ e^-(p3)+e^+(p4)+\nu(p5)+\bar\nu(p6)$ [gg only, (H + gg$\rightarrow$ZZ) squared]& LO \\
+1322 & $ e^-(p3)+e^+(p4)+\nu(p5)+\bar\nu(p6)$ [(gg$\rightarrow$ZZ) squared]& LO \\
+\hline
+133 & $ H(\to Z(\to e^-(p3)+e^+(p4)) + Z(\to \mu^-(p5)+\mu^+(p6) + f(p7))$ [intf,no $p_7$ cut]& LO \\
 \hline 
 \end{tabular}
 \end{center}
@@ -3532,6 +3666,10 @@ released in the future.
 \begin{center}
 \begin{tabular}{|l|l|l|}
 \hline
+136 & $ H(\to b(p_{3})+\bar{b}(p_{4})) + b(p_{5}) (+g(p_{6}))$   & NLO \\
+137 & $ H(\to b(p_{3})+\bar{b}(p_{4})) + \bar{b}(p_{5}) (+b(p_{6}))$   & (REAL) \\
+138 & $ H(\to b(p_{3})+\bar{b}(p_{4})) + b(p_{5}) + \bar{b}(p_{6}) [\mbox{both observed}]$   & (REAL) \\
+\hline 
 141 & $ t(\to \nu(p_{3})+e^+(p_{4})+b(p_{5}))+\bar{t}(\to b~(p_{6})+e^-(p_{7})+\bar{\nu}(p_{8}))$ & NLO \\
 142 & $ t(\to \nu(p_{3})+e^+(p_{4})+b(p_{5}))+\bar{t}(\to b~(p_{6})+e^-(p_{7})+\bar{\nu}(p_{8}))$ \mbox{\small [rad.in.dk]}& NLO \\
 143 & $ t(\to \nu(p_{3})+e^+(p_{4})+b(p_{5}))+\bar{t}(\to b~(p_{6})+e^-(p_{7})+\bar{\nu}(p_{8}))+f(p_{9})$ & LO \\
@@ -3577,11 +3715,16 @@ released in the future.
 \begin{table}
 \begin{center}
 \begin{tabular}{|l|l|l|}
+\hline 
+190 & $ f(p_{3})+f(p_{4})$   & LO \\
+191 & $ f(p_{3})+f(p_{4})$ [mixed QCD/EW]  & NLO \\
 \hline
+200 & $ H + f(p_5)$, see section \ref{subsec:hjetma} & NLO \\
 201 & $ H(\to b(p_{3})+\bar{b}(p_{4})) + f(p_{5}) [\mbox{full mt dep.}]$   & LO \\
 202 & $ H(\to \tau^-(p_{3})+\tau^+(p_{4})) + f(p_{5}) [\mbox{full mt dep.}]$   & LO \\
 203 & $ H(\to b(p_{3})+\bar{b}(p_{4})) + f(p_{5})$   & NNLO \\
 204 & $ H(\to \tau^-(p_{3})+\tau^+(p_{4})) + f(p_{5})$   & NNLO \\
+205 & $ H(\to Z(\mu^-(p_3) + \mu^+(p_4)) + \gamma(p_5)) + f(p_5)$ & NLO \\
 206 & $ A(\to b(p_{3})+\bar{b}(p_{4})) + f(p_{5}) [\mbox{full mt dep.}]$   & LO \\
 207 & $ A(\to \tau^-(p_{3})+\tau^+(p_{4})) + f(p_{5}) [\mbox{full mt dep.}]$   & LO \\
 208 & $ H(\to W^+(\nu(p_{3}),e^+(p_{4}))W^-(e^-(p_{5}),\bar{\nu}(p_{6})))+f(p_{7})$   & NLO \\
@@ -3681,14 +3824,14 @@ released in the future.
 295 & $ W^-(\to e^-(p_{3})+\bar{\nu}(p_{4}))+\gamma(p_{5})$   & NLO+F \\
 297 & $ W^-(\to e^-(p_{3})+\bar{\nu}(p_{4}))+\gamma(p_{5})+f(p_{6}) $   & LO \\
 \hline 
-300 & $  Z(\to e ^-(p_3)+e^+(p_4))+\gamma(p_5)$ & NLO+F \\
+300 & $  Z(\to e ^-(p_3)+e^+(p_4))+\gamma(p_5)$ & NNLO \\
 301 & $ Z(\to e ^-(p_3)+e^+(p_4))+\gamma(p_5)+\gamma(p_6) $& NLO +F \\
-302 &$  Z(\to e ^-(p_3)+e^+(p_4))+\gamma(p_5)+f(p_6) $& NLO + F \\
+302 &$  Z(\to e ^-(p_3)+e^+(p_4))+\gamma(p_5)+f(p_6) $& NLO \\
 303 &$   Z(\to e ^-(p_3)+e^+(p_4))+\gamma(p_5)+\gamma(p_6)+f(p_7) $& LO \\
 304 & $  Z(\to e ^-(p_3)+e^+(p_4))+\gamma(p_5)+f(p_6)+f(p_7) $ & LO \\
-305 & $  Z(\to 3(\nu(p_3)+\bar{\nu}(p_4)))+\gamma(p_5) $& NLO + F \\
+305 & $  Z(\to 3(\nu(p_3)+\bar{\nu}(p_4)))+\gamma(p_5) $& NNLO \\
 306 & $  Z(\to 3(\nu(p_3)+\bar{\nu}(p_4)))+\gamma(p_5)+\gamma(p_6) $& NLO + F \\
-307 &$  Z(\to 3(\nu(p_3)+\bar{\nu}(p_4)))+\gamma(p_5)+f(p_6) $ & NLO + F \\
+307 &$  Z(\to 3(\nu(p_3)+\bar{\nu}(p_4)))+\gamma(p_5)+f(p_6) $ & NLO \\
 308 &$   Z(\to 3(\nu(p_3)+\bar{\nu}(p_4)))+\gamma(p_5)+\gamma(p_6)+f(p_7) $  & LO \\
 309 &$  Z(\to 3(\nu(p_3)+\bar{\nu}(p_4)))+\gamma(p_5)+f(p_6)+f(p_7) $ & LO \\
 \hline 
@@ -3869,7 +4012,7 @@ some calculation and/or guesswork.
 \begin{center}
 \begin{tabular}{|c|c|c||c|c|c|}
 \hline
-  &   &  &
+{\tt mrstqed}  & 0.1205       & hep-ph/0411040 &
 {\tt mrs02nl}  & 0.1197       & \mrstohtwo \\
 {\tt mrs02nn}  & 0.1154       & \mrstohtwo &
 {\tt mrs4nf3}  & 0.1083       & \mrstff \\
@@ -3961,6 +4104,48 @@ describes their origin.
 
 \clearpage
 
+\section{Version 8.1 changelog}
+\label{changelog8.1}
+\begin{itemize}
+\item Implemented one-loop electroweak corrections for $Z$, $t\bar t$ and di-jet production.
+\item Implemented $Z\gamma$ process at NNLO including anomalous couplings \cite{Campbell:2017aul}.
+\item Implemented $Z\gamma$ decay for $H+jet$ production.
+\item Implemented $H$+2jet process with a finite top-quark mass and $H$+jet with finite
+top-quark mass effects \cite{Neumann:2016dny}. This adds a new parameter [mtex] to the
+the input file, which specifies to which order in 1/$m_t^k$ (k=0,2,4) the finite
+part of the virtual corrections are computed.
+\item Support for random seeds by setting the seed value (previously [ij]) to 0.
+\item Support for boosted (as opposed to hadronic) definition of jettiness, which
+is also now as default.
+\item Support for $p_T$ and rapidity ranges for most cuts in the input file.
+\item Added native implementation of two PDF sets containing photons ({\tt mrstqed}, {\tt CT14qed}).
+\item Modified format of input file slightly to allow for $p_T$ and rapidity ranges for most cuts.
+\item EXPERIMENTAL: Integration routine that adaptively selects the cross section
+contribution with the largest integration uncertainty. It also adapts
+integration calls in the warmup phase and then continuously increases them to
+not run into grid bias problems. This ingration can be enabled by setting
+{\tt newIntegration} to {\tt .true.} in {\tt Need/mcfmmain.f}. After each iteration a snapshot is
+saved for resumption. When {\tt readin} is set to {\tt .true.} in the {\tt gridinfo\_logic}
+common block, the integration will be resumed from any stage. Currently this
+integration mode does not stop the integration, but the user can at any point
+abort manually when the desired precision has been reached. It has only been
+thoroughly tested with $Z\gamma$ and $H+$jet. Other processes might need
+tweaks or specific initializations.
+
+\item Fixed FROOT implementation.
+\item Upgraded QCDLoop to QCDLoop 2.
+\item Using new random number generator (Mersenne Twister) from libstdc++ (C++11).
+\item Fixed bug concerning integration uncertainty of histogram bins.
+\item Fixed bug in implementation of $H+$jet processes with finite top-quark mass effects
+({\tt 201}, {\tt 202}, {\tt 206}, {\tt 207}) when using {\tt zerowidth = F}.
+
+\item Removed flags virtonly,realonly,vanillafiles,creategrid in input.DAT, as well as broken
+parameters for resuming integrations.
+\item Removed support for PDFLIB.
+\item Removed noomp version. If just a single thread is wanted, please set {\tt OMP\_NUM\_THREADS} to 1.
+
+\end{itemize}
+
 \section{Version 8.0 changelog}
 \label{changelog8.0}
 \begin{itemize}
@@ -3969,6 +4154,7 @@ describes their origin.
 \item Added native support for additional pdf sets, NNPDF, CT14, MMHT.
 \item Fixed small asymmetry in calculation of $W+1$~jet process at NLO.
 \item Fixed per-mille level bug in NLO calculations of $W,Z,H+2$~jet processes.
+\item Replace QCDLoop by QCDLoop 2.
 \end{itemize}
 
 \section{Version 7.0 changelog}
@@ -4221,345 +4407,7 @@ masses do not correspond to electroweak bosons.
  {\tt 151}, {\tt 152} and {\tt 153}.
 \end{itemize}
 
-
-\begin{thebibliography}{99}
-%\cite{Ellis:2007qk}
-\bibitem{Ellis:2007qk}
-  R.~K.~Ellis and G.~Zanderighi,
-  %``Scalar one-loop integrals for QCD''
-  JHEP {\bf 0802}, 002 (2008)
-  [arXiv:0712.1851 [hep-ph]].
-  %%CITATION = JHEPA,0802,002;%%
-
-%\cite{Georgi:1991ci}
-\bibitem{Georgi:1991ci}
-H.~Georgi,
-%``Effective field theory and electroweak radiative corrections,''
-Nucl.\ Phys.\ B {\bf 363}, 301 (1991).
-%%CITATION = NUPHA,B363,301;%%
-
-%\cite{Maltoni:2002qb}
-\bibitem{Maltoni:2002qb}
-F.~Maltoni and T.~Stelzer,
-%``MadEvent: Automatic event generation with MadGraph,''
-JHEP {\bf 0302}, 027 (2003)
-[arXiv:hep-ph/0208156].
-%%CITATION = HEP-PH 0208156;%%
-
-\bibitem{Alpgen}
-Michelangelo L. Mangano, Mauro Moretti, Fulvio Piccinini, Roberto Pittau and Antonello Polosa, {\it http://mlm.home.cern.ch/mlm/alpgen/}
-
-\bibitem{Lusifer}
-Stefan Dittmaier and Markus Roth,\\
-{\it http://wwwth.mppmu.mpg.de/members/roth/Lusifer/lusifer.html}
-
-\bibitem{Cacciari:2008}
-   M.~Cacciari, G.~P.~Salam and G.~Soyez,
-  JHEP {\bf 0804}, 063 (2008)
-  [arXiv:0802.1189 [hep-ph]].
-
-\bibitem{Bourhis:1997yu}
-  L.~Bourhis, M.~Fontannaz and J.~P.~Guillet,
-  %``Quarks and gluon fragmentation functions into photons,''
-  Eur.\ Phys.\ J.\  C {\bf 2}, 529 (1998)
-  [arXiv:hep-ph/9704447].
-  %%CITATION = EPHJA,C2,529;%%
-
-%\cite{GehrmannDeRidder:1998ba}
-\bibitem{GehrmannDeRidder:1998ba}
-  A.~Gehrmann-De Ridder, E.~W.~N.~Glover,
-  %``Final state photon production at LEP,''
-  Eur.\ Phys.\ J.\  {\bf C7}, 29-48 (1999).
-  [hep-ph/9806316].
-
-%\cite{Nagy:2003tz}
-\bibitem{Nagy:2003tz}
-  Z.~Nagy,
-  %``Next-to-leading order calculation of three jet observables in hadron hadron
-  %collision,''
-  Phys.\ Rev.\  D {\bf 68}, 094002 (2003)
-  [arXiv:hep-ph/0307268].
-  %%CITATION = PHRVA,D68,094002;%%
-
-%\cite{Eskola:1998df}
-\bibitem{Eskola:1998df}
-  K.~J.~Eskola, V.~J.~Kolhinen and C.~A.~Salgado,
-  %``The scale dependent nuclear effects in parton distributions for  practical
-  %applications,''
-  Eur.\ Phys.\ J.\ C {\bf 9}, 61 (1999)
-  [arXiv:hep-ph/9807297].
-  %%CITATION = HEP-PH 9807297;%%
-  
-%\cite{Campbell:2006wx}
-\bibitem{Campbell:2006wx}
-  J.~M.~Campbell, J.~W.~Huston and W.~J.~Stirling,
-  %``Hard interactions of quarks and gluons: A primer for LHC physics,''
-  Rept.\ Prog.\ Phys.\  {\bf 70}, 89 (2007)
-  [arXiv:hep-ph/0611148].
-  %%CITATION = RPPHA,70,89;%%
-
-%\cite{Ball:2008by}
-\bibitem{Ball:2008by}
-  R.~D.~Ball {\it et al.}  [NNPDF Collaboration],
-  %``A determination of parton distributions with faithful uncertainty
-  %estimation,''
-  Nucl.\ Phys.\  B {\bf 809}, 1 (2009)
-  [arXiv:0808.1231 [hep-ph]].
-  %%CITATION = NUPHA,B809,1;%%
-
-%\cite{Badger:2010mg}
-\bibitem{Badger:2010mg}
-  S.~Badger, J.~M.~Campbell and R.~K.~Ellis,
-  %``QCD corrections to the hadronic production of a heavy quark pair and a
-  %W-boson including decay correlations,''
-  arXiv:1011.6647 [hep-ph].
-  %%CITATION = ARXIV:1011.6647;%%
-
-%\cite{Bern:1997sc}
-\bibitem{Bern:1997sc}
-  Z.~Bern, L.~J.~Dixon and D.~A.~Kosower,
-  %``One-loop amplitudes for $e^+ e^-$ to four partons,''
-  Nucl.\ Phys.\  B {\bf 513}, 3 (1998)
-  [arXiv:hep-ph/9708239].
-  %%CITATION = NUPHA,B513,3;%%
-
-%\cite{Dixon:1998py}
-\bibitem{Dixon:1998py}
-  L.~J.~Dixon, Z.~Kunszt and A.~Signer,
-  %``Helicity amplitudes for O(alpha-s) production of $W^{+} W^{-}$, $W^\pm Z$,
-  %$Z Z$, $W^\pm \gamma$, or $Z \gamma$ pairs at hadron colliders,''
-  Nucl.\ Phys.\  B {\bf 531}, 3 (1998)
-  [arXiv:hep-ph/9803250].
-  %%CITATION = NUPHA,B531,3;%%
-
-%\cite{Dixon:1999di}
-\bibitem{Dixon:1999di}
-  L.~J.~Dixon, Z.~Kunszt, A.~Signer,
-  %``Vector boson pair production in hadronic collisions at order $\alpha_s$ : Lepton correlations and anomalous couplings,''
-  Phys.\ Rev.\  {\bf D60}, 114037 (1999).
-  [hep-ph/9907305].
-
-%\cite{Ellis:1991qj}
-\bibitem{Ellis:1991qj}
-  R.~K.~Ellis, W.~J.~Stirling and B.~R.~Webber,
-  %``QCD and collider physics,''
-  Camb.\ Monogr.\ Part.\ Phys.\ Nucl.\ Phys.\ Cosmol.\  {\bf 8}, 1 (1996).
-  %%CITATION = CMPCE,8,1;%%
-
-%\cite{Campbell:2011cu}
-\bibitem{Campbell:2011cu}
-  J.~M.~Campbell, R.~K.~Ellis and C.~Williams,
-  %``Gluon-gluon contributions to W+ W- production and Higgs interference
-  %effects,''
-  arXiv:1107.5569 [hep-ph].
-  %%CITATION = ARXIV:1107.5569;%%
-
-%\cite{Melia:2010bm}
-\bibitem{Melia:2010bm}
-  T.~Melia, K.~Melnikov, R.~Rontsch and G.~Zanderighi,
-  %``Next-to-leading order QCD predictions for W+W+jj production at the LHC,''
-  JHEP {\bf 1012}, 053 (2010)
-  [arXiv:1007.5313 [hep-ph]].
-  %%CITATION = JHEPA,1012,053;%%
-
-%\cite{Amsler:2008zzb}
-\bibitem{Amsler:2008zzb}
-  C.~Amsler {\it et al.}  [Particle Data Group],
-  %``Review of particle physics,''
-  Phys.\ Lett.\  B {\bf 667}, 1 (2008)
- and 2009 partial update for the 2010 edition.
-  %%CITATION = PHLTA,B667,1;%%
-
-%\cite{Korner:2002hy}
-\bibitem{Korner:2002hy}
-  J.~G.~Korner and Z.~Merebashvili,
-  %``One-loop corrections to four-point functions with two external massive
-  %fermions and two external massless partons,''
-  Phys.\ Rev.\  D {\bf 66}, 054023 (2002)
-  [arXiv:hep-ph/0207054].
-  %%CITATION = PHRVA,D66,054023;%%
-
-%\cite{Nason:1987xz}
-\bibitem{Nason:1987xz}
-P.~Nason, S.~Dawson and R.~K.~Ellis,
-%``The Total Cross-Section For The Production Of Heavy Quarks In Hadronic
-%Collisions,''
-Nucl.\ Phys.\ B {\bf 303}, 607 (1988).
-%%CITATION = NUPHA,B303,607;%%
-
-\bibitem{Ravindran:2002dc}
-V.~Ravindran, J.~Smith and W.~L.~Van Neerven,
-%``Next-to-leading order QCD corrections to differential distributions of  Higgs boson production in hadron hadron collisions,''
-Nucl.\ Phys.\ B {\bf 634}, 247 (2002)
-[arXiv:hep-ph/0201114].
-%%CITATION = HEP-PH 0201114;%%
-
-%\cite{Campbell:2012uf}
-\bibitem{Campbell:2012uf} 
-  J.~M.~Campbell and R.~K.~Ellis,
-  %``Top-quark processes at NLO in production and decay,''
-  arXiv:1204.1513 [hep-ph].
-  %%CITATION = ARXIV:1204.1513;%%
-  %32 citations counted in INSPIRE as of 04 Jun 2013
-
-%\cite{Schmidt:1997wr}
-\bibitem{Schmidt:1997wr}
-C.~R.~Schmidt,
-%``H $\to$ g g g (g q anti-q) at two loops in the large-M(t) limit,''
-Phys.\ Lett.\ B {\bf 413}, 391 (1997)
-[arXiv:hep-ph/9707448].
-%%CITATION = HEP-PH 9707448;%%
-
-%\cite{deFlorian:1999zd}
-\bibitem{deFlorian:1999zd}
-D.~de Florian, M.~Grazzini and Z.~Kunszt,
-%``Higgs production with large transverse momentum in hadronic collisions  at next-to-leading order,''
-Phys.\ Rev.\ Lett.\  {\bf 82}, 5209 (1999)
-[arXiv:hep-ph/9902483].
-%%CITATION = HEP-PH 9902483;%%
-
-%\cite{Glosser:2002gm}
-\bibitem{Glosser:2002gm}
-C.~J.~Glosser and C.~R.~Schmidt,
-%``Next-to-leading corrections to the Higgs boson transverse momentum  spectrum in gluon fusion,''
-JHEP {\bf 0212}, 016 (2002)
-[arXiv:hep-ph/0209248].
-%%CITATION = HEP-PH 0209248;%%
-
-%\cite{Kleiss:1988xr}
-\bibitem{Kleiss:1988xr}
-R.~Kleiss and W.~J.~Stirling,
-%``Top Quark Production At Hadron Colliders: Some Useful Formulae,''
-Z.\ Phys.\ C {\bf 40}, 419 (1988).
-%%CITATION = ZEPYA,C40,419;%%
-
-%\cite{Frixione:1998jh}
-\bibitem{Frixione:1998jh}
-  S.~Frixione,
-  %``Isolated photons in perturbative {QCD},''
-  Phys.\ Lett.\  B {\bf 429}, 369 (1998)
-  [arXiv:hep-ph/9801442].
-  %%CITATION = PHLTA,B429,369;%%
-
-%\cite{Bern:2002jx}
-\bibitem{Bern:2002jx}
-  Z.~Bern, L.~J.~Dixon and C.~Schmidt,
-  %``Isolating a light Higgs boson from the di-photon background at the LHC,''
-  Phys.\ Rev.\  D {\bf 66}, 074018 (2002)
-  [arXiv:hep-ph/0206194].
-  %%CITATION = PHRVA,D66,074018;%%
-
-%\cite{DeFlorian:2000sg}
-\bibitem{DeFlorian:2000sg}
-  D.~De Florian and A.~Signer,
-  %``W gamma and Z gamma production at hadron colliders,''
-  Eur.\ Phys.\ J.\  C {\bf 16}, 105 (2000)
-  [arXiv:hep-ph/0002138].
-  %%CITATION = EPHJA,C16,105;%%
-
-%\cite{Campbell:2008hh}
-\bibitem{Campbell:2008hh}
-  J.~M.~Campbell, R.~K.~Ellis, F.~Febres Cordero, F.~Maltoni, L.~Reina, D.~Wackeroth and S.~Willenbrock,
-  %``Associated Production of a $W$ Boson and One $b$ Jet,''
-  Phys.\ Rev.\  D {\bf 79}, 034023 (2009)
-  [arXiv:0809.3003 [hep-ph]].
-  %%CITATION = PHRVA,D79,034023;%%
-  
-%\cite{Caola:2011pz}
-\bibitem{Caola:2011pz}
-  F.~Caola, J.~M.~Campbell, F.~Febres Cordero, L.~Reina and D.~Wackeroth,
-  %``NLO QCD predictions for W+1 jet and W+2 jet production with at least one b
-  %jet at the 7 TeV LHC,''
-  arXiv:1107.3714 [hep-ph].
-  %%CITATION = ARXIV:1107.3714;%%
-
-%\cite{Badger:2011yu}
-\bibitem{Badger:2011yu}
-  S.~Badger, R.~Sattler and V.~Yundin,
-  %``One-Loop Helicity Amplitudes for $t\bar{t}$ Production at Hadron
-  %Colliders,''
-  Phys.\ Rev.\  D {\bf 83}, 074020 (2011)
-  [arXiv:1101.5947 [hep-ph]].
-  %%CITATION = PHRVA,D83,074020;%%
-
-%\cite{Djouadi:1996yq}
-\bibitem{Djouadi:1996yq} 
-  A.~Djouadi, V.~Driesen, W.~Hollik and A.~Kraft,
-  %``The Higgs photon - Z boson coupling revisited,''
-  Eur.\ Phys.\ J.\ C {\bf 1}, 163 (1998)
-  [hep-ph/9701342].
-  %%CITATION = HEP-PH/9701342;%%
-
-%\cite{Glover:1987nx}
-\bibitem{Glover:1987nx} 
-  E.~W.~N.~Glover and J.~J.~van der Bij,
-  %``Higgs Boson Pair Production Via Gluon Fusion,''
-  Nucl.\ Phys.\ B {\bf 309}, 282 (1988).
-  %%CITATION = NUPHA,B309,282;%%
-  %103 citations counted in INSPIRE as of 20 Aug 2013
-
-%\cite{Martin:2009iq}
-\bibitem{Martin:2009iq} 
-  A.~D.~Martin, W.~J.~Stirling, R.~S.~Thorne and G.~Watt,
-  %``Parton distributions for the LHC,''
-  Eur.\ Phys.\ J.\ C {\bf 63}, 189 (2009)
-  doi:10.1140/epjc/s10052-009-1072-5
-  [arXiv:0901.0002 [hep-ph]].
-  %%CITATION = doi:10.1140/epjc/s10052-009-1072-5;%%
-  %3270 citations counted in INSPIRE as of 07 Apr 2016
-
-%\cite{Lai:2010vv}
-\bibitem{Lai:2010vv} 
-  H.~L.~Lai, M.~Guzzi, J.~Huston, Z.~Li, P.~M.~Nadolsky, J.~Pumplin and C.-P.~Yuan,
-  %``New parton distributions for collider physics,''
-  Phys.\ Rev.\ D {\bf 82}, 074024 (2010)
-  doi:10.1103/PhysRevD.82.074024
-  [arXiv:1007.2241 [hep-ph]].
-  %%CITATION = doi:10.1103/PhysRevD.82.074024;%%
-  %1716 citations counted in INSPIRE as of 07 Apr 2016  
-
-%\cite{Dulat:2015mca}
-\bibitem{Dulat:2015mca} 
-  S.~Dulat {\it et al.},
-  %``New parton distribution functions from a global analysis of quantum chromodynamics,''
-  Phys.\ Rev.\ D {\bf 93}, no. 3, 033006 (2016)
-  doi:10.1103/PhysRevD.93.033006
-  [arXiv:1506.07443 [hep-ph]].
-  %%CITATION = doi:10.1103/PhysRevD.93.033006;%%
-  %96 citations counted in INSPIRE as of 07 Apr 2016
-
-%\cite{Ball:2012cx}
-\bibitem{Ball:2012cx} 
-  R.~D.~Ball {\it et al.},
-  %``Parton distributions with LHC data,''
-  Nucl.\ Phys.\ B {\bf 867}, 244 (2013)
-  doi:10.1016/j.nuclphysb.2012.10.003
-  [arXiv:1207.1303 [hep-ph]].
-  %%CITATION = doi:10.1016/j.nuclphysb.2012.10.003;%%
-  %539 citations counted in INSPIRE as of 07 Apr 2016
-  
-%\cite{Ball:2014uwa}
-\bibitem{Ball:2014uwa} 
-  R.~D.~Ball {\it et al.} [NNPDF Collaboration],
-  %``Parton distributions for the LHC Run II,''
-  JHEP {\bf 1504}, 040 (2015)
-  doi:10.1007/JHEP04(2015)040
-  [arXiv:1410.8849 [hep-ph]].
-  %%CITATION = doi:10.1007/JHEP04(2015)040;%%
-  %225 citations counted in INSPIRE as of 07 Apr 2016
-    
-%\cite{Harland-Lang:2014zoa}
-\bibitem{Harland-Lang:2014zoa} 
-  L.~A.~Harland-Lang, A.~D.~Martin, P.~Motylinski and R.~S.~Thorne,
-  %``Parton distributions in the LHC era: MMHT 2014 PDFs,''
-  Eur.\ Phys.\ J.\ C {\bf 75}, no. 5, 204 (2015)
-  doi:10.1140/epjc/s10052-015-3397-6
-  [arXiv:1412.3989 [hep-ph]].
-  %%CITATION = doi:10.1140/epjc/s10052-015-3397-6;%%
-  %142 citations counted in INSPIRE as of 12 May 2016
-
-\end{thebibliography}
-
+\printbibliography
 
 \end{document}
 

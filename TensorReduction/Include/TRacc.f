@@ -1,2 +1,1 @@
-      double precision acc
-      parameter(acc=1d-4)
+      real(dp),parameter::acc=1.e-4_dp

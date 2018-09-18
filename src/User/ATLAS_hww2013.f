@@ -1,4 +1,5 @@
       subroutine ATLAS_hww2013(p,failed_cuts) 
+        use cxx11random
       implicit none
       include 'types.f'
 c--- Implementation of H->WW cuts in ATLAS-CONF-2013-030 (Njet=0)
@@ -13,7 +14,7 @@ c--- Implementation of H->WW cuts in ATLAS-CONF-2013-030 (Njet=0)
       logical:: failed_cuts
       real(dp):: pt,etarap
       integer:: i,j,idlept
-      real(dp):: ran2,tmp,dot,ptminl1,ptminl2,etamaxmu,etamaxe,
+      real(dp):: tmp,dot,ptminl1,ptminl2,etamaxmu,etamaxe,
      & etaegapmin,etaegapmax,metrelmin,mll,phimin,ptl1,ptl2,etal1,etal2,
      & mllmin,mllmax,phimax,mwindow,phi,etvec(2),missinget,ptll,ptllmin,
      & Etll,MET,mtrans
@@ -55,7 +56,7 @@ c      idlept=3    ! (mu,mu)
         mllmin=10._dp
         mwindow=zip
         metrelmin=25._dp
-        if (ran2() < 0.5_dp) then
+        if (cxx11_random_number() < 0.5_dp) then
           l1muon=.true.
           l2muon=.false.
         else

@@ -5,6 +5,7 @@
 !     Eq. B.12
       include 'types.f'
       real(dp):: AGTYX1u
+      include 'constants.f'
       include 'zeta.f'
       real(dp)::s,t,Lx,Ly,Lu
 

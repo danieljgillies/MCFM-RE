@@ -1,5 +1,6 @@
       subroutine runF_00iiiii(i1,i2,i3,i4,i5,f,Gr,Shat7,N0)
       implicit none
+      include 'types.f'
       include 'pvDnames.f'
       include 'pvDv.f'
       include 'Darraydef.f'
@@ -7,8 +8,8 @@
       include 'pvweenumber.f' 
       integer ep,N0,k,i1,i2,i3,i4,i5,np
       parameter(np=3)
-      double precision f(np),Gr(np,np),den
-      double complex Shat7(np,z6max,-2:0)
+      real(dp):: f(np),Gr(np,np),den
+      complex(dp):: Shat7(np,z6max,-2:0)
        
       do ep=-2,0
       if     ((i1 .eq. i2) .and. (i1 .eq. i3) .and. (i1 .eq. i4)

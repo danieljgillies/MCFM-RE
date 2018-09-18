@@ -1,2 +1,1 @@
-      double precision onshellcutoff
-      parameter(onshellcutoff=1d-8)
+      real(dp),parameter::onshellcutoff=1.e-8_dp

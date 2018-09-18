@@ -193,8 +193,8 @@ c---       rejected outside of this routine
         
       elseif (diptype == fifi) then
 c---    final-final dipoles
-        z=half*(one-(one-two*x1)*sqrt(one+four*x1*(one-x1)))
-        y=x2**2
+        z=half*(one-(one-two*x2)*sqrt(one+four*x2*(one-x2)))
+        y=x1**2
         phi=two*pi*x3
         
 c--- account for dipoles with emitted partons not in the last position

@@ -2,9 +2,10 @@
 c--- Adapted from Numerical Recipes
 c--- (extension to complex b)
       implicit none
+      include 'types.f'
       integer n,indx(n)  
-      double precision a(n,n),alud(n,n)
-      double complex b(n),x(n),sdp,r(n),rout(n)
+      real(dp):: a(n,n),alud(n,n)
+      complex(dp):: b(n),x(n),sdp,r(n),rout(n)
 CU    USES zlubksb  
       integer i,j 
        

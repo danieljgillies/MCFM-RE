@@ -39,7 +39,7 @@ c---calculate the propagator
      & +s(p4,p5)*0.25_dp*nDn*(s(p3,p2)+s(p3,p1)))/s(p1,p5)
 
      & -(nDp1*nDp2*(s(p3,p2)*s(p4,p5)+s(p3,p5)*s(p1,p4)
-     & +s(p3,p5)*s(p4,p5)+2_dp*s(p3,p2)*s(p1,p4))
+     & +s(p3,p5)*s(p4,p5)+2._dp*s(p3,p2)*s(p1,p4))
      & -s(p3,p5)*s(p4,p5)*s(p1,p2)*0.25_dp*nDn)/s(p1,p5)/s(p2,p5)
 
 c--- massless expression

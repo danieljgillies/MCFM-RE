@@ -108,23 +108,23 @@ c        xmax=1._dp/ptjetmin
 
         if (ijet <= nphots-2) then
           if     (nphots == 3) then
-            ptmin_part=min(gammpt,gammpt2,gammpt3)
+            ptmin_part=min(gammptmin,gammpt2,gammpt3)
           elseif (nphots == 2) then
-            ptmin_part=min(gammpt,gammpt2)
+            ptmin_part=min(gammptmin,gammpt2)
           elseif (nphots == 1) then
-            ptmin_part=gammpt
+            ptmin_part=gammptmin
           else
             write(6,*) 'Unexpected # photons gen_Vphotons_jets_dkrad2:',
      &                  nphots
             stop
           endif
-          etamax_part=gammrap
+          etamax_part=gammrapmax
           pbreak_part=0._dp
           if (kpart==kreal) then
 c--- cannot generate exactly to match, since dipoles transform photon
           ptmin_part=0._dp
           etamax_part=20._dp
-          pbreak_part=gammpt
+          pbreak_part=gammptmin
         endif
         else
           ptmin_part=ptjetmin

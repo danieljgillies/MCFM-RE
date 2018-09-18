@@ -17,9 +17,10 @@
       include 'scale.f'
       include 'masses.f'
       include 'epinv.f'
+      include 'toploops.f'
       integer:: j1,j2,j3,j4,j5,j6
       complex(dp)::atree,virtsf,virtuv,virttp,Lnrat,a6sf,a6tp,a6uv,
-     & tree
+     & tree,A6texact
       character*2 st 
       logical:: msbar
       common/msbar/msbar
@@ -29,12 +30,32 @@
       stop
       endif
       tree=atree(st,j1,j2,j3,j4,j5,j6,za,zb)
-      if (mt .ne. 0._dp) then
-!      virttp=-2._dp/15._dp*s(j2,j3)/mt**2
-      virttp=zip ! effects of top-quark loops removed
+      
+      virttp=czip
+      
+      if (toplight) then
+        if     (toploops == tapprox) then
+          if (mt .ne. 0._dp) then
+            virttp=-2._dp/15._dp*s(j2,j3)/mt**2
+          else
+            stop 'mt=0 in a6routine'
+          endif
+        elseif (toploops == texact) then
+          virttp=A6texact(s(j2,j3),mt**2)
+        elseif (toploops == tnone) then
+          virttp=czip
+        endif
       else
-      stop 'mt=0 in a6routine'
+        virttp=czip
       endif
+      
+! Check that asymptotic limit is okay
+!      do k=1,1000
+!      s(j2,j3)=float(k)*1000._dp
+!      write(6,*) sqrt(s(j2,j3)),-2._dp/15._dp*s(j2,j3)/mt**2/A6texact(s(j2,j3),mt**2)
+!      enddo
+!      stop
+      
       virtsf=two/three*epinv
      & +two/three*Lnrat(musq,-s(j2,j3))+10._dp/9._dp
       virtuv=(epinv*(11._dp-two/xn*real(nf,dp))-one)/three

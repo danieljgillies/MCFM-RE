@@ -1,4 +1,5 @@
       subroutine ZZintegraleval(k,mt)
+        use mod_qcdloop_c
       implicit none
       include 'types.f'
 C---- Calculate integrals for the gg->ZZ process
@@ -15,21 +16,13 @@ C-----Author: Keith Ellis, September 2013
       include 'blabels.f'
       include 'ggZZintegrals.f'
       include 'docheck.f'
-      include 'qlfirst.f'
       real(dp):: k(mxpart,4)
       integer:: nu
       real(dp):: p1(4),p2(4),p3(4),p4(4),mt,mt2,
      & s12,s13,s23,s14,s24,s34,p3sq,p4sq
-      complex(dp):: qlI4,qlI3,qlI2,qlI4_6explicit
+      complex(dp):: qlI4_6explicit
 C      complex(dp):: qlI4_6
 
-
-
-c--- initialize QCDLoop on first pass
-      if (qlfirst) then
-        call qlinit
-        qlfirst=.false.
-      endif
 
       p1(:)=k(1,:)
       p2(:)=k(2,:)
@@ -159,6 +152,7 @@ c      C0_4=qlI3(zip,zip,s12,mtsq,mtsq,mtsq,musq,0)
   
 
       function qlI4_6(s34,s56,s12,s234,mtsq,musq)
+        use mod_qcdloop_c
       implicit none
       include 'types.f'
       include 'constants.f'
@@ -167,7 +161,7 @@ c--- Evaluates the 6-dimensional scalar "hard" box integral
 c--- formula taken from sixdim.prc
       
       real(dp):: s34,s56,s12,s234,s134,musq,mtsq,Y
-      complex(dp):: D0,C0(4),xD0,xC0(4),qlI3,qlI4
+      complex(dp):: D0,C0(4),xD0,xC0(4)
 
       D0=qlI4(zip,zip,s34,s56,s12,s234,mtsq,mtsq,mtsq,mtsq,musq,0)
       C0(1)=qlI3(zip,s34,s234,mtsq,mtsq,mtsq,musq,0)

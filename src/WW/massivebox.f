@@ -1,4 +1,5 @@
       subroutine massivebox(k1,k2,k3,k4,k5,k6,za,zb,box)
+        use mod_qcdloop_c
       implicit none
       include 'types.f'
       
@@ -11,21 +12,13 @@
       include 'sprods_com.f'
       include 'zprods_decl.f'
       include 'docheck.f'
-      include 'first.f'
-      complex(dp):: d(2,2,6),box(2,2,-2:0),qlI4,Dint(6,-2:0)
+      complex(dp):: d(2,2,6),box(2,2,-2:0),Dint(6,-2:0)
       real(dp):: s12,s34,s56,s134,s156,mtsq
       integer:: j,k1,k2,k3,k4,k5,k6,h1,h2,e
       common/transferbox/d
 !$omp threadprivate(/transferbox/)
 
       mtsq=mt**2
-      if (first) then
-      first=.false. 
-c      write(6,*) 'mtsq',mtsq
-c      write(6,*) 'musq',musq
-      call qlinit
-c      pause
-      endif
 
       s134=s(k1,k3)+s(k1,k4)+s(k3,k4)
       s156=s(k1,k5)+s(k1,k6)+s(k5,k6)

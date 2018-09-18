@@ -1,4 +1,6 @@
       function realint(vector,wgt)
+!          use ieee_arithmetic
+          use VVconfig_m
       implicit none
       include 'types.f'
       real(dp):: realint
@@ -7,8 +9,6 @@
       include 'mxpart.f'
       include 'cplx.h'
       include 'debug.f'
-      include 'realonly.f'
-      include 'virtonly.f'
       include 'noglue.f'
       include 'nflav.f'
       include 'vegas_common.f'
@@ -42,9 +42,15 @@
       include 'incldip.f'
       include 'nproc.f'
       include 'initialscales.f'
+      include 'badpoint.f'
       include 'nqcdjets.f'
       include 'taucut.f'
       include 'qcdcouple.f'
+      include 'scalevar.f'
+      include 'couple.f'
+      include 'nlooprun.f'
+      include 'cutoff.f'
+      include 'ewcorr.f'
 
 c--- APPLgrid - enable grids
 c      include 'APPLinclude.f'
@@ -58,6 +64,12 @@ c---- SSend
 cz
 cz //
       integer:: ih1,ih2,j,k,nd,nmax,nmin,nvec,ii,t
+      integer itrial
+      real(dp):: alphas,msqtrial,
+     & fx1up(-nf:nf),fx2up(-nf:nf),fx1dn(-nf:nf),fx2dn(-nf:nf),
+     & dipfx1up(0:maxd,-nf:nf),dipfx2up(0:maxd,-nf:nf),
+     & dipfx1dn(0:maxd,-nf:nf),dipfx2dn(0:maxd,-nf:nf),
+     & xmsqvar(2,0:maxd),asorig,scaleup,scaledn
       real(dp):: vector(mxdim),W,val,val2,valsum,xint,ptmp
       real(dp):: fx1(-nf:nf),fx2(-nf:nf),
      & dipfx1(0:maxd,-nf:nf),dipfx2(0:maxd,-nf:nf),
@@ -69,7 +81,7 @@ cz //
       real(dp):: msqc(maxd,-nf:nf,-nf:nf),xmsq(0:maxd),msqc_new(maxd,-nf:nf,-nf:nf),bit1,bit2
       real(dp):: flux,BrnRat,xreal,xreal2
       real(dp):: xx1,xx2,q(mxpart,4)
-      real(dp):: m3,m4,m5,R,Rbbmin
+      real(dp):: m3,m4,m5,R,Rbbmin,dot
       real(dp):: xmsq_bypart(0:maxd,-1:1,-1:1),xmsqjk,
      & plo(mxpart,4),pswtdip,psave(mxpart,4)
       integer:: sgnj,sgnk
@@ -122,6 +134,8 @@ cz Add b fraction
       real(dp):: msqtmp(0:maxd),bwgttmp(0:maxd)
       real(dp):: realeventp(mxpart,4)
       common/realeventp/realeventp
+
+      external :: qqb_zgam_new, qqb_zgam
       
       data bwgt / 0._dp /  ! in common block
 cz // Add b fraction   Note: only msqtmp(0), bwgttmp(0) are used in nplotter.f
@@ -157,12 +171,18 @@ c--- ensure isolation code does not think this is fragmentation piece
 
       W=sqrts**2
       
+c---- set default reweight to 1 (hence no reweighting)
+      reweight = 1.0_dp
+
 c      if (first) then
 c         write(6,*)
 c         write(6,*) 'nmin=',nmin,',nmax=',nmax
 c         write(6,*)
 c         first=.false.
 c      endif
+
+      p(:,:)=0._dp
+      pjet(:,:)=0._dp
 
 c-- note: new_pspace now signifies multi-channel integration
       if (new_pspace) then
@@ -171,8 +191,7 @@ c-- note: new_pspace now signifies multi-channel integration
         npart=npart+1
         call multichan(vector(ndim-2),vector(ndim-1),vector(ndim),
      &                 vector(ndim+2),plo,p,pswtdip,*999)
-!        call writeout(p) 
-!        pause
+
         pswt=pswt*pswtdip
       else
         call gen_realps(vector,p,pswt,*999)
@@ -270,10 +289,13 @@ c      if (debug) write(*,*) 'Reconstructed x1,x2 ',xx1,xx2
 c--- (moved to includedipole) impose cuts on final state
 c      call masscuts(p,*999)
 
-c----reject event if any s(i,j) is too small
-c      call smalls(s,npart,*999)
+      if (usescet) then
 c----reject event if any tau is too small
-      call smalltau(p,npart,*999)
+        call smalltau(p,npart,*999)
+      else
+c----reject event if any s(i,j) is too small
+        call smalls(s,npart,*999)
+      endif
      
 c--- extra cut to divide WQj/ZQj regions
       if ( (nproc == 312) .or. (nproc == 317)
@@ -286,11 +308,14 @@ c--- see whether this point will pass cuts - if it will not, do not
 c--- bother calculating the matrix elements for it, instead set to zero
       includereal=includedipole(0,p)
       incldip(0)=includereal 
+
+c     it is always a good idea to initialize all elements as zero
+      msq(:,:) = 0
+      msqc(:,:,:) = 0
  
       if (includereal .eqv. .false.) then
         do j=-nf,nf
         do k=-nf,nf
-          msq(j,k)=0._dp
           msqLH(j,k)=0._dp   ! for stop+b process
           msqHL(j,k)=0._dp   ! for stop+b process
         enddo
@@ -322,6 +347,11 @@ c--- (W+2 jet and Z+2 jet processes only)
         dipscale(0)=facscale
       endif
       
+      if ((doscalevar) .and. (foundpow .eqv. .false.)) then
+        itrial=1
+      endif
+   66 continue
+
 c---- generate collinear points that satisfy the jet cuts (for checking)
 c      call singgen(p,s,*998)
             
@@ -346,8 +376,9 @@ c        call singcheck(qqb_w_cjet_g,qqb_w_cjet_gs,p) ! Checked 15/05/07
         if (includereal) call qqb_w_cjet_g(p,msq)
         call qqb_w_cjet_gs(p,msqc)
       elseif (kcase==kZgamma) then
-!         if(includereal) call singcheck(qqb_zgam_g,qqb_zgam_gs,p) ! Checked 01/04/11
-        if (includereal) call qqb_zgam_g(p,msq)
+        !if(includereal) call singcheck(qqb_zaj,qqb_zgam_gs,p)
+        call set_anomcoup(p)
+        if (includereal) call qqb_zaj(p,msq)
         call qqb_zgam_gs(p,msqc)
       elseif (kcase==kZ_2gam) then
 c         if(includereal) call singcheck(qqb_zaa_g,qqb_zaa_gs,p)
@@ -361,6 +392,7 @@ c        if (includereal) call qqb_waa_g(p,msq)
 c        call qqb_waa_gs(p,msqc)
       elseif (kcase==kZgajet) then
 !        if(includereal) call singcheck(qqb_zaj_g,qqb_zaj_gs,p)     ! Checked 10/21/10
+        call set_anomcoup(p)
         if (includereal) call qqb_zaj_g(p,msq)      
         call qqb_zaj_gs(p,msqc)
       elseif (kcase==kWbbmas) then
@@ -490,6 +522,16 @@ c         pause
           if (includereal) call qqb_ZH1jet_g(p,msq)
           call qqb_ZH1jet_gs(p,msqc)
         endif
+      elseif (kcase==ktwo_ew) then
+c        if (includereal) call singcheck(qqb_twojet_mix_g,qqb_twojet_mix_gs,p) 
+        if (  (-s(1,3) < cutoff) .or. (-s(2,3) < cutoff)
+     &   .or. (-s(1,4) < cutoff) .or. (-s(2,4) < cutoff)
+     &   .or. (-s(1,5) < cutoff) .or. (-s(2,5) < cutoff)
+     &   .or. ( s(3,4) < cutoff) .or. ( s(3,5) < cutoff)
+     &   .or. ( s(4,5) < cutoff)) goto 999
+        if (includereal) call qqb_twojet_mix_g(p,msq)
+        call qqb_twojet_mix_gs(p,msqc)
+        wt_noew=zip ! non-EW calculation has no real contribution
       elseif (kcase==kdirgam) then
 !        if (includereal) call singcheck(qqb_dirgam_g,qqb_dirgam_gs,p) 
         if (includereal) call qqb_dirgam_g(p,msq)
@@ -596,6 +638,17 @@ c         call singcheck(qqb_QQbdku_g,qqb_QQbdku_gs,p) !
 c         pause
         if (includereal) call qqb_QQbdku_g(p,msq)  
         call qqb_QQbdku_gs(p,msqc) 
+      elseif (kcase==ktt_mix) then
+         if ((s(3,5) < cutoff) .or. (s(4,5) < cutoff)) goto 999
+         if (abs(two*dot(p,3,4)+two*mt**2-zmass**2) .lt. 0.1_dp) then
+           msq(:,:)=zip
+           msqc(:,:,:)=zip
+         else
+c           call singcheck(qqb_QQb_mix_g,qqb_QQb_mix_gs,p)
+           if (includereal) call qqb_QQb_mix_g(p,msq)
+           call qqb_QQb_mix_gs(p,msqc)
+           wt_noew=zip ! non-EW calculation has no real contribution
+         endif
       elseif ((kcase==ktt_tot) .or. (kcase==kcc_tot)
      &   .or. (kcase==kbb_tot)) then
 c        call singcheck(qqb_QQb_g,qqb_QQb_gs,p)
@@ -645,9 +698,23 @@ c------ radiation in the decay of the anti-top quark
         stop
       endif
       elseif (kcase==kggfus1) then
-c        call singcheck(gg_hgg,gg_hg_gs,p)
+!        if (includereal) call singcheck(gg_hgg,gg_hg_gs,p)
         if (includereal) call gg_hgg(p,msq)
         call gg_hg_gs(p,msqc)
+      elseif (kcase==kHi_Zaj) then
+!        if (includereal) call singcheck(gg_hgg_zgam,gg_hg_zgam_gs,p)
+        if (includereal) call gg_hgg_zgam(p,msq)
+        call gg_hg_zgam_gs(p,msqc)
+      elseif (kcase==khjetma) then
+        badpoint = .false.
+
+        if (includereal) call hjetmass_r(p,msq)
+        if (badpoint .eqv. .false.) then
+          call hjetmass_gs(p,msqc)
+        else
+            msq = 0._dp
+            msqc = 0._dp
+        endif
       elseif (kcase==kHgagaj) then
 c        call singcheck(gg_hgagagg,gg_hgagag_gs,p)
         if (includereal) call gg_hgagagg(p,msq)
@@ -765,6 +832,41 @@ c        call compare_madgraph(p,qqb_tottth_g,qqb_tottth_g_mad)
 
       endif
       
+! code to find power of alpha-s for scale variation
+      if ((doscalevar) .and. (foundpow .eqv. .false.)) then
+        if (itrial == 1) then
+          msqtrial=maxval(msq)
+          if (msqtrial == 0) goto 999
+          if (dynamicscale) call scaleset(initscale,initfacscale,p)
+          as=as*two
+          ason2pi=ason2pi*two
+          ason4pi=ason4pi*two
+          gsq=gsq*two
+          itrial=itrial+1
+          goto 66
+        endif
+        msqtrial=maxval(msq)/msqtrial
+        alphaspow=-1
+        if (abs(msqtrial-one) < 1.e-8) alphaspow=0
+        if (abs(msqtrial-two) < 1.e-8) alphaspow=1
+        if (abs(msqtrial-four) < 1.e-8) alphaspow=2
+        if (abs(msqtrial-eight) < 1.e-8) alphaspow=3
+        if (abs(msqtrial-16._dp) < 1.e-8) alphaspow=4
+        if (abs(msqtrial-32._dp) < 1.e-8) alphaspow=5
+        if (alphaspow == -1) then
+          write(6,*) 'Unable to determine power of alpha-s for scale variation'
+          write(6,*) ' msqtrial = ',msqtrial
+          stop
+        endif
+        as=as/two
+        ason2pi=ason2pi/two
+        ason4pi=ason4pi/two
+        gsq=gsq/two
+        foundpow=.true.
+!        write(6,*) 'Found alpha-s power: ',alphaspow
+        goto 66
+      endif
+
       do nd=0,ndmax
       xmsq(nd)=0._dp
 cz
@@ -795,165 +897,178 @@ cz
       bwgttmp(nd)=0._dp
 cz //
       enddo
-!      if (PDFerrors) then
-!        call InitPDF(currentPDF)
-!      endif
          
-c--- calculate PDF's  
-      if (dynamicscale) then
-        do nd=ndmax,0,-1  ! so that fx1,fx2 correct for real kinematics
-          if (dipscale(nd) < 1.e-8_dp) then        
+c--- calculate PDF's
+      if (PDFerrors) then
+!$omp critical(critPDFerrors)
+        if (dynamicscale) then
+          do nd=ndmax,0,-1  ! so that fx1,fx2 correct for real kinematics
+            if (dipscale(nd) < 1.e-8_dp) then        
 c--- in case dipole is not used, set up dummy value of scale for safety
 c--- and set all PDF entries to zero
-          dipscale(nd)=dipscale(0)
-          do j=-nf,nf
-            fx1(j)=0._dp
-            fx2(j)=0._dp
-          enddo
-        else
-           if (PDFerrors) then
-!$omp critical(PDFerrors)
+              dipscale(nd)=dipscale(0)
+              fx1(:)=0._dp
+              fx2(:)=0._dp
+            else
               call InitPDF(currentPDF)
               call fdist(ih1,xx1,dipscale(nd),fx1)
               call fdist(ih2,xx2,dipscale(nd),fx2)
-!$omp end critical(PDFerrors)
-           else
-              call fdist(ih1,xx1,dipscale(nd),fx1)
-              call fdist(ih2,xx2,dipscale(nd),fx2)
-           endif
-            do j=-nf,nf
-            dipfx1(nd,j)=fx1(j)
-            dipfx2(nd,j)=fx2(j)
+              dipfx1(nd,:)=fx1(:)
+              dipfx2(nd,:)=fx2(:)
+            endif
           enddo
-        endif
-      enddo
-        if ((kcase==kqg_tbq) .or. (kcase==k4ftwdk)) then
-        do j=-nf,nf
-        fx1_H(j)=fx1(j)
-        fx1_L(j)=fx1(j)
-        fx2_H(j)=fx2(j)
-        fx2_L(j)=fx2(j)
-        enddo
-      endif
-      else
-        if ((kcase==kqg_tbq) .or. (kcase==k4ftwdk)) then
-c--- for single top + b, make sure to use two different scales
-           if (PDFerrors) then
-!$omp critical(PDFerrors)
-              call InitPDF(currentPDF)
-              call fdist(ih1,xx1,facscale_H,fx1_H)
-              call fdist(ih2,xx2,facscale_H,fx2_H)
-              call fdist(ih1,xx1,facscale_L,fx1_L)
-              call fdist(ih2,xx2,facscale_L,fx2_L)
-!$omp end critical(PDFerrors)
-           else
-              call fdist(ih1,xx1,facscale_H,fx1_H)
-              call fdist(ih2,xx2,facscale_H,fx2_H)
-              call fdist(ih1,xx1,facscale_L,fx1_L)
-              call fdist(ih2,xx2,facscale_L,fx2_L)
-           endif
-        do j=-nf,nf
-          if (j == 0) then  ! heavy quark line has gluon init. state
-            fx1(j)=fx1_H(j)
-            fx2(j)=fx2_H(j)
-          else
-            fx1(j)=fx1_L(j)
-            fx2(j)=fx2_L(j)
+          if ((kcase==kqg_tbq) .or. (kcase==k4ftwdk)) then
+            fx1_H(:)=fx1(:)
+            fx1_L(:)=fx1(:)
+            fx2_H(:)=fx2(:)
+            fx2_L(:)=fx2(:)
           endif
-        enddo
         else
-c--- for comparison with C. Oleari's e+e- --> QQbg calculation
-c            if (runstring(1:5) == 'carlo') then
-c            flux=1._dp/2._dp/W/(as/twopi)**2
-c--- divide out by (ason2pi) and then the "LO" massless DY process
-c          flux=flux/(aveqq*xn*fourpi*(gwsq/fourpi)**2/3._dp/sqrts**2)
-c            flux=flux/(xn/8._dp)
-c          do j=-nf,nf
-c          fx1(j)=0._dp
-c          fx2(j)=0._dp
-c          enddo
-c          fx1(0)=1._dp
-c          fx1(1)=1._dp
-c          fx2(0)=1._dp
-c          fx2(1)=1._dp
-c          else   
-c--- usual case            
-           if (PDFerrors) then
-!$omp critical(PDFerrors)
-              call InitPDF(currentPDF)
-              call fdist(ih1,xx1,facscale,fx1)
-              call fdist(ih2,xx2,facscale,fx2)
-!$omp end critical(PDFerrors)
-           else
-              call fdist(ih1,xx1,facscale,fx1)
-              call fdist(ih2,xx2,facscale,fx2)
-           endif
-c        endif
+          if ((kcase==kqg_tbq) .or. (kcase==k4ftwdk)) then
+c--- for single top + b, make sure to use two different scales
+            call InitPDF(currentPDF)
+            call fdist(ih1,xx1,facscale_H,fx1_H)
+            call fdist(ih2,xx2,facscale_H,fx2_H)
+            call fdist(ih1,xx1,facscale_L,fx1_L)
+            call fdist(ih2,xx2,facscale_L,fx2_L)
+            do j=-nf,nf
+              if (j == 0) then  ! heavy quark line has gluon init. state
+                fx1(j)=fx1_H(j)
+                fx2(j)=fx2_H(j)
+              else
+                fx1(j)=fx1_L(j)
+                fx2(j)=fx2_L(j)
+              endif
+            enddo
+          else
+            call InitPDF(currentPDF)
+            call fdist(ih1,xx1,facscale,fx1)
+            call fdist(ih2,xx2,facscale,fx2)
+          endif
         endif
-      endif      
-            
+!$omp end critical(critPDFerrors)
+
+      else
+
+        if (dynamicscale) then
+          do nd=ndmax,0,-1  ! so that fx1,fx2 correct for real kinematics
+            if (dipscale(nd) < 1.e-8_dp) then        
+c--- in case dipole is not used, set up dummy value of scale for safety
+c--- and set all PDF entries to zero
+              dipscale(nd)=dipscale(0)
+              fx1(:)=0._dp
+              fx2(:)=0._dp
+            else
+              if (doscalevar) then
+                call fdist(ih1,xx1,dipscale(nd)*two,fx1)
+                call fdist(ih2,xx2,dipscale(nd)*two,fx2)
+                dipfx1up(nd,:)=fx1(:)
+                dipfx2up(nd,:)=fx2(:)
+                call fdist(ih1,xx1,dipscale(nd)/two,fx1)
+                call fdist(ih2,xx2,dipscale(nd)/two,fx2)
+                dipfx1dn(nd,:)=fx1(:)
+                dipfx2dn(nd,:)=fx2(:)
+                xmsqvar(:,nd)=zip
+              endif
+              call fdist(ih1,xx1,dipscale(nd),fx1)
+              call fdist(ih2,xx2,dipscale(nd),fx2)
+              dipfx1(nd,:)=fx1(:)
+              dipfx2(nd,:)=fx2(:)
+            endif
+          enddo
+          if ((kcase==kqg_tbq) .or. (kcase==k4ftwdk)) then
+            fx1_H(:)=fx1(:)
+            fx1_L(:)=fx1(:)
+            fx2_H(:)=fx2(:)
+            fx2_L(:)=fx2(:)
+          endif
+        else
+          if ((kcase==kqg_tbq) .or. (kcase==k4ftwdk)) then
+c--- for single top + b, make sure to use two different scales
+            call fdist(ih1,xx1,facscale_H,fx1_H)
+            call fdist(ih2,xx2,facscale_H,fx2_H)
+            call fdist(ih1,xx1,facscale_L,fx1_L)
+            call fdist(ih2,xx2,facscale_L,fx2_L)
+            do j=-nf,nf
+              if (j == 0) then  ! heavy quark line has gluon init. state
+                fx1(j)=fx1_H(j)
+                fx2(j)=fx2_H(j)
+              else
+                fx1(j)=fx1_L(j)
+                fx2(j)=fx2_L(j)
+              endif
+            enddo
+          else
+c--- usual case            
+            call fdist(ih1,xx1,facscale,fx1)
+            call fdist(ih2,xx2,facscale,fx2)
+            if (doscalevar) then
+              call fdist(ih1,xx1,facscale*two,fx1up)
+              call fdist(ih2,xx2,facscale*two,fx2up)
+              call fdist(ih1,xx1,facscale/two,fx1dn)
+              call fdist(ih2,xx2,facscale/two,fx2dn)
+              xmsqvar(:,:)=zip
+            endif
+          endif
+        endif
+      
+      endif
+
       do j=-nflav,nflav
       do k=-nflav,nflav
 
       if (ggonly) then
-      if ((j.ne.0) .or. (k.ne.0)) goto 20
+      if ((j.ne.0) .or. (k.ne.0)) cycle
       endif
 
       if (gqonly) then
-      if (((j==0).and.(k==0)) .or. ((j.ne.0).and.(k.ne.0))) goto 20
+      if (((j==0).and.(k==0)) .or. ((j.ne.0).and.(k.ne.0))) cycle
       endif      
       
       if (noglue) then 
-      if ((j==0) .or. (k==0)) goto 20
+      if ((j==0) .or. (k==0)) cycle
       endif
 
       if (omitgg) then 
-      if ((j==0) .and. (k==0)) goto 20
+      if ((j==0) .and. (k==0)) cycle
       endif
 
-      if ((kcase==kWcsbar).and.(j .ne. 4).and.(k .ne. 4)) goto 20
+      if ((kcase==kWcsbar).and.(j .ne. 4).and.(k .ne. 4)) cycle
 
-      if (realonly) then 
-        xmsq(0)=xmsq(0)+fx1(j)*fx2(k)*msq(j,k)
-        do nd=1,ndmax
-        xmsq(nd)=0._dp
-        enddo
-      elseif (virtonly) then
-         xmsq(0)=0._dp
-         do nd=1,ndmax
-         if (dynamicscale) then         
-             xmsq(nd)=xmsq(nd)+dipfx1(nd,j)*dipfx2(nd,k)*(-msqc(nd,j,k))
-         else
-             xmsq(nd)=xmsq(nd)+fx1(j)*fx2(k)*(-msqc(nd,j,k))
-         endif
-         enddo
+      if     (j > 0) then
+        sgnj=+1
+      elseif (j < 0) then
+        sgnj=-1
       else
-
-         if     (j > 0) then
-           sgnj=+1
-         elseif (j < 0) then
-           sgnj=-1
-         else
-           sgnj=0
-         endif
-         if     (k > 0) then
-           sgnk=+1
-         elseif (k < 0) then
-           sgnk=-1
-         else
-           sgnk=0
-         endif
+        sgnj=0
+      endif
+      if     (k > 0) then
+        sgnk=+1
+      elseif (k < 0) then
+        sgnk=-1
+      else
+        sgnk=0
+      endif
 
 c--- for single top + b, make sure to use two different scales
-         if ((kcase==kqg_tbq) .or. (kcase==k4ftwdk)) then
-           xmsqjk=fx1_L(j)*fx2_H(k)*msqLH(j,k)
-     &           +fx1_H(j)*fx2_L(k)*msqHL(j,k)
-         else
+      if ((kcase==kqg_tbq) .or. (kcase==k4ftwdk)) then
+        xmsqjk=fx1_L(j)*fx2_H(k)*msqLH(j,k)
+     &        +fx1_H(j)*fx2_L(k)*msqHL(j,k)
+      else
 c--- usual case            
-           xmsqjk=fx1(j)*fx2(k)*msq(j,k)
-       endif
-       
-         xmsq(0)=xmsq(0)+xmsqjk
+        xmsqjk=fx1(j)*fx2(k)*msq(j,k)
+      
+      xmsq(0)=xmsq(0)+xmsqjk
+      if (doscalevar) then
+        if (dynamicscale) then
+          xmsqvar(1,0)=xmsqvar(1,0)+dipfx1up(0,j)*dipfx2up(0,k)*msq(j,k)
+          xmsqvar(2,0)=xmsqvar(2,0)+dipfx1dn(0,j)*dipfx2dn(0,k)*msq(j,k)
+        else
+          xmsqvar(1,0)=xmsqvar(1,0)+fx1up(j)*fx2up(k)*msq(j,k)
+          xmsqvar(2,0)=xmsqvar(2,0)+fx1dn(j)*fx2dn(k)*msq(j,k)
+        endif
+      endif
+
 cz
 cz Extract fraction with b in final state, store in common
 cz
@@ -990,8 +1105,16 @@ cz // end fill index 0
          do nd=1,ndmax
          if (dynamicscale) then         
              xmsqjk=dipfx1(nd,j)*dipfx2(nd,k)*(-msqc(nd,j,k))
+             if (doscalevar) then
+               xmsqvar(1,nd)=xmsqvar(1,nd)+dipfx1up(nd,j)*dipfx2up(nd,k)*(-msqc(nd,j,k))
+               xmsqvar(2,nd)=xmsqvar(2,nd)+dipfx1dn(nd,j)*dipfx2dn(nd,k)*(-msqc(nd,j,k))
+             endif
          else
              xmsqjk=fx1(j)*fx2(k)*(-msqc(nd,j,k))
+             if (doscalevar) then
+               xmsqvar(1,nd)=xmsqvar(1,nd)+fx1up(j)*fx2up(k)*(-msqc(nd,j,k))
+               xmsqvar(2,nd)=xmsqvar(2,nd)+fx1dn(j)*fx2dn(k)*(-msqc(nd,j,k))
+             endif
          endif
            xmsq(nd)=xmsq(nd)+xmsqjk
            if (currentPDF == 0) then
@@ -1000,7 +1123,6 @@ cz // end fill index 0
          enddo
          
       endif
- 20   continue
 
       enddo
       enddo
@@ -1123,11 +1245,44 @@ c--- update PDF errors
         endif
         
 c--- catch NaN before it enters histograms
-        if (val /= val) then
+        if (isnan(val)) then
           write(6,*) 'discarding point with weight NaN: pswt=',pswt
           goto 999
         endif 
+
+!        if (.not. ieee_is_finite(val)) then
+!          write(6,*) 'discarding point with infinite weight: pswt=',pswt
+!          goto 999
+!        endif
+
                 
+! compute weights for scale variation
+      if (doscalevar) then
+        if (abs(xmsq(nd)) > zip) then
+          if (dynamicscale) then
+            asorig=alphas(dipscale(nd)*initscale/initfacscale,amz,nlooprun)
+            scaleup=dipscale(nd)*initscale/initfacscale*two
+            scaledn=dipscale(nd)*initscale/initfacscale/two
+          else
+            asorig=as
+            scaleup=scale*two
+            scaledn=scale/two
+          endif
+          scalereweight(1)=(alphas(scaleup,amz,nlooprun)/asorig)**alphaspow
+          scalereweight(2)=(alphas(scaledn,amz,nlooprun)/asorig)**alphaspow
+          scalereweight(1)=scalereweight(1)*xmsqvar(1,nd)*flux*pswt/BrnRat/xmsq(nd)
+          scalereweight(2)=scalereweight(2)*xmsqvar(2,nd)*flux*pswt/BrnRat/xmsq(nd)
+          if (maxscalevar == 6) then
+            scalereweight(3)=scalereweight(1)*xmsq(nd)/xmsqvar(1,nd)/flux/pswt*BrnRat
+            scalereweight(4)=scalereweight(2)*xmsq(nd)/xmsqvar(2,nd)/flux/pswt*BrnRat
+            scalereweight(5)=xmsqvar(1,nd)*flux*pswt/BrnRat/xmsq(nd)
+            scalereweight(6)=xmsqvar(2,nd)*flux*pswt/BrnRat/xmsq(nd)
+          endif
+        else
+          scalereweight(:)=zip
+        endif
+      endif
+
 c---if we're binning, add to histo too
         if (bin) then
           call getptildejet(nd,pjet)

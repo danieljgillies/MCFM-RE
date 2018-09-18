@@ -68,6 +68,13 @@ C---Modification so that only close to singular subtracted
         
         call transform(p,ptrans,x,ip,jp,kp)
         call storeptilde(nd,ptrans)
+        if ((kcase==ktwo_ew) .and.
+     &      (ip == 1) .and. (jp < 5)) then ! (13) or (14) singularity
+c------ swap particles 3 and 4
+          vec(:)=ptrans(4,:)
+          ptrans(4,:)=ptrans(3,:)
+          ptrans(3,:)=vec(:)
+        endif
         
 c-- Check to see if this dipole will be included
 c        incldip(nd)=includedipole(nd,ptrans)
@@ -121,7 +128,7 @@ c        incldip(nd)=includedipole(nd,ptrans)
 C-- if not return
 c        if (incldip(nd) .eqv. .false.) return
 
-c--- if using a dynamic scale, set that scale with dipole kinematics      
+c--- if using a dynamic scale, set that scale with dipole kinematics
       if (dynamicscale) then
         call scaleset(initscale,initfacscale,ptrans)
         dipscale(nd)=facscale
@@ -145,7 +152,7 @@ c--- do nothing
            vec(nu)=(p(jp,nu)/u-p(kp,nu)/omu)/sqrt(sjk)
         enddo
         
-        call subr_corr(ptrans,vec,ip,msqv)        
+        call subr_corr(ptrans,vec,ip,msqv)
         sub(qq)=-gsq/x/sij*(two/(omx+u)-one-x)
         sub(gq)=-gsq/sij
         sub(qg)=-gsq/x/sij*(one-two*x*omx)
@@ -203,6 +210,9 @@ C ie for cases 76_i,75_i
 C ie for cases 57_i,67_i
           ipt=ip
         endif
+
+c--- do something special for H(->Za)+jet
+        if (kcase == kHi_Zaj) ipt=6
       
 c--- do something special for HWW/HZZ+2 jets
         if ((kcase==kHWW2jt) .or. (kcase==kHZZ2jt)) then
@@ -218,7 +228,7 @@ C ie for cases 98_i,97_i
 C ie for cases 79_i,89_i
             ipt=ip
           endif
-      endif      
+        endif
         
 c--- do something special for direct photon production
         if (kcase==kdirgam) ipt=4
@@ -259,7 +269,7 @@ c        if (incldip(nd) .eqv. .false.) return
           vec(nu)=z*p(ip,nu)-omz*p(jp,nu)
         enddo
 
-c--- if using a dynamic scale, set that scale with dipole kinematics      
+c--- if using a dynamic scale, set that scale with dipole kinematics
         if (dynamicscale) then
          call scaleset(initscale,initfacscale,ptrans)
          dipscale(nd)=facscale
@@ -275,7 +285,7 @@ c--- if using a dynamic scale, set that scale with dipole kinematics
             ipt=6
           endif
         endif
-               
+           
 c--- do something special for HWW/HZZ+2 jets
         if ((kcase==kHWW2jt) .or. (kcase==kHZZ2jt)) then
           if (ip < kp) then

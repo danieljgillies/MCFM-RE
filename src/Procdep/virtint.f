@@ -2,7 +2,6 @@
       implicit none
       include 'types.f'
       real(dp):: virtint
-      
       include 'constants.f'
       include 'nf.f'
       include 'mxpart.f'
@@ -19,8 +18,10 @@
       include 'PR_h2j.f'
       include 'PR_twojet.f'
       include 'PR_stop.f'
+      include 'PR_mix.f'
       include 'msq_cs.f'
       include 'msq_struc.f'
+      include 'msq_mix.f'
       include 'qcdcouple.f'
       include 'scale.f'
       include 'facscale.f'
@@ -58,7 +59,11 @@
       include 'ppmax.f'
       include 'kpart.f'
       include 'hbbparams.f'
+      include 'ewcorr.f'
       include 'mpicommon.f'
+      include 'scalevar.f'
+      include 'couple.f'
+      include 'nlooprun.f'
 c--- APPLgrid - grid includes
 c      include 'ptilde.f'
 c      include 'APPLinclude.f'
@@ -69,7 +74,7 @@ c--- APPLgrid - end
      & msqx(0:2,-nf:nf,-nf:nf,-nf:nf,-nf:nf)
       real(dp):: ppmsqx(0:2,ppmax)
       real(dp):: msqx_cs(0:2,-nf:nf,-nf:nf)
-      real(dp):: AP(-1:1,-1:1,3),APqg_mass
+      real(dp):: AP(-1:1,-1:1,3),APqg_mass,AP_mix(-1:1,-1:1,0:3,3)
 
 c---- SSbegin
       include 'reweight.f'
@@ -79,18 +84,23 @@ c---- SSbegin
 c---- SSend 
 
       integer:: ih1,ih2,j,k,m,n,cs,ics,csmax,nvec,is,iq,ia,ib,ic,ii
+      integer itrial
+      real(dp):: savescale,savefacscale,xmsqvar(6),alphas
       real(dp):: p(mxpart,4),pjet(mxpart,4),r(mxdim),W,xmsq,
      & val,val2,fx1(-nf:nf),fx2(-nf:nf),fx1z(-nf:nf),fx2z(-nf:nf),xmsqt,
      & fx1_H(-nf:nf),fx2_H(-nf:nf),fx1_L(-nf:nf),fx2_L(-nf:nf),
      & fx1z_H(-nf:nf),fx2z_H(-nf:nf),fx1z_L(-nf:nf),fx2z_L(-nf:nf)
+      real(dp):: xmsq_noew,msq_noew(-nf:nf,-nf:nf),virtint_noew
       real(dp):: pswt,xjac,m3,m4,m5,
      & wgt,msq(-nf:nf,-nf:nf),msqv(-nf:nf,-nf:nf),msqvdk(-nf:nf,-nf:nf),
      & msqvdkW(-nf:nf,-nf:nf),
-     & msq_qq,msq_aa,msq_aq,msq_qa,msq_qg,msq_gq,epcorr
+     & msq_qq,msq_aa,msq_aq,msq_qa,msq_qg,msq_gq,epcorr,
+     & msq1(-nf:nf,-nf:nf),msq0(-nf:nf,-nf:nf),msqm1(-nf:nf,-nf:nf),xlog,
+     & bit2(-nf:nf,-nf:nf),bit1(-nf:nf,-nf:nf),bit0(-nf:nf,-nf:nf)
       real(dp):: z,x1onz,x2onz,flux,omz,
-     & BrnRat,xmsq_old,tmp,ptmp,pttwo
+     & BrnRat,xmsq_old,tmp,ptmp,pttwo,wwidth_save,zwidth_save
       real(dp):: xmsq_bypart(-1:1,-1:1)
-      integer:: nshot,rvcolourchoice,sgnj,sgnk
+      integer:: rvcolourchoice,sgnj,sgnk
       logical:: bin,includedipole,checkpiDpjk
       real(dp):: QandGint
       integer mykpart
@@ -104,8 +114,7 @@ c---- SSend
       common/mykpart/mykpart
 c      common/ggZZunstable/ggZZunstable
 c      data p/56*0._dp/
-      data nshot/1/
-      save nshot
+      integer, save:: nshot=1
       external gg_ZZ,qqb_w1jet_vbis
 !$omp threadprivate(/rvcolourchoice/)
 !$omp threadprivate(nshot,/useropt/)
@@ -123,7 +132,13 @@ c      data p/56*0._dp/
 c--- ensure isolation code does not think this is fragmentation piece
       z_frag=0._dp
 
+      p(:,:)=0._dp
+      pjet(:,:)=0._dp
+
       W=sqrts**2
+
+c---- set default reweight to 1 (hence no reweighting)
+      reweight = 1.0_dp
 
       call gen_lops(r,p,pswt,*999)
       
@@ -133,10 +148,13 @@ c--- ensure isolation code does not think this is fragmentation piece
 c--- (moved to includedipole) impose cuts on final state
 c      call masscuts(p,*999)
 
-c----reject event if any s(i,j) is too small
-c      call smalls(s,npart,*999)
+      if (usescet) then
 c----reject event if any tau is too small
-      call smalltau(p,npart,*999)
+        call smalltau(p,npart,*999)
+      else
+c----reject event if any s(i,j) is too small
+        call smalls(s,npart,*999)
+      endif
          
 c--- see whether this point will pass cuts - if it will not, do not
 c--- bother calculating the matrix elements for it, instead bail out
@@ -144,8 +162,58 @@ c--- bother calculating the matrix elements for it, instead bail out
         goto 999
       endif
       
+c--- test to see whether we need Gflag and Qflag together
+      if ( ((kcase==kW_2jet) .or. (kcase==kZ_2jet))
+     &.and. (Qflag) .and. (Gflag) ) then
+        QandGflag=.true.
+        QandGint=0._dp
+c--- first pass: Gflag
+        Gflag=.true.
+        Qflag=.false.
+      endif
+      
+c--- restart from here when calculating with Qflag and Gflag
+c--- (W+2 jet and Z+2 jet processes only)
+   44 continue      
+      
+      if (doscalevar) then
+        itrial=maxscalevar+1
+        savescale=scale
+        savefacscale=facscale
+      endif
+  
+   66 continue
+
       if (dynamicscale) call scaleset(initscale,initfacscale,p)
      
+! adjust scales for scale variation
+      if (doscalevar) then
+        if (dynamicscale .eqv. .false.) then
+          scale=savescale
+          facscale=savefacscale
+        endif
+        if      (itrial == 7) then
+           facscale=facscale/two
+         elseif (itrial == 6) then
+           facscale=facscale*two
+         elseif (itrial == 5) then
+           scale=scale/two
+         elseif (itrial == 4) then
+           scale=scale*two
+         elseif (itrial == 3) then
+           scale=scale/two
+           facscale=facscale/two
+         elseif (itrial == 2) then
+           scale=scale*two
+           facscale=facscale*two
+         endif
+         musq=scale**2
+         as=alphas(scale,amz,nlooprun)
+         ason2pi=as/twopi
+         ason4pi=as/fourpi
+         gsq=fourpi*as
+      endif
+      
       xx(1)=-2._dp*p(1,4)/sqrts
       xx(2)=-2._dp*p(2,4)/sqrts
 
@@ -253,6 +321,29 @@ c--- splittings on the heavy quark line make a gluon init. state
       enddo
       endif
 
+c--- AP functions for mixed EW contributions
+      if     (kcase .eq. ktt_mix) then
+         AP(:,:,:)=0._dp
+
+      elseif (kcase .eq. ktwo_ew) then
+         AP_mix(:,:,:,:) = 0._dp
+
+         AP_mix(q,q,1:2,1)=+ason2pi*Cf*1.5_dp*epcorr
+         AP_mix(q,q,1:2,2)=+ason2pi*Cf*(-1._dp-z)*epcorr
+         AP_mix(q,q,1:2,3)=+ason2pi*Cf*2._dp/omz*epcorr
+         AP_mix(a,a,1:2,1)=+ason2pi*Cf*1.5_dp*epcorr
+         AP_mix(a,a,1:2,2)=+ason2pi*Cf*(-1._dp-z)*epcorr
+         AP_mix(a,a,1:2,3)=+ason2pi*Cf*2._dp/omz*epcorr
+
+         AP_mix(q,g,1:2,1)=0._dp
+         AP_mix(q,g,1:2,2)=ason2pi*Tr*(z**2+omz**2)*epcorr
+         AP_mix(q,g,1:2,3)=0._dp
+
+         AP_mix(a,g,1:2,1)=0._dp
+         AP_mix(a,g,1:2,2)=ason2pi*Tr*(z**2+omz**2)*epcorr
+         AP_mix(a,g,1:2,3)=0._dp
+      endif
+      
 c--- remove q -> g splittings for gg -> gam gam case
 c--- (no longer necessary since inclusion of q+g->gam+gam+q contributions)
 !      if (kcase == kgg2gam) then
@@ -297,20 +388,8 @@ c--- (no longer necessary since inclusion of q+g->gam+gam+q contributions)
       enddo
       enddo
       enddo
-      
-c--- test to see whether we need Gflag and Qflag together
-      if ( ((kcase==kW_2jet) .or. (kcase==kZ_2jet))
-     &.and. (Qflag) .and. (Gflag) ) then
-        QandGflag=.true.
-        QandGint=0._dp
-c--- first pass: Gflag
-        Gflag=.true.
-        Qflag=.false.
-      endif
-      
-c--- restart from here when calculating with Qflag and Gflag
-c--- (W+2 jet and Z+2 jet processes only)
-   44 continue      
+      M1(:,:,:,:,:)=zip
+      M2(:,:,:,:,:)=zip
       
 c--- Calculate the required matrix elements
       if     (kcase==kW_only) then
@@ -364,28 +443,203 @@ c         call qqb_Waa_z(p,z)
         call qqb_z(p,msq)
         call qqb_z_v(p,msqv)
         call qqb_z_z(p,z)
+        if (1 == 2) then
+! Madgraph check: begin
+        p(1,4)=-5.000000000000000E+002_dp
+        p(1,1)=-0.000000000000000E+000_dp
+        p(1,2)=-0.000000000000000E+000_dp
+        p(1,3)=-5.000000000000000E+002_dp
+        p(2,4)=-5.000000000000000E+002_dp
+        p(2,1)=-0.000000000000000E+000_dp
+        p(2,2)=-0.000000000000000E+000_dp
+        p(2,3)= 5.000000000000000E+002_dp
+        p(3,4)= 5.000000000000000E+002_dp
+        p(3,1)= 4.510352131035046E+002_dp
+        p(3,2)= 6.047968715179463E+001_dp
+        p(3,3)=-2.071459485065961E+002_dp
+        p(4,4)= 5.000000000000000E+002_dp
+        p(4,1)=-4.510352131035046E+002_dp
+        p(4,2)=-6.047968715179463E+001_dp
+        p(4,3)= 2.071459485065961E+002_dp
+        call qqb_z(p,msq)
+        epinv=zip
+        epinv2=zip
+        call qqb_z_v(p,msq0)
+        epinv=one
+        epinv2=one
+        call qqb_z_v(p,msq1)
+        epinv=-one
+        epinv2=-one
+        call qqb_z_v(p,msqm1)
+! remember extra log from expanding (Qsq/musq)^ep, with Qsq=1000^2 GeV
+        xlog=two*log(1000._dp/scale)
+        bit2(:,:)=(msq1(:,:)+msqm1(:,:)-two*msq0(:,:))/two
+        bit1(:,:)=(msq1(:,:)-msqm1(:,:))/two+xlog*bit2(:,:)
+        bit0(:,:)=msq0(:,:)+xlog*(bit1(:,:)-xlog*bit2(:,:))+xlog**2/two*bit2(:,:)
+! translation from DR (MCFM) to tH-V (MG)
+        bit0(:,:)=bit0(:,:)-CF*ason2pi*msq(:,:)
+        write(6,*) 'msq(2,-2) ',msq(2,-2)
+        write(6,*)
+        write(6,*) 'msqv (2,-2)     ',bit0(2,-2)
+        write(6,*) 'msqv (2,-2) ep  ',bit1(2,-2)
+        write(6,*) 'msqv (2,-2) ep^2',bit2(2,-2)
+        write(6,*)
+        write(6,*) 'msqv (2,-2)      /(msq(2,-2)*ason2pi)',bit0(2,-2)/(msq(2,-2)*ason2pi)
+        write(6,*) 'msqv (2,-2) ep   /(msq(2,-2)*ason2pi)',bit1(2,-2)/(msq(2,-2)*ason2pi)
+        write(6,*) 'msqv (2,-2) ep^2 /(msq(2,-2)*ason2pi)',bit2(2,-2)/(msq(2,-2)*ason2pi)
+        stop
+! Madgraph check: end
+        endif
       elseif (kcase==kZ_1jet) then
         call qqb_z1jet(p,msq)
         call qqb_z1jet_v(p,msqv)
         call qqb_z1jet_z(p,z)
+        if (1 == 2) then
+! Madgraph check: begin
+        p(1,4)=-5.000000000000000E+002_dp
+        p(1,1)=-0.000000000000000E+000_dp
+        p(1,2)=-0.000000000000000E+000_dp
+        p(1,3)=-5.000000000000000E+002_dp
+        p(2,4)=-5.000000000000000E+002_dp
+        p(2,1)=-0.000000000000000E+000_dp
+        p(2,2)=-0.000000000000000E+000_dp
+        p(2,3)= 5.000000000000000E+002_dp
+        p(3,4)= 1.850618930902392E+002_dp
+        p(3,1)= -5.101444150706673E+001_dp
+        p(3,2)= -8.234967641309825E+001_dp
+        p(3,3)= -1.576831057105458E+002_dp
+        p(4,4)= 4.192381120256421E+002_dp
+        p(4,1)= -1.165087601320307E+002_dp
+        p(4,2)= 4.027108985766566E+002_dp
+        p(4,3)= -3.199305378265266E+000_dp
+        p(5,4)= 3.956999948841188E+002_dp
+        p(5,1)= 1.675232016390975E+002_dp
+        p(5,2)= -3.203612221635584E+002_dp
+        p(5,3)= 1.608824110888112E+002_dp
+        call qqb_z1jet(p,msq)
+        epinv=zip
+        epinv2=zip
+        call qqb_z1jet_v(p,msq0)
+        epinv=one
+        epinv2=one
+        call qqb_z1jet_v(p,msq1)
+        epinv=-one
+        epinv2=-one
+        call qqb_z1jet_v(p,msqm1)
+! remember extra log from expanding (Qsq/musq)^ep, with Qsq=1000^2 GeV
+        xlog=two*log(1000._dp/scale)
+        bit2(:,:)=(msq1(:,:)+msqm1(:,:)-two*msq0(:,:))/two
+        bit1(:,:)=(msq1(:,:)-msqm1(:,:))/two+xlog*bit2(:,:)
+        bit0(:,:)=msq0(:,:)+xlog*(bit1(:,:)-xlog*bit2(:,:))+xlog**2/two*bit2(:,:)
+! now do UV subtraction that has been removed in virtual routine
+        bit1(:,:)=bit1(:,:)-msq(:,:)*ason2pi*xn*(11._dp-2._dp*real(nflav-1,dp)/xn)/6._dp
+        bit0(:,:)=bit0(:,:)-msq(:,:)*ason2pi*xn*(-1._dp)/6._dp
+! translation from DR (MCFM) to tH-V (MG)
+        bit0(:,:)=bit0(:,:)-(CF+XN/six)*ason2pi*msq(:,:)
+        write(6,*) 'msq(2,-2) ',msq(2,-2)
+        write(6,*)
+        write(6,*) 'msqv (2,-2)     ',bit0(2,-2)
+        write(6,*) 'msqv (2,-2) ep  ',bit1(2,-2)
+        write(6,*) 'msqv (2,-2) ep^2',bit2(2,-2)
+        write(6,*)
+        write(6,*) 'msqv (2,-2)      /(msq(2,-2)*ason2pi)',bit0(2,-2)/(msq(2,-2)*ason2pi)
+        write(6,*) 'msqv (2,-2) ep   /(msq(2,-2)*ason2pi)',bit1(2,-2)/(msq(2,-2)*ason2pi)
+        write(6,*) 'msqv (2,-2) ep^2 /(msq(2,-2)*ason2pi)',bit2(2,-2)/(msq(2,-2)*ason2pi)
+        stop
+! Madgraph check: end
+        endif
       elseif (kcase==kZ_2jet) then
 c        call qqb_z2jetx(p,msq,mqq,msqx,msqx_cs)
         call qqb_z2jetx_new(p,msq,mqq,ppmsqx,msqx_cs)
         call qqb_z2jet_v(p,msqv)
         call qqb_z2jet_z(p,z)
       elseif (kcase==kZgamma) then
-        call qqb_zgam(p,msq)
-        call qqb_zgam_v(p,msqv)      
+        ! Have not implemented the poles for Zgamma, it wouldn't test
+        ! anything further..
+        epinv=0._dp
+        epinv2=0._dp
+        nshot = 3
+        call set_anomcoup(p)
+c       call qqb_zgam(p,msq)
+c       call qqb_zgam_v(p,msqv)
+        call qqb_zgam_v_new(p,msqv,msq)
         call qqb_zgam_z(p,z)
-        call gg_zgam(p,msqv(0,0)) ! additional gluon-gluon contribution
+!        call gg_zgam(p,msqv(0,0)) ! additional gluon-gluon contribution
       elseif (kcase==kZ_2gam) then
         call qqb_zaa(p,msq)
         call qqb_zaa_v(p,msqv)
         call qqb_zaa_z(p,z)
       elseif (kcase==kZgajet) then
-        call qqb_zaj(p,msq)
-        call qqb_zaj_v(p,msqv)
+        call set_anomcoup(p)
+c       call qqb_zaj(p,msq)
+c       call qqb_zaj_v(p,msqv)
+        call qqb_zaj_v_new(p,msqv,msq)
         call qqb_zaj_z(p,z)
+        if (1 == 2) then
+! Madgraph check: begin
+        p(1,4)= -0.5000000000000E+03_dp 
+        p(1,1)= -0.0000000000000E+00_dp
+        p(1,2)= -0.0000000000000E+00_dp
+        p(1,3)= -0.5000000000000E+03_dp
+        p(2,4)= -0.5000000000000E+03_dp
+        p(2,1)= -0.0000000000000E+00_dp
+        p(2,2)= -0.0000000000000E+00_dp
+        p(2,3)= +0.5000000000000E+03_dp
+        p(3,4)=   0.1595716637545E+03_dp
+        p(3,1)= -0.6917881602503E+02_dp
+        p(3,2)= -0.1395190303564E+03_dp 
+        p(3,3)= -0.3481159943433E+02_dp
+        p(4,4)=   0.2247782275715E+03_dp
+        p(4,1)= -0.1360154358534E+03_dp
+        p(4,2)= 0.1650357793084E+03_dp
+        p(4,3)= -0.6919714118287E+02_dp
+        p(5,4)=   0.2508765335011E+03_dp
+        p(5,1)= 0.1447878222766E+01_dp
+        p(5,2)= 0.2499856862623E+03_dp
+        p(5,3)= -0.2107357051277E+02_dp
+        p(6,4)=   0.3647735751729E+03_dp
+        p(6,1)= 0.2037463736556E+03_dp
+        p(6,2)= -0.2755024352143E+03_dp
+        p(6,3)= 0.1250823111300E+03_dp
+        call qqb_zaj(p,msq)
+        epinv=zip
+        epinv2=zip
+        call qqb_zaj_v(p,msq0)
+        epinv=one
+        epinv2=one
+        call qqb_zaj_v(p,msq1)
+        epinv=-one
+        epinv2=-one
+        call qqb_zaj_v(p,msqm1)
+! remember extra log from expanding (Qsq/musq)^ep, with Qsq=1000^2 GeV
+        xlog=two*log(1000._dp/scale)
+        bit2(:,:)=(msq1(:,:)+msqm1(:,:)-two*msq0(:,:))/two
+        bit1(:,:)=(msq1(:,:)-msqm1(:,:))/two+xlog*bit2(:,:)
+        bit0(:,:)=msq0(:,:)+xlog*(bit1(:,:)-xlog*bit2(:,:))+xlog**2/two*bit2(:,:)
+! now do UV subtraction that has been removed in virtual routine
+        bit1(:,:)=bit1(:,:)-msq(:,:)*ason2pi*xn*(11._dp-2._dp*real(nflav-1,dp)/xn)/6._dp
+        bit0(:,:)=bit0(:,:)-msq(:,:)*ason2pi*xn*(-1._dp)/6._dp
+! translation from DR (MCFM) to tH-V (MG)
+        bit0(:,:)=bit0(:,:)-(CF+XN/six)*ason2pi*msq(:,:)
+        write(6,*) 'msq(2,-2) ',msq(2,-2)
+        write(6,*)
+        write(6,*) 'msqv (2,-2)     ',bit0(2,-2)
+        write(6,*) 'msqv (2,-2) ep  ',bit1(2,-2)
+        write(6,*) 'msqv (2,-2) ep^2',bit2(2,-2)
+        write(6,*)
+        write(6,*) 'msqv (2,-2)      /(msq(2,-2)*ason2pi)',bit0(2,-2)/(msq(2,-2)*ason2pi)
+        write(6,*) 'msqv (2,-2) ep   /(msq(2,-2)*ason2pi)',bit1(2,-2)/(msq(2,-2)*ason2pi)
+        write(6,*) 'msqv (2,-2) ep^2 /(msq(2,-2)*ason2pi)',bit2(2,-2)/(msq(2,-2)*ason2pi)
+        write(6,*)
+        write(6,*) 'msqv (2,-2)      /(msq(2,-2)*ason2pi)',bit0(2,-2)/(msq(2,-2)*ason2pi)
+        write(6,*) 'msqv (-2,2)      /(msq(-2,2)*ason2pi)',bit0(-2,2)/(msq(-2,2)*ason2pi)
+        write(6,*) 'msqv (2,0)       /(msq(2,0)*ason2pi)',bit0(2,0)/(msq(2,0)*ason2pi)
+        write(6,*) 'msqv (-2,0)      /(msq(-2,0)*ason2pi)',bit0(-2,0)/(msq(-2,0)*ason2pi)
+        write(6,*) 'msqv (0,2)       /(msq(0,2)*ason2pi)',bit0(0,2)/(msq(0,2)*ason2pi)
+        write(6,*) 'msqv (0,-2)      /(msq(0,-2)*ason2pi)',bit0(0,-2)/(msq(0,-2)*ason2pi)
+        stop
+! Madgraph check: end
+        endif
       elseif (kcase==kZbbbar) then
         call qqb_zbb(p,msq)
         call qqb_zbb_v(p,msqv)
@@ -564,6 +818,22 @@ c--- correct for scaling with NLO partial width
         call gg_hZZg(p,msq)
         call gg_hZZg_v(p,msqv)
         call gg_hZZg_z(p,z)
+      elseif (kcase==ktwo_ew) then
+        wwidth_save=wwidth
+        zwidth_save=zwidth
+        wwidth=zip
+        zwidth=zip
+        call qqb_twojet_mix(p,msq)
+        call qqb_twojet_ew_exact(p,msqv)
+        call qqb_twojet_mix_z(p,z)
+c        msq_mix(:,:,:)=zip ! uncomment to remove mixed terms if desired
+        call qqb_twojet(p,msq_noew) ! no EW corrections
+c---- include the following three lines to compute corrections wrt full LO
+c        call qqb_twojet_ew(p,msq)
+c        msq_noew=msq_noew+msq
+c        msq=zip
+        wwidth=wwidth_save
+        zwidth=zwidth_save
       elseif (kcase==kdirgam) then
         call qqb_dirgam(p,msq)
         call qqb_dirgam_v(p,msqv)
@@ -621,11 +891,16 @@ c--- correct for scaling with NLO partial width
           do k=-nf,nf
             msqv(j,k)=msqv(j,k)+msqvdk(j,k)
           enddo
-          enddo     
+          enddo
         endif
       elseif (kcase==ktt_udk) then
         msq(:,:)=0._dp
         call dkuqqb_QQb_v(p,msqv)
+      elseif (kcase==ktt_mix) then
+        call qqb_QQb_mix(p,msq)
+        call qqb_QQb_mix_v(p,msqv)
+        call qqb_QQb_mix_z(p,z)
+        call qqb_QQb(p,msq_noew) ! matrix elements with no EW corrections
       elseif ((kcase==ktt_tot)
      &   .or. (kcase==kbb_tot)
      &   .or. (kcase==kcc_tot)) then
@@ -692,6 +967,14 @@ c--- correct for scaling with NLO partial width
         call gg_hg(p,msq)
         call gg_hg_v(p,msqv)
         call gg_hg_z(p,z)
+      elseif (kcase==kHi_Zaj) then
+        call gg_hzgamg(p,msq)
+        call gg_hg_zgam_v(p,msqv)
+        call gg_hg_zgam_z(p,z)
+      elseif (kcase==khjetma) then
+        call hjetmass(p,msq)
+        call hjetmass_v(p,msqv)
+        call hjetmass_z(p,z)
       elseif (kcase==kHgagaj) then
         call gg_hgagag(p,msq)
         call gg_hgagag_v(p,msqv)
@@ -873,6 +1156,12 @@ C---initialize to zero
 c--- initialize a PDF set here, if calculating errors
   777 continue
       xmsq=0._dp
+      fx1z(:)=0._dp
+      fx2z(:)=0._dp
+            
+      if (z > xx(1)) x1onz=xx(1)/z
+      if (z > xx(2)) x2onz=xx(2)/z
+      xmsq_noew=0._dp
 !      if (PDFerrors) then
 !        call InitPDF(currentPDF)
 !      endif
@@ -930,106 +1219,103 @@ c--- usual case
 c      endif
       endif
       
-      do j=-nf,nf
-      fx1z(j)=0._dp
-      fx2z(j)=0._dp
-      enddo
-            
-      if (z > xx(1)) then
-        x1onz=xx(1)/z
+c--- calculate PDF's
+c--- Note: if computing PDF errors then the whole block of code should
+c--- be OMP critical;  to avoid unnecessary duplication of code the
+c--- block should be shuffled off to a routine.  Current solution is lazy!!!
+      if (PDFerrors) then
+!$omp critical(critPDFerrors)
+        call InitPDF(currentPDF)
+        if ( (kcase==kqg_tbq) .or. (kcase==k4ftwdk)
+     &   .or.(kcase==kdk_4ft)) then
 c--- for single top + b, make sure to use two different scales
-        if ((kcase==kqg_tbq) .or. (kcase==k4ftwdk)
-     &  .or.(kcase==kdk_4ft)) then
-           if (PDFerrors) then
-!$omp critical(PDFerrors)
-              call InitPDF(currentPDF)
-              call fdist(ih1,x1onz,facscale_H,fx1z_H)
-              call fdist(ih1,x1onz,facscale_L,fx1z_L)
-!$omp end critical(PDFerrors)
-           else
-              call fdist(ih1,x1onz,facscale_H,fx1z_H)
-              call fdist(ih1,x1onz,facscale_L,fx1z_L)
-           endif
-        else
-c--- for comparison with C. Oleari's e+e- --> QQbg calculation
-c          if (runstring(1:5) == 'carlo') then
-c           do j=-nf,nf
-c          fx1z(j)=0._dp
-c          enddo
-c          else   
-c--- usual case            
-           if (PDFerrors) then
-!$omp critical(PDFerrors)
-              call InitPDF(currentPDF)
-              call fdist(ih1,x1onz,facscale,fx1z)
-!$omp end critical(PDFerrors)
-           else
-              call fdist(ih1,x1onz,facscale,fx1z)
-           endif
-c--- APPLgrid - set factor
-c            f_X1overZ = 1._dp
-c--- APPLgrid - end
-c          endif
-      endif
-      endif
-      if (z > xx(2)) then
-        x2onz=xx(2)/z
-c--- for single top + b, make sure to use two different scales
-        if ((kcase==kqg_tbq) .or. (kcase==k4ftwdk)
-     &  .or.(kcase==kdk_4ft)) then
-           if (PDFerrors) then
-!$omp critical(PDFerrors)
-              call InitPDF(currentPDF)
-              call fdist(ih2,x2onz,facscale_H,fx2z_H)
-              call fdist(ih2,x2onz,facscale_L,fx2z_L)
-!$omp end critical(PDFerrors)
-          else
-             call fdist(ih2,x2onz,facscale_H,fx2z_H)
-             call fdist(ih2,x2onz,facscale_L,fx2z_L)
+          call fdist(ih1,xx(1),facscale_H,fx1_H)
+          call fdist(ih2,xx(2),facscale_H,fx2_H)
+          call fdist(ih1,xx(1),facscale_L,fx1_L)
+          call fdist(ih2,xx(2),facscale_L,fx2_L)
+          fx1z_H(:)=0._dp
+          fx2z_H(:)=0._dp
+          fx1z_L(:)=0._dp
+          fx2z_L(:)=0._dp
+          if (z > xx(1)) then
+            call fdist(ih1,x1onz,facscale_H,fx1z_H)
+            call fdist(ih1,x1onz,facscale_L,fx1z_L)
+          endif
+          if (z > xx(2)) then
+            call fdist(ih2,x2onz,facscale_H,fx2z_H)
+            call fdist(ih2,x2onz,facscale_L,fx2z_L)
           endif
         else
-c--- for comparison with C. Oleari's e+e- --> QQbg calculation
-c          if (runstring(1:5) == 'carlo') then
-c           do j=-nf,nf
-c          fx2z(j)=0._dp
-c          enddo
-c          else   
-c--- usual case            
-           if (PDFerrors) then
-!$omp critical(PDFerrors)
-              call InitPDF(currentPDF)
-              call fdist(ih2,x2onz,facscale,fx2z)
-!$omp end critical(PDFerrors)
-           else
-              call fdist(ih2,x2onz,facscale,fx2z)
-           endif
+c--- usual case
+          call fdist(ih1,xx(1),facscale,fx1)
+          call fdist(ih2,xx(2),facscale,fx2)
+          if (z > xx(1)) then
+            call fdist(ih1,x1onz,facscale,fx1z)
+          endif
+          if (z > xx(2)) then
+            call fdist(ih2,x2onz,facscale,fx2z)
+          endif
+        endif
+!$omp end critical(critPDFerrors)
+      else
+        if ( (kcase==kqg_tbq) .or. (kcase==k4ftwdk)
+     &   .or.(kcase==kdk_4ft)) then
+c--- for single top + b, make sure to use two different scales
+          call fdist(ih1,xx(1),facscale_H,fx1_H)
+          call fdist(ih2,xx(2),facscale_H,fx2_H)
+          call fdist(ih1,xx(1),facscale_L,fx1_L)
+          call fdist(ih2,xx(2),facscale_L,fx2_L)
+          fx1z_H(:)=0._dp
+          fx2z_H(:)=0._dp
+          fx1z_L(:)=0._dp
+          fx2z_L(:)=0._dp
+          if (z > xx(1)) then
+            call fdist(ih1,x1onz,facscale_H,fx1z_H)
+            call fdist(ih1,x1onz,facscale_L,fx1z_L)
+          endif
+          if (z > xx(2)) then
+            call fdist(ih2,x2onz,facscale_H,fx2z_H)
+            call fdist(ih2,x2onz,facscale_L,fx2z_L)
+          endif
+        else
+c--- usual case
+          call fdist(ih1,xx(1),facscale,fx1)
+          call fdist(ih2,xx(2),facscale,fx2)
+          if (z > xx(1)) then
+            call fdist(ih1,x1onz,facscale,fx1z)
+          endif
+          if (z > xx(2)) then
+            call fdist(ih2,x2onz,facscale,fx2z)
+          endif
+        endif
+
+      endif
+      
 c--- APPLgrid - set factor
+c            f_X1overZ = 1._dp
 c            f_X2overZ = 1._dp
 c--- APPLgrid - end
-c          endif
-      endif
-      endif         
       
       do j=-nflav,nflav
       do k=-nflav,nflav
    
       if (ggonly) then
-      if ((j.ne.0) .or. (k.ne.0)) goto 20
+      if ((j.ne.0) .or. (k.ne.0)) cycle
       endif
 
       if (gqonly) then
-      if (((j==0).and.(k==0)) .or. ((j.ne.0).and.(k.ne.0))) goto 20
+      if (((j==0).and.(k==0)) .or. ((j.ne.0).and.(k.ne.0))) cycle
       endif      
       
       if (noglue) then 
-      if ((j==0) .or. (k==0)) goto 20
+      if ((j==0) .or. (k==0)) cycle
       endif
 
       if (omitgg) then 
-      if ((j==0) .and. (k==0)) goto 20
+      if ((j==0) .and. (k==0)) cycle
       endif
 
-      if ((kcase==kWcsbar).and.(j .ne. 4).and.(k .ne. 4)) goto 20
+      if ((kcase==kWcsbar).and.(j .ne. 4).and.(k .ne. 4)) cycle
 
       tmp=xmsq
 
@@ -1044,11 +1330,157 @@ c--- There is no label for he or she who is emitted.
 c--- Note that in general each piece will be composed of many different
 c--- dipole contributions
 
+c--- SUM BY COLOUR STRUCTURES: mixed QCD/EW effects for dijets only
+      if  (kcase==ktwo_ew) then
+       xmsq=xmsq+fx1(j)*fx2(k)*(msqv(j,k)+msq(j,k))
+c      write(6,*) j,k,'-> msqv = ',fx1(j)*fx2(k)*(
+c     . msqv(j,k)+msq(j,k))
+c      tmp=xmsq
+
+c--- quark-quark or antiquark-antiquark
+      if (  ((j > 0).and.(k > 0))
+     . .or. ((j < 0).and.(k < 0))) then
+c      write(6,*) 'virtint: j,k,msqv=',j,k,fx1(j)*fx2(k)*msqv(j,k)
+      xmsqt=zip
+      do cs=0,3
+      xmsqt=xmsqt
+     & +msq_mix(cs,j,k)*(AP_mix(q,q,cs,1)-AP_mix(q,q,cs,3)
+     &                 +M1(q,q,q,cs,1)-M1(q,q,q,cs,3)
+     &                 +AP_mix(q,q,cs,1)-AP_mix(q,q,cs,3)
+     &                 +M2(q,q,q,cs,1)-M2(q,q,q,cs,3))*fx1(j)*fx2(k)
+     & +(msq_mix(cs,j,k)*(AP_mix(q,q,cs,2)+AP_mix(q,q,cs,3)
+     &                 +M1(q,q,q,cs,2)+M1(q,q,q,cs,3))
+     & +msq_mix(cs,g,k)*(AP_mix(g,q,cs,2)
+     & +M1(g,q,q,cs,2)))*fx1z(j)/z*fx2(k)
+     & +(msq_mix(cs,j,k)*(AP_mix(q,q,cs,2)+AP_mix(q,q,cs,3)
+     &                  +M2(q,q,q,cs,2)+M2(q,q,q,cs,3))
+     & +msq_mix(cs,j,g)*(AP_mix(g,q,cs,2)
+     & +M2(g,q,q,cs,2)))*fx1(j)*fx2z(k)/z 
+      enddo      
+      xmsq=xmsq+xmsqt
+      
+c      write(6,*) 'virtint: j,k,  ct=',j,k,xmsqt
+c      if ((j .ge. 3) .and. (k .ge. 3)) then
+c      write(6,*) 'epinv,epinv2',epinv,epinv2
+c      write(6,*) 'j,k,fx1(j)*fx2(k)*msqv(j,k),xmsqt,sum',
+c     & j,k,fx1(j)*fx2(k)*msqv(j,k),xmsqt,fx1(j)*fx2(k)*msqv(j,k)+xmsqt
+c      pause
+c      endif
+
+
+c--- quark-antiquark or antiquark-quark
+      elseif (  ((j > 0).and.(k < 0))
+     .     .or. ((j < 0).and.(k > 0))) then
+c      write(6,*) 'virtint: j,k,msqv=',j,k,fx1(j)*fx2(k)*msqv(j,k)
+      xmsqt=zip
+      do cs=0,3
+      if (j .ne. -k) then
+c------ non-identical quarks
+      xmsqt=xmsqt
+     & +msq_mix(cs,j,k)*(AP_mix(q,q,cs,1)-AP_mix(q,q,cs,3)
+     &                 +M1(q,q,a,cs,1)-M1(q,q,a,cs,3)
+     &                 +AP_mix(a,a,cs,1)-AP_mix(a,a,cs,3)
+     &                 +M2(a,a,q,cs,1)-M2(a,a,q,cs,3))*fx1(j)*fx2(k)
+     & +(msq_mix(cs,j,k)*(AP_mix(q,q,cs,2)+AP_mix(q,q,cs,3)
+     &                  +M1(q,q,a,cs,2)+M1(q,q,a,cs,3))
+     & + msq_mix(cs,g,k)*(AP_mix(g,q,cs,2)
+     & +M1(g,q,a,cs,2)))*fx1z(j)/z*fx2(k)
+     & +(msq_mix(cs,j,k)*(AP_mix(a,a,cs,2)+AP_mix(a,a,cs,3)
+     &                  +M2(a,a,q,cs,2)+M2(a,a,q,cs,3))
+     & + msq_mix(cs,j,g)*(AP_mix(g,a,cs,2)
+     & +M2(g,a,q,cs,2)))*fx1(j)*fx2z(k)/z
+      else
+c------ identical quarks
+      xmsqt=xmsqt
+     & +msq_mix(cs,j,k)*(AP_mix(q,q,cs,1)-AP_mix(q,q,cs,3)
+     &                 +M1(q,q,a,cs+isame,1)-M1(q,q,a,cs+isame,3)
+     &                 +AP_mix(a,a,cs,1)-AP_mix(a,a,cs,3)
+     &                 +M2(a,a,q,cs+isame,1)-M2(a,a,q,cs+isame,3))
+     &                  *fx1(j)*fx2(k)
+     & +(msq_mix(cs,j,k)*(AP_mix(q,q,cs,2)+AP_mix(q,q,cs,3)
+     &                  +M1(q,q,a,cs+isame,2)+M1(q,q,a,cs+isame,3))
+     & + msq_mix(cs,g,k)*(AP_mix(g,q,cs,2)+M1(g,q,a,cs+isame,2)))
+     &                  *fx1z(j)/z*fx2(k)
+     & +(msq_mix(cs,j,k)*(AP_mix(a,a,cs,2)+AP_mix(a,a,cs,3)
+     &                  +M2(a,a,q,cs+isame,2)+M2(a,a,q,cs+isame,3))
+     & + msq_mix(cs,j,g)*(AP_mix(g,a,cs,2)+M2(g,a,q,cs+isame,2)))
+     &                  *fx1(j)*fx2z(k)/z
+      endif
+      enddo
+      xmsq=xmsq+xmsqt
+c      write(6,*) 'virtint: j,k,  ct=',j,k,xmsqt
+c      if (j > 0) then
+c      write(6,*) 'j,k,msqv(j,k)',j,k,msqv(j,k)
+c      write(6,*) 'xmsqt',xmsqt
+c      pause
+c      endif
+
+      elseif (j .eq. g) then
+C--gQ
+       if    (k > 0) then
+       xmsqt=zip
+       do cs=0,3
+       msq_aq=msq_mix(cs,-1,k)+msq_mix(cs,-2,k)
+     &       +msq_mix(cs,-3,k)+msq_mix(cs,-4,k)
+       msq_qq=msq_mix(cs,+1,k)+msq_mix(cs,+2,k)
+     &       +msq_mix(cs,+3,k)+msq_mix(cs,+4,k)
+       xmsqt=xmsqt
+     & +(msq_aq*(AP_mix(a,g,cs,2)+M1(a,g,q,cs,2))
+     &  +msq_qq*(AP_mix(q,g,cs,2)+M1(q,g,q,cs,2)))*fx1z(g)/z*fx2(k)
+       enddo
+       xmsq=xmsq+xmsqt
+
+C--gQbar
+       elseif (k<0) then
+       xmsqt=zip
+       do cs=0,3
+       msq_qa=msq_mix(cs,+1,k)+msq_mix(cs,+2,k)
+     &       +msq_mix(cs,+3,k)+msq_mix(cs,+4,k)
+       msq_aa=msq_mix(cs,-1,k)+msq_mix(cs,-2,k)
+     &       +msq_mix(cs,-3,k)+msq_mix(cs,-4,k)
+       xmsqt=xmsqt
+     & +(msq_qa*(AP_mix(q,g,cs,2)+M1(q,g,a,cs,2))
+     &  +msq_aa*(AP_mix(a,g,cs,2)+M1(a,g,a,cs,2)))*fx1z(g)/z*fx2(k)
+       enddo
+       xmsq=xmsq+xmsqt
+
+       endif
+C--Qg
+      elseif (k .eq. g) then
+       if     (j>0) then
+       xmsqt=zip
+       do cs=0,3
+       msq_qa=msq_mix(cs,j,-1)+msq_mix(cs,j,-2)
+     &       +msq_mix(cs,j,-3)+msq_mix(cs,j,-4)
+       msq_qq=msq_mix(cs,j,+1)+msq_mix(cs,j,+2)
+     &       +msq_mix(cs,j,+3)+msq_mix(cs,j,+4)
+       xmsqt=xmsqt
+     & +(msq_qa*(AP_mix(a,g,cs,2)+M2(a,g,q,cs,2))
+     &  +msq_qq*(AP_mix(q,g,cs,2)+M2(q,g,q,cs,2)))*fx1(j)*fx2z(g)/z
+       enddo
+       xmsq=xmsq+xmsqt
+
+C--Qbarg
+       elseif (j<0) then
+       xmsqt=zip
+       do cs=0,3
+       msq_aq=msq_mix(cs,j,+1)+msq_mix(cs,j,+2)
+     &       +msq_mix(cs,j,+3)+msq_mix(cs,j,+4)
+       msq_aa=msq_mix(cs,j,-1)+msq_mix(cs,j,-2)
+     &       +msq_mix(cs,j,-3)+msq_mix(cs,j,-4)
+       xmsqt=xmsqt
+     & +(msq_aq*(AP_mix(q,g,cs,2)+M2(q,g,a,cs,2))
+     &  +msq_aa*(AP_mix(a,g,cs,2)+M2(a,g,a,cs,2)))*fx1(j)*fx2z(g)/z
+       enddo
+       xmsq=xmsq+xmsqt
+
+       endif 
+
+      endif
+
 c--- SUM BY COLOUR STRUCTURES: H+2jets only
-      if  ( (kcase==kggfus2) 
-     & .or. (kcase==kgagajj)
-     & .or. (kcase==kHWW2jt)
-     & .or. (kcase==kHZZ2jt)) then
+      elseif  ( (kcase==kggfus2) .or. (kcase==kgagajj)
+     &     .or. (kcase==kHWW2jt) .or. (kcase==kHZZ2jt)) then
        xmsq=xmsq+fx1(j)*fx2(k)*(
      & msqv(j,k)+msq(j,k))
 c      write(6,*) j,k,'-> msqv = ',fx1(j)*fx2(k)*(
@@ -1855,13 +2287,27 @@ c---  SSend
         xmsq_bypart(sgnj,sgnk)=xmsq_bypart(sgnj,sgnk)+(xmsq-tmp)
       endif
       
- 20   continue
+      if (kewcorr /= knone) xmsq_noew=xmsq_noew+fx1(j)*fx2(k)*msq_noew(j,k)
+      enddo
+      enddo
 
-      enddo
-      enddo
+! compute weights for scale variation, looping if necessary
+      if (doscalevar) then
+        itrial=itrial-1
+        if (itrial > 0) then
+          xmsqvar(itrial)=xmsq
+          goto 66
+        endif
+        if (abs(xmsq) > zip) then
+          scalereweight(:)=xmsqvar(:)/xmsq
+        else
+          scalereweight(:)=zip
+        endif
+      endif
 
       if (currentPDF == 0) then
         virtint=flux*xjac*pswt*xmsq/BrnRat
+        if (kewcorr /= knone) virtint_noew=flux*xjac*pswt*xmsq_noew/BrnRat
       endif
             
 c--- loop over all PDF error sets, if necessary
@@ -1956,29 +2402,37 @@ c--- update the maximum weight so far, if necessary
       endif
 
       if (bin) then
-         call nplotter(pjet,val,val2,0)
+c--- for EW corrections, make additional weight available inside common block
+        if (kewcorr /= knone) then
+          wt_noew=virtint_noew*wgt
+        endif
+        call nplotter(pjet,val,val2,0)
 c--- POWHEG-style output if requested
-           if (writepwg) then
+        if (writepwg) then
 !$omp critical(pwhgplot)
-              call pwhgplotter(p,pjet,val,0)
+          call pwhgplotter(p,pjet,val,0)
 !$omp end critical(pwhgplot)
-           endif
+        endif
       endif
 
-c--- handle special caase of Qflag and Gflag
+c--- handle special case of Qflag and Gflag
       if (QandGflag) then
         QandGint=QandGint+virtint
         if ((Gflag) .and. (.not.(Qflag))) then
 c--- go back for second pass (Qflag)
-        Qflag=.true.
-        Gflag=.false.
-        goto 44
-      else
+          Qflag=.true.
+          Gflag=.false.
+          if (doscalevar) then
+            scale=savescale
+            facscale=savefacscale
+          endif
+          goto 44
+        else
 c--- return both to .true. and assign value to virtint (to return to VEGAS)
-        Qflag=.true.
-        Gflag=.true.
-        virtint=QandGint
-      endif
+          Qflag=.true.
+          Gflag=.true.
+          virtint=QandGint
+        endif
       endif
       
       return
@@ -1992,7 +2446,12 @@ c--- safety catch
         Qflag=.true.
         Gflag=.true.
       endif
-      
+c--- in case of return inside scale variation
+      if (doscalevar .and. (itrial >= 0)) then
+        scale=savescale
+        facscale=savefacscale
+      endif
+
       return
       end
 

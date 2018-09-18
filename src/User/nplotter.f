@@ -23,6 +23,7 @@ c---          (if applicable), otherwise equal to zero
       include 'nproc.f'
       include 'first.f'
       include 'taucut.f'
+      include 'lhcb.f'
 
 c--- APPLgrid - use of grids
 c      include 'ptilde.f'
@@ -48,6 +49,12 @@ c---  keeping track of the plot index across different files (GPS)
 c---  first allow for user plots
       call userplotter(p,wt,wt2,nd)
 
+! LHCb plots if in that mode
+      if (cut_mode > 0) then
+        call lhcb_plots(p,wt,wt2,nd)
+        return
+      endif
+      
 c--- switch:  an integer:: equal to either 0 or 1, depending on the type of event
 c---                0  --> lowest order, virtual or real radiation
 c---                1  --> counterterm for real radiation
@@ -55,6 +62,11 @@ c---                1  --> counterterm for real radiation
          switch=1
       else
          switch=0
+      endif
+
+      if (nprocbelow == 300 .or. nprocbelow == 305) then
+        call nplotter_Vgamma(p,wt,wt2,switch,nd)
+        return
       endif
          
 c--- Special plotting routine for WW -> leptons
@@ -83,9 +95,9 @@ c-----> saves string comparison in general and important for combining SCET
       if (first) then
         first=.false.
         if     (kcase==kW_only) then
-c          plotindex=1
-          plotindex=1000 ! revert to default plotting routine
-        elseif (kcase==kZ_only) then
+          plotindex=1
+!          plotindex=1000 ! revert to default plotting routine
+        elseif (kcase==kZ_only .or. kcase==kgg2lep) then
           plotindex=2
         elseif (kcase==kW_cjet) then
           plotindex=3
@@ -107,7 +119,7 @@ c          plotindex=1
           plotindex=9
 c--- photon processes also need to know the dipole number
         elseif ((kcase==kWgamma) .or. (kcase==kZgamma)
-     &     .or. (kcase==kWgajet) .or. (kcase==kZgajet)) then
+     &     .or. (kcase==kWgajet)) then
           plotindex=10
         elseif ((kcase==kgamgam) .or. (kcase==kgg2gam)) then
           plotindex=11
@@ -172,7 +184,15 @@ c--- photon processes also need to know the dipole number
            plotindex=29
         elseif (kcase==kZbbbar) then
            plotindex=30
-        else
+        elseif ((kcase==ktt_tot) .or. (kcase==kbb_tot)
+     &     .or. (kcase==kcc_tot) .or. (kcase==ktt_mix)) then
+           plotindex=31
+        elseif ((kcase==ktwojet).or.(kcase==ktwo_ew)) then
+           plotindex=32
+        elseif ((kcase==kZ_1jet) .or. (kcase==kZ_2jet) 
+     &     .or. (kcase==kZ_3jet)) then
+           plotindex=33
+       else
           plotindex=1000
         endif
       endif
@@ -197,7 +217,7 @@ c--- photon processes also need to know the dipole number
       case (9)
         call nplotter_WW_jet(p,wt,wt2,switch)
       case (10)
-        call nplotter_Vgamma(p,wt,wt2,switch,nd)
+        call nplotter_Vgamma(p,wt,wt2,switch,nd,nproc)
       case (11)
         call nplotter_gamgam(p,wt,wt2,switch,nd)
       case (12)
@@ -240,6 +260,12 @@ c         call nplotter_VHbbar(p,wt,wt2,switch,nd)
       case (30)
          call nplotter_Zbbbar(p,wt,wt2,switch,nd) 
 c         call nplotter_VHgaga(p,wt,wt2,switch,nd) 
+      case (31)
+         call nplotter_tt_tot(p,wt,wt2,switch,nd) 
+      case (32)
+         call nplotter_twojet(p,wt,wt2,switch,nd) 
+      case (33)
+         call nplotter_Zjets(p,wt,wt2,switch) 
       case (1000)
          call nplotter_auto(p,wt,wt2)
 c         call nplotter_generic(p,wt,wt2,switch)
@@ -247,9 +273,9 @@ c         call nplotter_generic(p,wt,wt2,switch)
         write(6,*) 'unexpected plotindex in nplotter =',plotindex
         stop
       end select
-      
+
 c--- APPLgrid - filling applgrid
-c      if (creategrid) call fill_grid(p)
+c     call fill_grid(p)
 c--- APPLgrid - end
 
       return

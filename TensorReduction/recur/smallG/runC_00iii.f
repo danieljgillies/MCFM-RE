@@ -3,6 +3,7 @@
       implicit none
 C----fixes C00iii
 c     known Ciii,C00ii,C0000i with corrections of order Delta Ciiiii
+      include 'types.f'
       include 'TRconstants.f'  
       include 'pvCnames.f'  
       include 'pvCv.f'  
@@ -10,9 +11,9 @@ c     known Ciii,C00ii,C0000i with corrections of order Delta Ciiiii
       include 'Carrays.f'  
       integer ep,N0,k,l,n,m,i1,i2,i3,np
       parameter(np=2)
-      double precision DetGr,Gtwiddle(np,np),Gtt(np,np,np,np),
+      real(dp):: DetGr,Gtwiddle(np,np),Gtt(np,np,np,np),
      . f(np)
-      double complex S00iii(z3max,-2:0),Shat5zz(np,z2max,-2:0),
+      complex(dp):: S00iii(z3max,-2:0),Shat5zz(np,z2max,-2:0),
      . Shat4(np,z3max,-2:0),Shat5(np,z4max,-2:0),bit,pole
 
        

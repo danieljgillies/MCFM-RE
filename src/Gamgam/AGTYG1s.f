@@ -12,6 +12,7 @@
       implicit none
       include 'types.f'
       real(dp):: G1sx
+      include 'constants.f'
       include 'zeta.f'
       real(dp)::t,u,Lx,Ly
 

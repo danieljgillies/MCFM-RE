@@ -1,4 +1,4 @@
-      double precision,parameter:: 
+      real(dp),parameter:: 
      & up(4,4)=reshape((
      &        /-1d0, 0d0, 0d0, 0d0,
      &         0d0,-1d0, 0d0, 0d0,

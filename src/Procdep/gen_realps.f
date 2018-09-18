@@ -30,11 +30,12 @@ c---    alternate return if generated point should be discarded
       logical:: vetow_2gam
       integer:: ii
       real(dp):: r(mxdim),p(mxpart,4),pswt,
-     & ptmp,m3,m4,m5,wt34,wt345,wt346,wt3456,wtprop,
+     & ptmp,m3,m4,m5,wt34,wt345,wt346,wt3456,wtprop,zaprop,
      & s34,s345,s346,s3456,dot,wtips(4)
       
 c--- statement function
       wtprop(s34,wmass,wwidth)=(s34-wmass**2)**2+(wmass*wwidth)**2
+      zaprop(s34,wmass,wwidth)=s34*((s34-wmass**2)**2+(wmass*wwidth)**2)
         
 c--- processes that use "gen3"
       if     ( (kcase==kW_only)
@@ -58,6 +59,7 @@ c        call gen3(r,p,pswt,*999)
 
 c--- processes that use "gen3m"     
       elseif ( (kcase==ktt_tot)
+     &    .or. (kcase==ktt_mix)
      &    .or. (kcase==kbb_tot)
      &    .or. (kcase==kcc_tot) ) then
         m3=mass2
@@ -66,8 +68,8 @@ c--- processes that use "gen3m"
         npart=3
         call gen3m(r,p,m3,m4,m5,pswt,*999)
 
-      elseif ((kcase==ktwojet) .or. (kcase==kdirgam)
-     &   .or. (kcase==khflgam)) then
+      elseif ((kcase==ktwojet) .or. (kcase==ktwo_ew)
+     &    .or.(kcase==kdirgam) .or. (kcase==khflgam)) then
         npart=3
         if(frag) then
 c---       this phase space does a better job for the photons
@@ -147,8 +149,12 @@ c--- processes that use "gen6"
      & ) then
         npart=6
         if ((usescet) .and. (abovecut)) then
-          call genVHjjtaucut(r,p,pswt,*999)
-c          call gen6(r,p,pswt,*999)
+!          if (tauboost) then
+!            call gen6(r,p,pswt,*999)
+!          else
+! no need to call different routine for tauboost since uses t0=1.e-12
+            call genVHjjtaucut(r,p,pswt,*999)
+!          endif
         else
           call gen6(r,p,pswt,*999)
         endif
@@ -197,6 +203,7 @@ c--- processes that use "gen_njets" with an argument of "2"
      &    .or. (kcase==kZ_1jet)
      &    .or. (kcase==kH_1jet)
      &    .or. (kcase==kggfus1)
+     &    .or. (kcase==khjetma)
      &    .or. (kcase==kHgagaj)
      &    .or. (kcase==kgQ__ZQ) ) then
         npart=4
@@ -204,8 +211,12 @@ c        if (new_pspace) then
 c          call gen4a(r,p,pswt,*999)
 c        else
           if ((usescet) .and. (abovecut)) then
-            call gen4taucut(r,p,pswt,*999)
-c            call gen_njets(r,2,p,pswt,*999)
+!            if (tauboost) then
+!              call gen_njets(r,2,p,pswt,*999)
+!            else
+! no need to call different routine for tauboost since uses t0=1.e-12
+              call gen4taucut(r,p,pswt,*999)
+!            endif
           else
             call gen_njets(r,2,p,pswt,*999)
           endif
@@ -232,14 +243,20 @@ c--- processes that use "gen_Vphotons_jets"
 c      if (new_pspace) then
 c          call gen_vgamj(r,p,pswt,*999)
 c        else
-          call gen_Vphotons_jets(r,1,1,p,pswt,*999)
+!          call gen_Vphotons_jets(r,1,1,p,pswt,*999)
+          call gen4(r,p,pswt,*999)
 c        endif
                 
 c--- processes that use "gen_photons_jets"
       elseif (kcase==kgmgmjt) then
         npart=4
         if ((usescet) .and. (abovecut)) then
-          call gen4taucut(r,p,pswt,*999)
+!          if (tauboost) then
+!            call gen_photons_jets(r,2,2,p,pswt,*999)
+!          else
+! no need to call different routine for tauboost since uses t0=1.e-12
+            call gen4taucut(r,p,pswt,*999)
+!          endif
         else
           call gen_photons_jets(r,2,2,p,pswt,*999)
         endif
@@ -293,16 +310,34 @@ c          if (vetow_2gam(p)) goto 999 ! partition PS according to ipsgen
 c--- special treatment for Z+gamma+jet
       elseif (kcase==kZgajet) then
         npart=5
-        if     (ipsgen == 1) then
-          call gen_Vphotons_jets(r,1,2,p,pswt,*999)
-        elseif (ipsgen == 2) then
-          call gen_Vphotons_jets_dkrad(r,1,2,p,pswt,*999)
-      else
-        write(6,*) 'Parameter ipsgen should be 1 or 2'
-        write(6,*) 'ipsgen = ',ipsgen
-        stop
+!        if     (ipsgen == 1) then
+!          call gen_Vphotons_jets(r,1,2,p,pswt,*999)
+!        elseif (ipsgen == 2) then
+!          call gen_Vphotons_jets_dkrad(r,1,2,p,pswt,*999)
+!        else
+!          write(6,*) 'Parameter ipsgen should be 1 or 2'
+!          write(6,*) 'ipsgen = ',ipsgen
+!          stop
+!        endif
+        if (ipsgen == 1) then
+          if ((usescet) .and. (abovecut)) then
+            call genVgajtaucut(r,p,pswt,*999)
+          else
+            call gen5(r,p,pswt,*999)
+          endif
+        else
+          call gen5(r,p,pswt,*999)
         endif
-                  
+        if (doipsgen) then
+          s34=2._dp*dot(p,3,4)
+          s345=s34+2._dp*dot(p,3,5)+2._dp*dot(p,4,5)
+          wt34=zaprop(s34,zmass,zwidth)
+          wt345=zaprop(s345,zmass,zwidth)
+          wtips(1)=wt345
+          wtips(2)=wt34
+          pswt=pswt*wtips(ipsgen)/(wtips(1)+wtips(2))
+        endif
+        
 c--- processes that use "gen_stop" with an argument of "1"
       elseif ( (kcase==kttdkay)
      &    .or. (kcase==ktdecay) ) then

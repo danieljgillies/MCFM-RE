@@ -26,7 +26,7 @@ c--- added by JMC: use consistent value of MZ from common block
       IF (Q .LE. 0._dp) THEN 
    !      WRITE(6,*) 'q .le. 0 in alphas'
    !      WRITE(6,*) 'q= ',Q
-	 stop
+        stop
 c         PAUSE
       ENDIF
       IF (AMZ .LE. 0._dp) THEN 
@@ -53,14 +53,14 @@ c--- 3-flavour running only
       if     (cmass .gt. 999._dp) then
         T=2._dp*log(Q/ZMASS)
         CALL NEWTON1(T,AMZ,AS_OUT,NLOOPS,NF3)
-	ALPHAS=AS_OUT
-	RETURN
+        ALPHAS=AS_OUT
+        RETURN
 c--- 4-flavour running only
       elseif (bmass .gt. 999._dp) then
         T=2._dp*log(Q/ZMASS)
         CALL NEWTON1(T,AMZ,AS_OUT,NLOOPS,NF4)
-	ALPHAS=AS_OUT
-	RETURN
+        ALPHAS=AS_OUT
+        RETURN
       endif
 c--- establish value of coupling at b- and c-mass and save
       IF ((AMZ .NE. AMZ0) .OR. (NLOOPS .NE. NLOOP0)) THEN

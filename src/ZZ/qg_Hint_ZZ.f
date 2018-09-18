@@ -11,7 +11,6 @@
       include 'mxpart.f'
       include 'cplx.h' 
       include 'zprods_decl.f' 
-      include 'qlfirst.f' 
       real(dp):: p(mxpart,4),msq(-nf:nf,-nf:nf) 
       complex(dp):: qg_tH(2,2,2,2),qbg_tH(2,2,2,2),
      & gq_tH(2,2,2,2),gqb_tH(2,2,2,2)
@@ -24,11 +23,6 @@
       complex(dp):: A_higgs_XG,A_higgs_GX,A_cont_XG,A_cont_GX
       integer:: j,h1,h2,h34,h56,k
       real(dp):: fac 
-
-      if(qlfirst) then 
-         qlfirst=.false. 
-         call qlinit
-      endif
 
       msq(:,:)=zip 
       call spinoru(7,p,za,zb) 

@@ -1,7 +1,7 @@
-************************************************************************ 
-*     This subroutine calculates dipoles with an  identified           *
+************************************************************************
+*     This subroutine calculates dipoles with an identified            *
 *     Final state photon                                               *
-*     C. Williams Dec 2010                                             * 
+*     C. Williams Dec 2010                                             *
 *     Returns the dipoles in sub,subv and matrix elements in msq,msqv  *
 *     nd labels the dipole configurations                              *
 *     ip labels the emitter PHOTON                                     *
@@ -197,7 +197,7 @@ c--- store z for use in isolation routine
       include 'cplx.h'
       include 'leptcuts.f'
       integer:: ip,nu
-      real(dp):: z,p(mxpart,4),pt 
+      real(dp):: z,p(mxpart,4),pt,ptgam
       real(dp):: p_temp(mxpart,4)
 
       write(6,*) 'Routine out of date'
@@ -210,7 +210,8 @@ c---- Rescale photon
          p_temp(ip,nu)=p(ip,nu)*z
       enddo
 
-      if ((pt(ip,p_temp) < gammpt)) then 
+      ptgam=pt(ip,p_temp)
+      if ((ptgam < gammptmin) .or. (ptgam > gammptmax)) then 
          phot_pass=.false.
          return 
       endif

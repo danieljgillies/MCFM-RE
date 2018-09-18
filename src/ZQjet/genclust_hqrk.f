@@ -216,12 +216,12 @@ c--- now check jet pt and rapidity
       endif
 c--- .... for b-quarks
         if ((jetlabel(i) == 'bq') .or. (jetlabel(i) == 'ba')) then
-          if ( (pt(i,qjet) < ptbjetmin)
-     &    .or. (raptest > etabjetmax)) jetlabel(i)='ff'
+          if ( (pt(i,qjet) < ptbjetmin) .or. (pt(i,qjet) > ptbjetmax)
+     &    .or. (raptest > etabjetmax) .or. (raptest < etabjetmin)) jetlabel(i)='ff'
 c--- .... for generic jets
         else
-          if ( (pt(i,qjet) < ptjetmin)
-     &    .or. (raptest > etajetmax)) jetlabel(i)='ff'
+          if ( (pt(i,qjet) < ptjetmin) .or. (pt(i,qjet) > ptjetmax)
+     &    .or. (raptest > etajetmax) .or. (raptest < etajetmin)) jetlabel(i)='ff'
         endif
         if (verbalg) write(6,*) jetlabel(i),pt(i,qjet),raptest
       enddo

@@ -1,4 +1,6 @@
       subroutine reader_input(inputfile,workdir)
+          use cxx11random
+          use iso_c_binding, only: c_loc
       implicit none
       include 'types.f'
 ************************************************************************
@@ -12,8 +14,6 @@
       include 'new_pspace.f'
       include 'couple.f'
       include 'kpart.f'
-      include 'virtonly.f'
-      include 'realonly.f'
       include 'noglue.f'
       include 'realwt.f'
       include 'lc.f'
@@ -43,7 +43,6 @@
       include 'nlooprun.f'
       include 'initialscales.f'
       include 'stopscales.f'
-      include 'vanillafiles.f'
       include 'frag.f'
       include 'outputoptions.f'
       include 'outputflags.f'
@@ -56,27 +55,39 @@
       include 'nproc.f'
       include 'taucut.f'
       include 'iterat.f'
+      include 'lhcb.f'
+      include 'ewcorr.f'
       include 'mpicommon.f'
+      include 'scalevar.f'
+      include 'asymptotic.f'
+      include 'specialcuts.f'
       include 'jetvheto.f'
       include 'kappa.f'
 c--- APPLgrid - flag using grid
 c      include 'ptilde.f'
 c      include 'APPLinclude.f'
 c--- APPLgrid - end
-      character*72 workdir,inputfile
+      character*256 workdir,inputfile
       character*90 line
       character*15 part
-      logical:: spira,dryrun,makecuts,creategrid,writerefs
+      logical:: spira,dryrun,makecuts,writerefs
       integer:: nmin,nmax,ii
-      integer:: ih1,ih2,idum,origij
-      integer:: NPTYPE,NGROUP,NSET
+      integer:: ih1,ih2
       real(dp):: rtsmin,factor
       real(dp):: mbbmin,mbbmax,Mwmin,Mwmax
       real(dp):: Rcut
       logical:: technicalincluded
       real(dp):: ran2,ran2nr,randummy
       real(dp):: alphas
-      integer :: tmp
+      integer :: read_status
+
+      integer, target, dimension(:), allocatable :: seeds
+
+      integer :: seed,origSeed
+      common/seedBlock/seed
+      integer :: tid
+      integer :: omp_get_thread_num, omp_get_max_threads
+!$omp threadprivate(/seedBlock/)
       
       common/writerefs/writerefs
       common/spira/spira
@@ -85,19 +96,12 @@ c--- APPLgrid - end
       common/rtsmin/rtsmin 
 
       common/density/ih1,ih2
-      common/ranno/idum
       common/dryrun/dryrun
-      
-      common/pdflib/NPTYPE,NGROUP,NSET
       
       common/Rcut/Rcut
       common/makecuts/makecuts
 
 c      common/qmass/cmass,bmass
-
-      common/origij/origij
-
-      save /ranno/
 
       data cttH/1.0_dp/
       data cWWH/1.0_dp/
@@ -130,10 +134,6 @@ c--- flags for the mode of MCFM
 !      if (verbose) call writeinput(6,' * ',' ','skipnt')
       read(20,*) dswhisto
       if (verbose) call writeinput(6,' * ',' ','dswhisto')
-c--- APPLgrid - added to read flag for grids
-       read(20,*) creategrid
-       if (verbose) call writeinput(6,' * ',' ','creategrid')
-c--- APPLgrid - end
       read(20,*) writerefs
       if (verbose) call writeinput(6,' * ',' ','writerefs')
       read(20,*) writetop
@@ -193,13 +193,25 @@ c------ normal case
       elseif ((part == 'snlo') .or. (part == 'scetnlo')
      &   .or. (part == 'snlocoeff') .or. (part == 'scetnlocoeff')) then
         kpart=ksnlo
-      elseif ((part == 'nnlo') .or. (part == 'nnlocoeff')) then
+      elseif ((part == 'nnlo') .or. (part == 'nnlocoeff')
+     &   .or. (part == 'nnloVV') .or. (part == 'nnloVVcoeff')
+     &   .or. (part == 'nnloRV') .or. (part == 'nnloRVcoeff')
+     &   .or. (part == 'nnloRR') .or. (part == 'nnloRRcoeff') ) then
         kpart=knnlo
-        ! add coefficients here 
+        if     ((part == 'nnloVV') .or. (part == 'nnloVVcoeff')) then
+          knnlopart=knnloVV
+        elseif ((part == 'nnloRV') .or. (part == 'nnloRVcoeff')) then
+          knnlopart=knnloRV
+        elseif ((part == 'nnloRR') .or. (part == 'nnloRRcoeff')) then
+          knnlopart=knnloRR
+        else
+          knnlopart=0
+        endif
+!     add coefficients here 
       elseif (part == 'll') then
-        kpart=kll
+         kpart=kll
       elseif (part == 'nll') then
-        kpart=knll
+         kpart=knll
       elseif (part == 'nnll') then
          kpart=knnll
       elseif ((part == 'nllexpd') .or. (part == 'nllexpdcoeff')) then
@@ -298,14 +310,26 @@ c--- catch special scale choices for stop+b process
         read(line,*) taucut
       endif
       if (verbose) call writeinput(6,' * ',' ','taucut')
-      read(20,*) origij
-      if (verbose) call writeinput(6,' * ',' ','ij')
+      read(20,*) origSeed
+      if (verbose) call writeinput(6,' * ',' ','seed')
       read(20,*) dryrun
       if (verbose) call writeinput(6,' * ',' ','dryrun')
       read(20,*) Qflag
       if (verbose) call writeinput(6,' * ',' ','Qflag')
       read(20,*) Gflag
       if (verbose) call writeinput(6,' * ',' ','Gflag')
+      read(20,*) ewcorr
+      if     (ewcorr == 'none') then
+        kewcorr=knone
+      elseif (ewcorr == 'sudakov') then
+        kewcorr=ksudakov
+      elseif (ewcorr == 'exact') then
+        kewcorr=kexact
+      else
+        write(6,*) 'Unexpected EW correction in input file: ',ewcorr
+        stop
+      endif
+      if (verbose) call writeinput(6,' * ',' ','ewcorr')
       
       if (verbose) write(6,*)
       read(20,99) line
@@ -328,10 +352,6 @@ c--- write-out comment line
 c--- pdf options 
       read(20,*) pdlabel
       if (verbose) call writeinput(6,' * ',' ','pdlabel')
-      read(20,*) NGROUP
-      if (verbose) call writeinput(6,' * ',' ','NGROUP')
-      read(20,*) NSET
-      if (verbose) call writeinput(6,' * ',' ','NSET')
       read(20,*) PDFname
       if (verbose) call writeinput(6,' * ',' ','LHAPDF group')
       read(20,*) PDFmember
@@ -382,27 +402,51 @@ c--- jets and cuts options
       if (verbose) call writeinput(6,' * ',' ','inclusive')
       read(20,*) algorithm
       if (verbose) call writeinput(6,' * ',' ','algorithm')
-      read(20,*) ptjetmin
-      if (verbose) call writeinput(6,' * ',' ','ptjetmin')
-      read(20,*) etajetmin 
-      if (verbose) call writeinput(6,' * ',' ','etajetmin')
-      read(20,*) etajetmax 
-      if (verbose) call writeinput(6,' * ',' ','etajetmax')
+      call readrange(line,1,1.e6_dp,ptjetmin,ptjetmax)
+      if (verbose) call writeinput(6,' * ',' ','ptjet')
+      call readrange(line,2,0._dp,etajetmin,etajetmax)
+      if (verbose) call writeinput(6,' * ',' ','etajet')
       read(20,*) Rcut
       if (verbose) call writeinput(6,' * ',' ','Rcut')
-      read(20,*) makecuts
-      if (verbose) call writeinput(6,' * ',' ','makecuts')
-      read(20,*) leptpt
+
+      cut_mode=0 ! default is not to do LHCb cuts
+      read(20,*) line
+      if     ((index(line,'.true.') > 0) .or. (index(line,'T') > 0)) then
+        makecuts=.true.
+        if (verbose) call writeinput(6,' * ',' ','makecuts')
+      elseif ((index(line,'.false.') > 0) .or. (index(line,'F') > 0)) then
+        makecuts=.false.
+        if (verbose) call writeinput(6,' * ',' ','makecuts')
+      elseif ((index(line,'LHCb') > 0) .or. (index(line,'lhcb') > 0)
+     &   .or. (index(line,'LHCB') > 0)) then
+        makecuts=.true.
+        if (verbose) call writeinput(6,' * ',' ','makecuts')
+c--- now read-in extra LHCb cuts from input file
+        read(20,*) cut_mode
+        if (verbose) call writeinput(6,' * ',' ','mode')
+        read(20,*) dir_mode
+        if (verbose) call writeinput(6,' * ',' ','mode')
+        read(20,*) nl_min
+        if (verbose) call writeinput(6,' * ',' ','nl_min')
+        read(20,*) nj_min
+        if (verbose) call writeinput(6,' * ',' ','nj_min')
+        read(20,*) nb_min
+        if (verbose) call writeinput(6,' * ',' ','nb_min')
+      else
+        write(6,*) 'Invalid choice for makecuts!'
+        stop
+      endif
+      call readrange(line,1,1.e6_dp,leptptmin,leptptmax)
       if (verbose) call writeinput(6,' * ',' ','leptpt')
-      read(20,*) leptrap
+      call readrange(line,2,0._dp,leptrapmin,leptrapmax)
       if (verbose) call writeinput(6,' * ',' ','leptrap')
       read(20,*) leptveto1min,leptveto1max
       if (verbose) call writeinput(6,' * ',' ','leptveto')
       read(20,*) misspt
       if (verbose) call writeinput(6,' * ',' ','misspt')
-      read(20,*) leptpt2
+      call readrange(line,1,1.e6_dp,leptpt2min,leptpt2max)
       if (verbose) call writeinput(6,' * ',' ','leptpt2')
-      read(20,*) leptrap2
+      call readrange(line,2,0._dp,leptrap2min,leptrap2max)
       if (verbose) call writeinput(6,' * ',' ','leptrap2')
       read(20,*) leptveto2min,leptveto2max
       if (verbose) call writeinput(6,' * ',' ','leptveto2')
@@ -418,10 +462,10 @@ c--- jets and cuts options
       if (verbose) call writeinput(6,' * ',' ','jetsopphem')
       read(20,*) lbjscheme 
       if (verbose) call writeinput(6,' * ',' ','lbjscheme')
-      read(20,*) ptbjetmin
-      if (verbose) call writeinput(6,' * ',' ','ptbjetmin')
-      read(20,*) etabjetmax
-      if (verbose) call writeinput(6,' * ',' ','etabjetmax')
+      call readrange(line,1,1.e6_dp,ptbjetmin,ptbjetmax)
+      if (verbose) call writeinput(6,' * ',' ','ptbjet')
+      call readrange(line,2,0._dp,etabjetmin,etabjetmax)
+      if (verbose) call writeinput(6,' * ',' ','etabjet')
 
       if (verbose) write(6,*)
       read(20,99) line
@@ -436,9 +480,9 @@ c--- settings for photon processes
       read(20,*) frag_scale
       frag_scalestart=frag_scale
       if (verbose) call writeinput(6,' * ',' ','frag_scale')
-      read(20,*) gammpt
+      call readrange(line,1,1.e6_dp,gammptmin,gammptmax)
       if (verbose) call writeinput(6,' * ',' ','gammpt')
-      read(20,*) gammrap
+      call readrange(line,2,0._dp,gammrapmin,gammrapmax)
       if (verbose) call writeinput(6,' * ',' ','gammrap')
       read(20,*) gammpt2
       if (verbose) call writeinput(6,' * ',' ','gammpt2')
@@ -478,6 +522,8 @@ c--- write-out comment line
       read(20,99) line
       if (verbose) write(6,*) '* ',line
 c--- anomalous couplings 
+      read(20,*) anomtgc
+      if (verbose) call writeinput(6,' * ',' ','anomtgc')
       read(20,*) delg1_z
       if (verbose) call writeinput(6,' * ',' ','delg1_z')
       read(20,*) delk_z
@@ -521,22 +567,11 @@ c--- width of the Higgs
       read(20,*) hwidth_ratio
       if (verbose) call writeinput(6,' * ',' ','hwidth_ratio')
       
-      if (verbose) write(6,*)
-      read(20,99) line
-c--- write-out comment line
-      read(20,99) line
-      if (verbose) write(6,*) '* ',line
-c--- grid information 
-      read(20,*) readin
-      if (verbose) call writeinput(6,' * ',' ','readin')
-      read(20,*) writeout
-      if (verbose) call writeinput(6,' * ',' ','writeout')
-      read(20,*) ingridfile
-      if (verbose) call writeinput(6,' * ',' ','ingridfile')
-      read(20,*) outgridfile
-      if (verbose) call writeinput(6,' * ',' ','outgridfile')
 
-      if (verbose) write(6,*)
+      readin = .false.
+      writeout = .false.
+      ingridfile = ''
+      outgridfile = ''
 
 c--- check if the contents of technical.DAT are included here
 c--- (the default behaviour going forward)
@@ -571,10 +606,6 @@ c---- read in the technical parameters
       if (verbose) call writeinput(6,' * ',' ','verbose')
       read(20,*) new_pspace
       if (verbose) call writeinput(6,' * ',' ','new_pspace')
-      read(20,*) virtonly
-      if (verbose) call writeinput(6,' * ',' ','virtonly')
-      read(20,*) realonly
-      if (verbose) call writeinput(6,' * ',' ','realonly')
       read(20,*) spira
       if (verbose) call writeinput(6,' * ',' ','spira')
       read(20,*) noglue
@@ -585,10 +616,6 @@ c---- read in the technical parameters
       if (verbose) call writeinput(6,' * ',' ','gqonly')
       read(20,*) omitgg
       if (verbose) call writeinput(6,' * ',' ','omitgg')
-!      read(20,*) omitqq
-!      if (verbose) call writeinput(6,' * ',' ','omitqq')
-      read(20,*) vanillafiles
-      if (verbose) call writeinput(6,' * ',' ','vanillafiles')
 ! 4/28/16: removed nmin, nmax from input file (no longer used)
 !          set values to nmin=1, nmax=2 in case of unforeseen problems
       nmin=1
@@ -619,6 +646,22 @@ c---- read in the technical parameters
       if (verbose) call writeinput(6,' * ',' ','bfi')
       read(20,*) bff
       if (verbose) call writeinput(6,' * ',' ','bff')
+      read(20,*) mtex
+      if (verbose) call writeinput(6,' * ',' ','mtex')
+
+      ! these two parameters are optional, they should be kept at the end
+      ! and we can possibly remove the patch introducing them for the release
+      read(20,*, iostat=read_status) cut1
+      if (read_status /= 0) then
+        if(verbose) write (6,*) "Warning: cut1,cut2 not specified"
+        cut1 = 0d0
+        cut2 = 0d0
+      else
+        if (verbose) call writeinput(6,' * ',' ','cut1')
+        read(20,*, iostat=read_status) cut2
+        if (verbose) call writeinput(6,' * ',' ','cut2')
+      endif
+
       if (verbose) write(6,*)
       close(unit=20)
 
@@ -626,6 +669,11 @@ c---- read in the technical parameters
         write(6,*) 'etajetmin and etajetmax are absolute values,'
       write(6,*) ' please reset to a positive value.'
       stop
+      endif
+
+c--- configure LHCb cuts if required
+      if (cut_mode > 0) then
+        call lhcb_config()
       endif
 
 c--- for W+2 jet and Z+2 jet processes, set aff equal to afi
@@ -670,10 +718,35 @@ c--- determine whether SCET is to be used for calculation
         endif
       endif
 
+c--- adjust cutoff to be larger for EW correction
+      if (kewcorr==kexact) then
+        cutoff=max(cutoff,1.e-5)
+      endif
+
       if (index(runstring,'toponly') > 0) then
         toponly=.true.
       else
         toponly=.false.
+      endif
+      
+      if (index(runstring,'notauboost') > 0) then
+        tauboost=.false.
+      else
+        tauboost=.true.
+      endif
+      
+      if ( (index(runstring,'incpowcorr') > 0)
+     & .or.(index(runstring,'incpc') > 0)) then
+        incpowcorr=.true.
+      else
+        incpowcorr=.false.
+      endif
+      
+      if ( (index(runstring,'onlypowcorr') > 0)
+     & .or.(index(runstring,'onlypc') > 0)) then
+        onlypowcorr=.true.
+      else
+        onlypowcorr=.false.
       endif
       
 c      if     (index(runstring,'mc1.3') > 0) then
@@ -691,6 +764,44 @@ c      if (runstring(1:3) == 'mlm') then
 c        write(6,*) 'WARNING: cross sections divided by Ecm**2'
 c      write(6,*)
 c      endif
+      
+c--- check dynstring to see whether to do scale variation and truncate dynstring if so
+      if (dynstring(len(trim(dynstring))-8:len(trim(dynstring))) == '+scalevar') then
+        doscalevar=.true.
+        dynstring=dynstring(1:len(trim(dynstring))-9)
+        maxscalevar=6
+      elseif (dynstring(len(trim(dynstring))-9:len(trim(dynstring))) == '+scalevar2') then
+        doscalevar=.true.
+        dynstring=dynstring(1:len(trim(dynstring))-10)
+        maxscalevar=2
+      elseif (dynstring(len(trim(dynstring))-9:len(trim(dynstring))) == '+scalevar6') then
+        doscalevar=.true.
+        dynstring=dynstring(1:len(trim(dynstring))-10)
+        maxscalevar=6
+      else
+        doscalevar=.false.
+      endif
+      
+c--- check dynstring to see whether to do scale variation and truncate dynstring if so
+      if (dynstring(len(trim(dynstring))-8:len(trim(dynstring))) == '+scalevar') then
+        doscalevar=.true.
+        dynstring=dynstring(1:len(trim(dynstring))-9)
+        maxscalevar=6
+      elseif (dynstring(len(trim(dynstring))-9:len(trim(dynstring))) == '+scalevar2') then
+        doscalevar=.true.
+        dynstring=dynstring(1:len(trim(dynstring))-10)
+        maxscalevar=2
+      elseif (dynstring(len(trim(dynstring))-9:len(trim(dynstring))) == '+scalevar6') then
+        doscalevar=.true.
+        dynstring=dynstring(1:len(trim(dynstring))-10)
+        maxscalevar=6
+      else
+        doscalevar=.false.
+      endif
+      if ((doscalevar) .and. (kewcorr /= knone)) then
+        write(6,*) 'Cannot compute EW corrections and scale variation in a single run'
+        stop
+      endif
       
 c---  create logical:: variable dynamicscale for use in other routines
       if (  (dynstring == 'no') .or. (dynstring == '.false.')
@@ -764,9 +875,27 @@ c--- assign squared masses for b- and c-quarks
 c--- set-up the variables for the process we wish to consider
       call chooser
 
-c--- set-up the random number generator with a negative seed
-      idum=-abs(origij)
-      randummy=ran2nr()
+      allocate(seeds(omp_get_max_threads()))
+
+!$omp parallel do
+      do tid=0,omp_get_max_threads()-1
+        !random seed if started with special seed value of 0
+        if (origSeed == 0) then
+          block
+            real(dp) :: realSeed
+            call random_seed()
+            call random_number(realSeed)
+            seed = -(nint(realSeed * huge(0)) + rank)
+            seeds(tid+1) = -seed
+          end block
+        else
+          seed = -(origSeed + omp_get_thread_num() + rank*100)
+          seeds(tid+1) = -seed
+        end if
+      enddo
+!$omp end parallel do
+
+      call cxx11_init_random(c_loc(seeds))
 
 c--- initialize masses for alpha_s routine ! this is now done in coupling2.f
 c      cmass=sqrt(mcsq)
@@ -790,12 +919,12 @@ c--- this is an allowed combination
      &          ((kcase==kWgamma) .or. (kcase==kZgamma)
      &      .or. (kcase==kgamgam) .or. (kcase==kgg2gam)
      &      .or. (kcase==kdirgam) .or. (kcase==kdm_gam)
-     &      .or. (kcase==kgmgmjt) .or. (kcase==ktrigam)
+     &      .or. (kcase==kgmgmjt) .or .(kcase==ktrigam)
      &      .or. (kcase==kfourga)
      &      .or. (kcase==kZ_2gam) .or. (kcase==kZgajet)
      &      .or. (kcase==kW_2gam)) ) then
 c--- this is an allowed combination
-        elseif ((kpart==knnlo) .or. (kpart==ksnlo)) then
+        elseif ((kpart==knnlo) .or. (kpart==ksnlo)) then 
 c--- this is an allowed combination
         elseif ( (jetvheto) .and.
      &          ((kcase==kW_only) .or. (kcase==kZ_only)
@@ -832,10 +961,23 @@ c--- check that we are not trying to calculate radiation in decay at LO
      &   .or. (kcase==ktt_ldk) .or. (kcase==ktt_udk)
      &   .or. (kcase==ktt_hdk) .or. (kcase==ktthWdk)
      &   .or. (kcase==kttdkay) .or. (kcase==kWtdkay)
-     &   .or. (kcase==kdk_4ft) .or. (kcase==kttwldk)) ) then
+     &   .or. (kcase==kdk_4ft) .or. (kcase==kttwldk)
+     &   .or. (kcase==kWHbbdk) .or. (kcase==kZHbbdk)) ) then
           write(6,*) 'This process number cannot be used for'
           write(6,*) 'a LO calculation.'
-          stop     
+          stop
+      endif
+
+c--- check that EW corrections are included for this process, if required
+      if (kewcorr /= knone) then
+        if ( (kcase == kZ_only) .or. (kcase == ktt_tot)
+     &  .or. (kcase == ktt_mix) .or. (kcase == ktwojet)
+     &  .or. (kcase == ktwo_ew) ) then
+          continue
+        else
+          write(6,*) 'EW corrections not available for this process'
+          stop
+        endif
       endif
 
 c--- Assign choice of jet algorithm to integer variable
@@ -956,5 +1098,40 @@ c          facscale=factor*hmass
       write(6,*)
       stop
 
+      end
+      
+      
+      subroutine readrange(line,ikeep,xdummy,param1,param2)
+c--- helper routine that analyses a single line of input to determine
+c--- whether it specifies one or two (floating-point) input parameters
+c--- 
+c--- one parameter:  (ikeep=1) param1 = input,  param2 = xdummy
+c---                 (ikeep=2) param1 = xdummy, param2 = input
+c--- 
+c--- two parameters: param1 = input1,  param2 = input2
+c--- 
+      implicit none
+      include 'types.f'
+      character*90 line
+      integer ikeep
+      real(dp):: xdummy,param1,param2
+      
+      read(20,'(a)') line
+      if (index(line,',')>0) then
+        read(line,*) param1,param2
+      else
+        read(line,*) param1
+        if     (ikeep == 1) then
+          param2=xdummy
+        elseif (ikeep == 2) then
+          param2=param1
+          param1=xdummy
+        else
+          write(6,*) 'Invalid value of ikeep in readrange: ikeep = ',ikeep
+          stop
+        endif
+      endif
+
+      return
       end
       

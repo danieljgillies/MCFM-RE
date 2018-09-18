@@ -19,7 +19,8 @@ c--- and ptj1 is the pt of the leading jet in the event
 
       if((kcase==kW_1jet) .or.
      &   (kcase==kZ_1jet) .or.
-     &   (kcase==kggfus1)) then
+     &   (kcase==kggfus1) .or.
+     &   (kcase==khjetma)) then
 
 c--- first work out whether this point is real radiatio or not
         if (abs(p(npart+2,4)) > 1.e-8_dp) then

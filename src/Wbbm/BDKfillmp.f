@@ -1,4 +1,5 @@
       subroutine BDKfillmp(k1,k2,k3,k4,k5,k6,mq,za,zb,ASLmp)
+        use mod_qcdloop_c
       implicit none
       include 'types.f'
 ************************************************************************
@@ -16,7 +17,7 @@
       integer:: k1,k2,k3,k4,k5,k6,e
       complex(dp):: Lnrat,xl14,ASLmp(-2:0),C0(-1:0),
      & B0p23(-1:0),B0p3(-1:0),VV(-2:0)
-      complex(dp):: BDK1211mp,atree,lo,qlI2,qlI3
+      complex(dp):: BDK1211mp,atree,lo
       real(dp):: mqsq,p2Dp3,mq
 
       lo=atree('sl',k3,k2,k1,k4,k5,k6,zb,za)

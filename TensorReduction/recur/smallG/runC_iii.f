@@ -1,14 +1,15 @@
       subroutine runC_iii(j,i1,i2,i3,DetGr,Xtwiddle0,Gtwiddle,
      . Shat4,N0)
       implicit none
+      include 'types.f'  
       include 'pvCnames.f'  
       include 'pvCv.f'  
       include 'Carraydef.f'  
       include 'Carrays.f'  
       integer ep,N0,j,i1,i2,i3,n,np
       parameter(np=2)
-      double precision DetGr,Xtwiddle0(np),Gtwiddle(np,np)
-      double complex Shat4(np,z3max,-2:0),Shat4s(np,z3max,-2:0)
+      real(dp):: DetGr,Xtwiddle0(np),Gtwiddle(np,np)
+      complex(dp):: Shat4(np,z3max,-2:0),Shat4s(np,z3max,-2:0)
        
       do ep=-2,0
       do n=1,np

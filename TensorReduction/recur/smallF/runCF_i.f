@@ -4,6 +4,7 @@ C---  Calculates Ci, requires C00i
 C---  Small terms of order Gr(i,j)*Cijk
 C---  Denominator m0sq
       implicit none
+      include 'types.f'
       include 'TRconstants.f'
       include 'pvCnames.f'
       include 'pvCv.f'
@@ -12,8 +13,8 @@ C---  Denominator m0sq
       include 'pvweenumber.f' 
       integer ep,N0,i1,m,n,np
       parameter(np=2)
-      double precision m0sq,Gr(np,np)
-      double complex Bzero1(z1max,-2:0),bit,pole
+      real(dp):: m0sq,Gr(np,np)
+      complex(dp):: Bzero1(z1max,-2:0),bit,pole
        
       do ep=-2,0
       bit=czip

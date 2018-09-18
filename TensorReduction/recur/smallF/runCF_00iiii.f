@@ -1,5 +1,6 @@
       subroutine runCF_00iiii(i1,i2,i3,i4,f,Gr,Shat6,N0)
       implicit none
+      include 'types.f'
       include 'pvCnames.f'
       include 'pvCv.f'
       include 'Carraydef.f'
@@ -7,8 +8,8 @@
       include 'pvweenumber.f' 
       integer ep,N0,k,i1,i2,i3,i4,np
       parameter(np=2)
-      double precision f(np),Gr(np,np),den
-      double complex Shat6(np,z5max,-2:0)
+      real(dp):: f(np),Gr(np,np),den
+      complex(dp):: Shat6(np,z5max,-2:0)
        
       do ep=-2,0
       if     ((i1 .eq. i2) .and. (i1 .eq. i3) .and. (i1 .eq. i4)) then

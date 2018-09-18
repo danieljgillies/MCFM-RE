@@ -3,13 +3,14 @@
 C---Fixes Diiii according to extension of Denner-Dittmaier
 C---knowing D00iii and dropping terms of order Delta Diiiii
       implicit none
+      include 'types.f'
       include 'pvDnames.f'
       include 'pvDv.f'
       include 'Darraydef.f'
       include 'Darrays.f'
       integer ep,N0,j,i1,i2,i3,i4,n
-      double precision DetGr,Xtwiddle0(3),Gtwiddle(3,3)
-      double complex Shat5(3,z4max,-2:0),Shat5s(3,z4max,-2:0)
+      real(dp):: DetGr,Xtwiddle0(3),Gtwiddle(3,3)
+      complex(dp):: Shat5(3,z4max,-2:0),Shat5s(3,z4max,-2:0)
        
       do ep=-2,0
       do n=1,3

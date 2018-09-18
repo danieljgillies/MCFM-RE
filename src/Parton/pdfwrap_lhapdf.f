@@ -10,6 +10,7 @@
       include 'PDFerrors.f'
       include 'pdlabel.f'
       include 'couple.f'
+      include 'mpicommon.f'
       double precision alphasPDF
       logical validPDF
       character*50 oldPDFname
@@ -48,6 +49,7 @@ c      endif
         stop
       endif
       
+      if (rank == 0) then
       write(6,*)
       write(6,*) '*******************************************'
       write(6,*) '*     MCFM is calling LHAPDF              *'
@@ -56,6 +58,7 @@ c      endif
       write(6,99) 'PDFmember',PDFmember
       write(6,*) '*******************************************'
       write(6,*)
+      endif
 
 c      write(6,*) '+ Name = ','PDFsets/'//PDFname
       call InitPDFset(checkpath('PDFsets/'//PDFname))
@@ -68,14 +71,15 @@ c      write(6,*) '+ PDF set succesfully initialized'
           write(6,*) 'ERROR: Max. number of error sets is 1000!'
           stop
         endif
+        if (rank == 0) then
         write(6,*)
         write(6,*) '****************************************'        
         write(6,*) '*        Calculating errors using      *'
         write(6,97) maxPDFsets
         write(6,*) '****************************************'
+        endif
         call InitPDF(0)
         amz=alphasPDF(zmass)
-        currentPDF=0
       else  
         call InitPDF(PDFmember)
         amz=alphasPDF(zmass)

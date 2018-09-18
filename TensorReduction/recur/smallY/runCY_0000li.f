@@ -4,14 +4,15 @@ C---  Expression for Eq. 5.58b
 C---  Calculates C0000li, requires C0000ll
 C---  Small terms of order Xtwiddle(0,k)*C00iii,Xtwiddle(0,0)*C00iiii
 C---  Denominator Gtwiddle(k,l)
+      include 'types.f'
       include 'pvCnames.f' 
       include 'pvCv.f' 
       include 'Carraydef.f' 
       include 'Carrays.f' 
       integer ep,N0,k,l,i1,np
       parameter(np=2)
-      double precision Xtwiddle(0:np,0:np),Gtwiddle(np,np)
-      double complex Shat6zz(np,z3max,-2:0)
+      real(dp):: Xtwiddle(0:np,0:np),Gtwiddle(np,np)
+      complex(dp):: Shat6zz(np,z3max,-2:0)
 
       if ((i1 .eq. l) .or. (i1 .eq. 0)) then
       return

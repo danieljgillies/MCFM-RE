@@ -1,4 +1,5 @@
       subroutine scalar(p,yscalar)
+        use mod_qcdloop_c
       implicit none
       include 'types.f'
       
@@ -16,7 +17,7 @@
       include 'nwz.f'
       integer:: j3,k1,k2,ep,eta
       complex(dp):: prW,yscalar(2,2,-2:0),
-     & qlI2,qlI3,qlI2diff(-2:0),izb,
+     & qlI2diff(-2:0),izb,
      & vert25x4,vert16x1,cprop,iprZ
       real(dp):: p(mxpart,4),q(mxpart,4),mtsq
       real(dp):: p16(4),p34(4),p25(4),

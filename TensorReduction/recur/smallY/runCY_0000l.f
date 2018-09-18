@@ -3,14 +3,15 @@
 C---  Expression for C0000 obtained from 5.50, following the comment after 
 C     5.50 on how to add adcing adcitional "00" pairs
 C---  (similar to Eq. 5.56a but with "00" added) 
+      include 'types.f'
       include 'pvCnames.f' 
       include 'pvCv.f' 
       include 'Carraydef.f' 
       include 'Carrays.f' 
       integer ep,N0,k,l,np
       parameter(np=2)
-      double precision Xtwiddle(0:np,0:np),Gtwiddle(np,np)
-      double complex Shat5zz(np,z2max,-2:0)
+      real(dp):: Xtwiddle(0:np,0:np),Gtwiddle(np,np)
+      complex(dp):: Shat5zz(np,z2max,-2:0)
 
       do ep=-2,0
 

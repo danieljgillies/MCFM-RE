@@ -1,5 +1,5 @@
 ************************************************************************
-* Inverse computes the inverse of a matrix.
+* pvInverse computes the inverse of a matrix.
 * Input:
 *   A: n-by-n matrix A
 *   n: dimension of A
@@ -10,17 +10,18 @@
 
       subroutine pvXInverse(A, Ainv, n, perm)
       implicit none
-      integer n, perm(n)
-      Double Complex A(n,n), Ainv(n,n)
-
-      integer i, j
+      include 'types.f'
+      include 'TRconstants.f'
+      integer::n, perm(n)
+      complex(dp):: A(n,n), Ainv(n,n)
+      integer:: i, j
 
       call XLUDecomp(A, n, perm)
       do i = 1, n
         do j = 1, n
-          Ainv(j,i) = dcmplx(0d0,0d0)
+          Ainv(j,i) = czip
         enddo
-        Ainv(i,i) = dcmplx(1d0,0d0)
+        Ainv(i,i) = cone
         call XLUBackSubst(A, n, perm, Ainv(1,i))
       enddo
       end

@@ -13,6 +13,7 @@
       include 'interference.f'
       include 'x1x2.f'
       include 'nproc.f'
+      include 'ipsgen.f'
       integer:: nu,icount
       real(dp):: r(mxdim)
       real(dp):: wt4,p1(4),p2(4),p3(4),p4(4),p5(4),p6(4)
@@ -66,17 +67,27 @@ c      endif
       p2(2)=zip
       p2(3)=+xx(2)*sqrts*half
 
-      if  ((kcase==kt_bbar)
-     & .or.(kcase==kbq_tpq)) then
-      call phase41(r,p1,p2,p3,p4,p5,p6,pswt,*999)
-      elseif (
-     &      (kcase==kqqttbb) 
-     & .or. (kcase==kqqttgg))  then  
-      call phase4m(r,p1,p2,p3,p4,p5,p6,pswt,*999)
+      if  (    (kcase==kt_bbar)
+     &    .or. (kcase==kbq_tpq)) then
+        call phase41(r,p1,p2,p3,p4,p5,p6,pswt,*999)
+      elseif ( (kcase==kqqttbb) 
+     &    .or. (kcase==kqqttgg))  then  
+        call phase4m(r,p1,p2,p3,p4,p5,p6,pswt,*999)
+      elseif ( (kcase==kZgamma) 
+     &    .or. (kcase==kZgajet) .or. (kcase==kWgajet))  then  
+        if (ipsgen == 1) then
+          call phase4Vgam(r,p1,p2,p3,p4,p5,p6,pswt,*999)
+        elseif (ipsgen == 2) then
+          call phase4Vgam_fsr(r,p1,p2,p3,p4,p5,p6,pswt,*999)
+        else
+            print *, "unsupported ipsgen ..."
+            call exit(1)
+        endif
+
       elseif (kcase==kvlchk4)  then  
-      call phase4(r,p1,p2,p3,p4,p5,p6,pswt,*999)
+        call phase4(r,p1,p2,p3,p4,p5,p6,pswt,*999)
       else
-      call phase4(r,p1,p2,p3,p4,p5,p6,pswt,*999) 
+        call phase4(r,p1,p2,p3,p4,p5,p6,pswt,*999) 
       endif
 
       do nu=1,4

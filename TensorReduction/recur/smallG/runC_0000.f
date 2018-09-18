@@ -1,6 +1,7 @@
        subroutine runC_0000(k,l,DetGr,f,Gtwiddle,Gtt,
      . Shat3zz,Shat4zz,S0000,N0)
       implicit none
+      include 'types.f'
       include 'TRconstants.f'  
       include 'pvCnames.f'  
       include 'pvCv.f'  
@@ -8,8 +9,8 @@
       include 'Carrays.f'  
       integer ep,N0,k,l,n,m,np
       parameter(np=2)
-      double precision DetGr,Gtwiddle(np,np),Gtt(np,np,np,np),f(np)
-      double complex Shat3zz(np,-2:0),S0000(-2:0),
+      real(dp):: DetGr,Gtwiddle(np,np),Gtt(np,np,np,np),f(np)
+      complex(dp):: Shat3zz(np,-2:0),S0000(-2:0),
      . Shat4zz(np,z1max,-2:0),bit,pole
 
        

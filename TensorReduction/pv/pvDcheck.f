@@ -1,32 +1,33 @@
       subroutine pvDcheck(rank,q1,q2,q3,m1s,m2s,m3s,m4s,
      & FD0,FD1,FD2,FD3,FD4,FD5,FD6,failed)
       implicit none
+      include 'types.f'
       include 'TRconstants.f'
       include 'TRydef.f'
       include 'pvverbose.f'
       integer n2,n3,n4,n5,n6,ep,nu,rank,epmin
-      double precision q1(4),q2(4),q3(4),p2(4),p23(4),Dacc
-      double precision q1Dq1,q2Dq2,q3Dq3,q1Dq2,q2Dq3,q1Dq3,pvSDDDD,
+      real(dp):: q1(4),q2(4),q3(4),p2(4),p23(4),Dacc
+      real(dp):: q1Dq1,q2Dq2,q3Dq3,q1Dq2,q2Dq3,q1Dq3,pvSDDDD,
      & pvSDDPP,pvSDDPK,s12,s13,s23,m1s,m2s,m3s,m4s,
      & sing4(-2:0),sing5(-2:0),sing6(-2:0),f1,f2,f3
-      double complex 
+      complex(dp):: 
      & FC01(-2:0),FC11(y1max,-2:0),FC21(y2max,-2:0),FC31(y3max,-2:0),
      & FC41(y4max,-2:0),FC51(y5max,-2:0),FC61(y6max,-2:0)
-      double complex 
+      complex(dp):: 
      & FC02(-2:0),FC12(y1max,-2:0),FC22(y2max,-2:0),FC32(y3max,-2:0),
      & FC42(y4max,-2:0),FC52(y5max,-2:0),FC62(y6max,-2:0)
-      double complex 
+      complex(dp):: 
      & FC03(-2:0),FC13(y1max,-2:0),FC23(y2max,-2:0),FC33(y3max,-2:0),
      & FC43(y4max,-2:0),FC53(y5max,-2:0),FC63(y6max,-2:0)
-      double complex 
+      complex(dp):: 
      & FC04(-2:0),FC14(y1max,-2:0),FC24(y2max,-2:0),FC34(y3max,-2:0),
      & FC44(y4max,-2:0),FC54(y5max,-2:0),FC64(y6max,-2:0)
-      double complex FC14a(y1max,-2:0),FC24a(y2max,-2:0),
+      complex(dp):: FC14a(y1max,-2:0),FC24a(y2max,-2:0),
      & FC34a(y3max,-2:0),FC44a(y4max,-2:0),FC54a(y5max,-2:0)
-      double complex FD0(-2:0),FD1(y1max,-2:0),FD2(y2max,-2:0),
+      complex(dp):: FD0(-2:0),FD1(y1max,-2:0),FD2(y2max,-2:0),
      & FD3(y3max,-2:0),FD4(y4max,-2:0),FD5(y5max,-2:0),
      & FD6(y6max,-2:0),trhs,tq
-      logical failed
+      logical:: failed
       include 'TRmetric.f'
       parameter(epmin=0) ! Only check finite pieces
       
@@ -44,7 +45,7 @@
 c      if (pvverbose) write(6,*)
 c      if (pvverbose) write(6,*) '(p1sq, p2sq, p3sq, m1sq, m2sq, m3sq, m4sq) = '
 c      if (pvverbose) write(6,'(a2,7(e12.5,a2))'),
-c     . '( ',q1Dq1,', ',q2Dq2+q1Dq1-2d0*q1Dq2,', ',q3Dq3+q2Dq2-2d0*q2Dq3,
+c     . '( ',q1Dq1,', ',q2Dq2+q1Dq1-two*q1Dq2,', ',q3Dq3+q2Dq2-two*q2Dq3,
 c     . ', ',m1s,', ',m2s,', ',m3s,', ',m4s,' )' 
             
       do nu=1,4
@@ -89,12 +90,12 @@ c     . ', ',m1s,', ',m2s,', ',m3s,', ',m4s,' )'
      &  -q1(1)*FD1(1,ep)
      &  -q1(2)*FD1(2,ep)
      &  -q1(3)*FD1(3,ep)
-      trhs=-0.5d0*(FC01(ep)-FC04(ep)+f1*FD0(ep))
+      trhs=-half*(FC01(ep)-FC04(ep)+f1*FD0(ep))
       call checkaccuracy(trhs,tq,Dacc,failed) 
 c      if (pvverbose) write(6,*) tq
-c      if (pvverbose) write(6,*) -0.5d0*(FC01(ep))
-c      if (pvverbose) write(6,*) -0.5d0*(-FC04(ep))
-c      if (pvverbose) write(6,*) -0.5d0*(+f1*FD0(ep))
+c      if (pvverbose) write(6,*) -half*(FC01(ep))
+c      if (pvverbose) write(6,*) -half*(-FC04(ep))
+c      if (pvverbose) write(6,*) -half*(+f1*FD0(ep))
       enddo
 
       if (pvverbose) write(6,*) 'q2.FD1'
@@ -103,7 +104,7 @@ c      if (pvverbose) write(6,*) -0.5d0*(+f1*FD0(ep))
      &  -q2(1)*FD1(1,ep)
      &  -q2(2)*FD1(2,ep)
      &  -q2(3)*FD1(3,ep)
-      trhs=-0.5d0*(FC02(ep)-FC04(ep)+f2*FD0(ep))
+      trhs=-half*(FC02(ep)-FC04(ep)+f2*FD0(ep))
       call checkaccuracy(trhs,tq,Dacc,failed) 
       enddo
 
@@ -113,7 +114,7 @@ c      if (pvverbose) write(6,*) -0.5d0*(+f1*FD0(ep))
      &    -q3(1)*FD1(1,ep)
      &    -q3(2)*FD1(2,ep)
      &    -q3(3)*FD1(3,ep)
-      trhs=-0.5d0*(FC03(ep)-FC04(ep)+f3*FD0(ep))
+      trhs=-half*(FC03(ep)-FC04(ep)+f3*FD0(ep))
       call checkaccuracy(trhs,tq,Dacc,failed) 
       enddo
 
@@ -129,7 +130,7 @@ c      if (pvverbose) write(6,*) -0.5d0*(+f1*FD0(ep))
      &   -q1(2)*FD2(y2(2,n2),ep)
      &   -q1(3)*FD2(y2(3,n2),ep)   
       trhs= 
-     &   -0.5d0*(FC11(n2,ep)-FC14a(n2,ep)+f1*FD1(n2,ep))
+     &   -half*(FC11(n2,ep)-FC14a(n2,ep)+f1*FD1(n2,ep))
       call checkaccuracy(trhs,tq,Dacc,failed) 
       enddo
       enddo
@@ -142,7 +143,7 @@ c      if (pvverbose) write(6,*) -0.5d0*(+f1*FD0(ep))
      &   -q2(2)*FD2(y2(2,n2),ep)
      &   -q2(3)*FD2(y2(3,n2),ep)
       trhs=
-     &   -0.5d0*(FC12(n2,ep)-FC14a(n2,ep)+f2*FD1(n2,ep))
+     &   -half*(FC12(n2,ep)-FC14a(n2,ep)+f2*FD1(n2,ep))
       call checkaccuracy(trhs,tq,Dacc,failed) 
       enddo
       enddo
@@ -155,7 +156,7 @@ c      if (pvverbose) write(6,*) -0.5d0*(+f1*FD0(ep))
      &    -q3(2)*FD2(y2(2,n2),ep)
      &    -q3(3)*FD2(y2(3,n2),ep)
       trhs=
-     & -0.5d0*(FC13(n2,ep)-FC14a(n2,ep)+f3*FD1(n2,ep))
+     & -half*(FC13(n2,ep)-FC14a(n2,ep)+f3*FD1(n2,ep))
       call checkaccuracy(trhs,tq,Dacc,failed) 
       enddo
       enddo
@@ -185,7 +186,7 @@ c      do ep=epmin,0
      &    -q1(2)*FD3(y3(2,n2,n3),ep)
      &    -q1(3)*FD3(y3(3,n2,n3),ep)
       trhs=
-     &   -0.5d0*(FC21(y2(n2,n3),ep)
+     &   -half*(FC21(y2(n2,n3),ep)
      & -FC24a(y2(n2,n3),ep)+f1*FD2(y2(n2,n3),ep))
       call checkaccuracy(trhs,tq,Dacc,failed) 
       enddo
@@ -202,7 +203,7 @@ c      do ep=epmin,0
      &   -q2(2)*FD3(y3(2,n2,n3),ep)
      &   -q2(3)*FD3(y3(3,n2,n3),ep)   
       trhs=
-     & -0.5d0*(FC22(y2(n2,n3),ep)
+     & -half*(FC22(y2(n2,n3),ep)
      & -FC24a(y2(n2,n3),ep)+f2*FD2(y2(n2,n3),ep))
       call checkaccuracy(trhs,tq,Dacc,failed) 
       enddo
@@ -219,7 +220,7 @@ c      do ep=epmin,0
      &   -q3(2)*FD3(y3(2,n2,n3),ep)
      &   -q3(3)*FD3(y3(3,n2,n3),ep)   
       trhs=
-     & -0.5d0*(FC23(y2(n2,n3),ep)
+     & -half*(FC23(y2(n2,n3),ep)
      & -FC24a(y2(n2,n3),ep)+f3*FD2(y2(n2,n3),ep))
       call checkaccuracy(trhs,tq,Dacc,failed) 
       enddo
@@ -253,7 +254,7 @@ c      enddo
      &   -q1(2)*FD4(y4(2,n2,n3,n4),ep)
      &   -q1(3)*FD4(y4(3,n2,n3,n4),ep)
       trhs=
-     & -0.5d0*(FC31(y3(n2,n3,n4),ep)
+     & -half*(FC31(y3(n2,n3,n4),ep)
      & -FC34a(y3(n2,n3,n4),ep)+f1*FD3(y3(n2,n3,n4),ep))
       call checkaccuracy(trhs,tq,Dacc,failed) 
       enddo
@@ -271,7 +272,7 @@ c      enddo
      &   -q2(2)*FD4(y4(2,n2,n3,n4),ep)
      &   -q2(3)*FD4(y4(3,n2,n3,n4),ep)
       trhs=
-     & -0.5d0*(FC32(y3(n2,n3,n4),ep)
+     & -half*(FC32(y3(n2,n3,n4),ep)
      & -FC34a(y3(n2,n3,n4),ep)+f2*FD3(y3(n2,n3,n4),ep))
       call checkaccuracy(trhs,tq,Dacc,failed) 
       enddo
@@ -289,7 +290,7 @@ c      enddo
      &   -q3(2)*FD4(y4(2,n2,n3,n4),ep)
      &   -q3(3)*FD4(y4(3,n2,n3,n4),ep)
       trhs=
-     &   -0.5d0*(FC33(y3(n2,n3,n4),ep)
+     &   -half*(FC33(y3(n2,n3,n4),ep)
      & -FC34a(y3(n2,n3,n4),ep)+f3*FD3(y3(n2,n3,n4),ep))
       call checkaccuracy(trhs,tq,Dacc,failed) 
       enddo
@@ -301,7 +302,7 @@ c      enddo
       do ep=epmin,0
       do n3=1,4
       do n4=n3,4
-      sing4(0)=-1d0/12d0*g(n3,n4)
+      sing4(0)=-1._dp/12._dp*g(n3,n4)
       tq = +FD4(y4(4,4,n3,n4),ep)
      & -FD4(y4(1,1,n3,n4),ep)
      & -FD4(y4(2,2,n3,n4),ep)
@@ -309,7 +310,7 @@ c      enddo
      & -m1s*FD2(y2(n3,n4),ep)
       trhs=
      & -FC24a(y2(n3,n4),ep)
-     & +dcmplx(sing4(ep))
+     & +cmplx(sing4(ep),kind=dp)
       call checkaccuracy(trhs,tq,Dacc,failed) 
       enddo
       enddo
@@ -327,7 +328,7 @@ c      enddo
      &   -q1(2)*FD5(y5(2,n2,n3,n4,n5),ep)
      &   -q1(3)*FD5(y5(3,n2,n3,n4,n5),ep)
       trhs=
-     & -0.5d0*(FC41(y4(n2,n3,n4,n5),ep)
+     & -half*(FC41(y4(n2,n3,n4,n5),ep)
      & -FC44a(y4(n2,n3,n4,n5),ep)+f1*FD4(y4(n2,n3,n4,n5),ep))
       call checkaccuracy(trhs,tq,Dacc,failed) 
       enddo
@@ -347,7 +348,7 @@ c      enddo
      &   -q2(2)*FD5(y5(2,n2,n3,n4,n5),ep)
      &   -q2(3)*FD5(y5(3,n2,n3,n4,n5),ep)
       trhs=
-     & -0.5d0*(FC42(y4(n2,n3,n4,n5),ep)
+     & -half*(FC42(y4(n2,n3,n4,n5),ep)
      & -FC44a(y4(n2,n3,n4,n5),ep)+f2*FD4(y4(n2,n3,n4,n5),ep))
       call checkaccuracy(trhs,tq,Dacc,failed) 
       enddo
@@ -367,7 +368,7 @@ c      enddo
      &   -q3(2)*FD5(y5(2,n2,n3,n4,n5),ep)
      &   -q3(3)*FD5(y5(3,n2,n3,n4,n5),ep)
       trhs=
-     & -0.5d0*(FC43(y4(n2,n3,n4,n5),ep)
+     & -half*(FC43(y4(n2,n3,n4,n5),ep)
      & -FC44a(y4(n2,n3,n4,n5),ep)+f3*FD4(y4(n2,n3,n4,n5),ep))
       call checkaccuracy(trhs,tq,Dacc,failed) 
       enddo
@@ -382,9 +383,9 @@ c      enddo
       do n4=n3,4
       do n5=n4,4
       sing5(0)=
-     & +(g(n3,n4)*q1(n5)+g(n4,n5)*q1(n3)+g(n5,n3)*q1(n4))/48d0
-     & +(g(n3,n4)*q2(n5)+g(n4,n5)*q2(n3)+g(n5,n3)*q2(n4))/48d0
-     & +(g(n3,n4)*q3(n5)+g(n4,n5)*q3(n3)+g(n5,n3)*q3(n4))/48d0
+     & +(g(n3,n4)*q1(n5)+g(n4,n5)*q1(n3)+g(n5,n3)*q1(n4))/48._dp
+     & +(g(n3,n4)*q2(n5)+g(n4,n5)*q2(n3)+g(n5,n3)*q2(n4))/48._dp
+     & +(g(n3,n4)*q3(n5)+g(n4,n5)*q3(n3)+g(n5,n3)*q3(n4))/48._dp
       tq = 
      & +FD5(y5(4,4,n3,n4,n5),ep)
      & -FD5(y5(1,1,n3,n4,n5),ep)
@@ -393,7 +394,7 @@ c      enddo
      & -m1s*FD3(y3(n3,n4,n5),ep)
       trhs=
      & -FC34a(y3(n3,n4,n5),ep)
-     & +dcmplx(sing5(ep))  
+     & +cmplx(sing5(ep),kind=dp)  
       call checkaccuracy(trhs,tq,Dacc,failed) 
       enddo
       enddo
@@ -415,9 +416,11 @@ c      enddo
      &    -q1(3)*FD6(y6(3,n2,n3,n4,n5,n6),ep)
 
       trhs=
-     &   -0.5d0*(FC51(y5(n2,n3,n4,n5,n6),ep)
+     &   -half*(FC51(y5(n2,n3,n4,n5,n6),ep)
      & -FC54a(y5(n2,n3,n4,n5,n6),ep)+f1*FD5(y5(n2,n3,n4,n5,n6),ep))
+!      write(6,*) 'q1.FD6',trhs,tq
       call checkaccuracy(trhs,tq,Dacc,failed) 
+!      write(6,*) 'q1.FD6 failed',failed
       enddo
       enddo
       enddo
@@ -439,9 +442,11 @@ c      enddo
      &   -q2(3)*FD6(y6(3,n2,n3,n4,n5,n6),ep)
    
       trhs=
-     & -0.5d0*(FC52(y5(n2,n3,n4,n5,n6),ep)
+     & -half*(FC52(y5(n2,n3,n4,n5,n6),ep)
      & -FC54a(y5(n2,n3,n4,n5,n6),ep)+f2*FD5(y5(n2,n3,n4,n5,n6),ep))
+!      write(6,*) 'q2.FD6',trhs,tq
       call checkaccuracy(trhs,tq,Dacc,failed) 
+!      write(6,*) 'q2.FD6 failed',failed
       enddo
       enddo
       enddo
@@ -462,9 +467,11 @@ c      enddo
      &   -q3(2)*FD6(y6(2,n2,n3,n4,n5,n6),ep)
      &   -q3(3)*FD6(y6(3,n2,n3,n4,n5,n6),ep) 
       trhs=
-     & -0.5d0*(FC53(y5(n2,n3,n4,n5,n6),ep)
+     & -half*(FC53(y5(n2,n3,n4,n5,n6),ep)
      & -FC54a(y5(n2,n3,n4,n5,n6),ep)+f3*FD5(y5(n2,n3,n4,n5,n6),ep))
+!      write(6,*) 'q3.FD6',trhs,tq
       call checkaccuracy(trhs,tq,Dacc,failed) 
+!      write(6,*) 'q3.FD6 failed',failed
       enddo
       enddo
       enddo
@@ -481,18 +488,19 @@ c      enddo
       do n6=n5,4
 
 
-      s12=q1Dq1+q2Dq2-2d0*q1Dq2
-      s13=q1Dq1+q3Dq3-2d0*q1Dq3
-      s23=q2Dq2+q3Dq3-2d0*q2Dq3
+      s12=q1Dq1+q2Dq2-two*q1Dq2
+      s13=q1Dq1+q3Dq3-two*q1Dq3
+      s23=q2Dq2+q3Dq3-two*q2Dq3
       sing6(0)=
      & +pvSDDDD(n3,n4,n5,n6)
-     & *((s12+s23+s13+q1Dq1+q2Dq2+q3Dq3)/480d0-(m1s+m2s+m3s+m4s)/96d0)
-     & -pvSDDPP(n3,n4,n5,n6,q1)/120D0
-     & -pvSDDPP(n3,n4,n5,n6,q2)/120D0
-     & -pvSDDPP(n3,n4,n5,n6,q3)/120D0
-     & -pvSDDPK(n3,n4,n5,n6,q1,q2)/240D0
-     & -pvSDDPK(n3,n4,n5,n6,q2,q3)/240D0
-     & -pvSDDPK(n3,n4,n5,n6,q3,q1)/240D0
+     & *((s12+s23+s13+q1Dq1+q2Dq2+q3Dq3)/480._dp
+     & -(m1s+m2s+m3s+m4s)/96._dp)
+     & -pvSDDPP(n3,n4,n5,n6,q1)/120._dp
+     & -pvSDDPP(n3,n4,n5,n6,q2)/120._dp
+     & -pvSDDPP(n3,n4,n5,n6,q3)/120._dp
+     & -pvSDDPK(n3,n4,n5,n6,q1,q2)/240._dp
+     & -pvSDDPK(n3,n4,n5,n6,q2,q3)/240._dp
+     & -pvSDDPK(n3,n4,n5,n6,q3,q1)/240._dp
       tq = 
      & +FD6(y6(4,4,n3,n4,n5,n6),ep)
      & -FD6(y6(1,1,n3,n4,n5,n6),ep)
@@ -502,7 +510,7 @@ c      enddo
      & -FC44a(y4(n3,n4,n5,n6),ep)
 
 
-      trhs=+dcmplx(sing6(ep))
+      trhs=cmplx(sing6(ep),kind=dp)
       call checkaccuracy(trhs,tq,Dacc,failed) 
       enddo
       enddo

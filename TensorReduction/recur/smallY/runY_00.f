@@ -4,14 +4,15 @@ C---  Expression for Eq. 5.54
 C---  Calculates D00
 C---  Small terms of order Xtwiddle(0,k)*Di,Xtwiddle(0,0)*Dii
 C---  Denominator Gtwiddle(k,l)
+      include 'types.f'
       include 'pvDnames.f' 
       include 'pvDv.f' 
       include 'Darraydef.f' 
       include 'Darrays.f' 
       integer ep,N0,k,l,np
       parameter(np=3)
-      double precision Xtwiddle(0:np,0:np),Gtwiddle(np,np)
-      double complex Shat2(np,z1max,-2:0)
+      real(dp):: Xtwiddle(0:np,0:np),Gtwiddle(np,np)
+      complex(dp):: Shat2(np,z1max,-2:0)
 
       do ep=-2,0
 

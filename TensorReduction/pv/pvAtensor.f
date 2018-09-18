@@ -1,15 +1,15 @@
       subroutine pvAtensor(m1s,FA0,FA1,FA2,FA3,FA4,FA5,FA6)
       implicit none
+      include 'types.f'
       include 'TRconstants.f'
       include 'pvAnames.f'
       include 'pvAv.f'
       include 'TRydef.f'
       include 'TRmetric.f'
-      double complex FA0(-2:0),FA1(y1max,-2:0),
+      complex(dp):: FA0(-2:0),FA1(y1max,-2:0),
      . FA2(y2max,-2:0),FA3(y3max,-2:0),FA4(y4max,-2:0),FA5(y5max,-2:0),
      . FA6(y6max,-2:0)
-      double precision m1s
-      double precision pvSDDDD,pvSDDDDDD
+      real(dp):: m1s,pvSDDDD,pvSDDDDDD
       integer n1,n2,n3,n4,n5,n6,ep,A0i,pvAcache
       logical,save:: first=.true.
 !$omp threadprivate(first)

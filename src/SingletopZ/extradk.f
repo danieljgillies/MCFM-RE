@@ -1,4 +1,5 @@
       subroutine extradk(q,yextra)
+        use mod_qcdloop_c
       implicit none
       include 'types.f'
       
@@ -16,7 +17,7 @@
       include 'nwz.f'
       integer:: k1,k2,ep
       complex(dp):: prW,yextra(2,-2:0),
-     & qlI2,qlI3,qlI2diff(-2:0),izb,
+     & qlI2diff(-2:0),izb,
      & vert25x1,vert25x2,vert25x3,vert16x1,iprZ,cprop
       real(dp):: q(mxpart,4),mtsq,mwsq
       real(dp):: p2Dp5,omal

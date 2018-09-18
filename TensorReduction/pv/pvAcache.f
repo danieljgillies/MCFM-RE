@@ -1,10 +1,11 @@
       integer function pvAcache(m1sq)
       implicit none
+      include 'types.f'
       include 'pvAnames.f'
       include 'TRclear.f'
       include 'TRonshellcutoff.f'
-      double precision para(Paa),m1sq
-      double precision,save:: tableA(Paa,Namax)  
+      real(dp):: para(Paa),m1sq
+      real(dp),save:: tableA(Paa,Namax)  
       integer,save:: Nstore=0
       integer::j,jtable,Ntrue    
 !$omp threadprivate(tableA,Nstore)
@@ -43,7 +44,7 @@ C    if parameter set is not found we have to calculate
  20   pvAcache=Nstore*Naa
       Nstore=Nstore+1
       do j=1,Paa
-        if(abs(para(j)) .lt. onshellcutoff) para(j)=0d0
+        if(abs(para(j)) .lt. onshellcutoff) para(j)=0._dp
       enddo
       do j=1,Paa
       tableA(j,Nstore)=para(j)

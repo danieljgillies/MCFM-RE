@@ -22,12 +22,10 @@
       character*2 commchars
       logical:: dryrun,makecuts
       integer:: ih1,ih2,origij
-      integer:: NPTYPE,NGROUP,NSET
       real(dp):: Rcut 
 
       common/density/ih1,ih2
       common/dryrun/dryrun
-      common/pdflib/NPTYPE,NGROUP,NSET
       common/Rcut/Rcut
       common/makecuts/makecuts
       common/origij/origij
@@ -62,6 +60,7 @@ c--- variables in finalpart (normally done in mcfm_exit)
 c--- for gg->H+X processes, also write out the cross section
 c---  normalized by sigma(gg->H, finite mt)/sigma(gg->H, mt-> infinity)
       if ( (kcase == kggfus0) .or. (kcase == kggfus1)
+     & .or.(kcase == khjetma) .or. (kcase == kh2jmas)
      & .or.(kcase == kggfus2) .or. (kcase == kggfus3)
      & .or.(kcase == kHWWjet) .or. (kcase == kHWW2jt)
      & .or.(kcase == kHWW3jt) .or. (kcase == kHWW_4l)

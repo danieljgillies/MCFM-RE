@@ -20,7 +20,6 @@ c     q(-p1)+qbar(-p2) --> gam(p3) + gam(p4) + gam(p5) + gam(p6)         *
       include 'epinv.f' 
       include 'epinv2.f'
       include 'scheme.f' 
-      include 'first.f'
       integer:: j
       real(dp):: p(mxpart,4),msq(-nf:nf,-nf:nf),
      & qqb,qbq,fac,cfac
@@ -32,11 +31,6 @@ c     q(-p1)+qbar(-p2) --> gam(p3) + gam(p4) + gam(p5) + gam(p6)         *
       complex(dp):: qqb_aaaa_nlo_e0(2,2,2,2,2)
       integer:: i1,i2,i3,i4,i5
       complex(dp):: qqb_aaaa_nlo(2,2,2,2,2)
-
-      if(first) then 
-         first=.false.
-         call qlinit
-      endif
 
       scheme='dred'
 

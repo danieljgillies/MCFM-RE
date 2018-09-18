@@ -27,8 +27,6 @@
 *    tota -> virt + real + frag [frag=.true.]                          *
 *                                                                      *
 ************************************************************************
-
-      
       include 'constants.f'
       include 'nf.f'
       include 'mxpart.f'
@@ -48,6 +46,7 @@
       include 'taucut.f'
       include 'nproc.f'
       include 'mpicommon.f'
+      include 'parttypes.f'
       integer myitmx,myinit,i,j,k,mynproc,nprocabove
       integer(kind=8) myncall,myncall_save
       integer:: ierr
@@ -56,7 +55,9 @@
      & sigfrag,sdfrag,chifrag,sigWdk,sdWdk,chiWdk,
      & xreal,xreal2,xinteg,xerr,adjust,myscale,myfacscale,
      & mymb,sumsig,sumsigr,sumsigf,sumsd,sumsdr,sumsdf,
-     & sigips(4),sdips(4),xcallwt
+     & xcallwt
+      real(dp), save :: sigips(4) = 0
+      real(dp), save :: sdips(4) = 0
       integer mykpart
       character*3 getstr,psgen
       character*15 kpartstring
@@ -72,8 +73,8 @@
       external resmLLint,resmNLLint,resmNNLLint
       external expdNLLint, expdNNLLint
       data first/.true./
-      save first,sigips,sdips
- 
+      save first
+
 c---- dedicated routine for computing NNLO corrections that uses
 c---- dipole subtraction for NLO piece, SCET for NNLO coefficient;
 c---- comment out this call to perform entire calculation with SCET
@@ -192,6 +193,8 @@ c--- special write-out/read-in for 5FNS + 4FNS process
         endif        
         endif
       endif    
+  
+  665 continue
       
 c--- special handling of multiple PS generation for
 c--- Z+gamma+jet and Z+gamma+gamma processes 
@@ -218,6 +221,13 @@ c--- SCET integration should have two extra dimensions
 c--- (added and then taken away)
       if (  (mykpart==knnlo)
      & .or. (mykpart==ksnlo) )  then
+
+        !provision for ipsgen splitting of scet_below
+        if (nproc == 9999) then
+          psgen=getstr(ipsgen)
+          write(6,*) '********* Phase space region ',ipsgen,' *********'
+        endif
+
         if (first .and. (myinit == 1)) then
 c-- special input name for SCET grid
             ingridfile='dvegas_scet_'//ingridfile
@@ -226,11 +236,19 @@ c-- special input name for SCET grid
           if (first .eqv. .true.) then
             readin=.false.
             writeout=.true.
-            outgridfile='dvegas_scet_below.grid'
+            if (doipsgen) then
+              outgridfile='dvegas_scet_below_PS'//psgen(1:1)//'.grid'
+            else
+              outgridfile='dvegas_scet_below.grid'
+            endif
           else
             readin=.true.
             writeout=.false.
-            ingridfile='dvegas_scet_below.grid'
+            if (doipsgen) then
+              ingridfile='dvegas_scet_below_PS'//psgen(1:1)//'.grid'
+            else
+              ingridfile='dvegas_scet_below.grid'
+            endif
           endif
         endif
         kpart=mykpart
@@ -240,25 +258,59 @@ c-- special input name for SCET grid
         abovecut=.false.
         call boundregion(ndim,region)
         call vegasnr(region,ndim,scetint,myinit,myncall,myitmx,
-     &               nprn,sumsig,sumsd,chi)
+     &               nprn,sumsig,sumsd,chi,snloBelow,ipsgen)
         ndim=ndim-2
+        
+        if (doipsgen) then
+          sigips(ipsgen)=sumsig
+          sdips(ipsgen)=sumsd
+          sumsig=0._dp
+          sumsd=0._dp
+          if (ipsgen < maxipsgen) then
+            ipsgen=ipsgen+1
+            goto 665
+          endif
+        endif
+
+! if we're only computing power corrections, nothing more to be done
+        if (onlypowcorr) goto 33 
+
+        ipsgen=1
+        
         if (mykpart==ksnlo) kpart=klord
         nproc=nprocabove
         if (ndim == 4) then
           myncall=myncall*10
+        elseif (nproc >= 300) then
+          myncall=myncall*5
         else
           myncall=myncall*20
         endif
         abovecut=.true.
         call chooser
+
+  666 continue
+        if (doipsgen) then
+          psgen=getstr(ipsgen)
+          write(6,*) '********* Phase space region ',ipsgen,' *********'
+        endif
+
         if (first .eqv. .true.) then
           readin=.false.
           writeout=.true.
-          outgridfile='dvegas_scet_above.grid'
+          if (doipsgen) then
+            outgridfile='dvegas_scet_above_PS'//psgen(1:1)//'.grid'
+          else
+            outgridfile='dvegas_scet_above.grid'
+          endif
         else
           readin=.true.
           writeout=.false.
-          ingridfile='dvegas_scet_above.grid'
+          if (doipsgen) then
+            ingridfile='dvegas_scet_above_PS'//psgen(1:1)//'.grid'
+          else
+            ingridfile='dvegas_scet_above.grid'
+          endif
         endif
       endif
             
@@ -266,7 +318,7 @@ c--- Basic lowest-order integration
       if (kpart==klord) then
        call boundregion(ndim,region)
        call vegasnr(region,ndim,lowint,myinit,myncall,myitmx,
-     &               nprn,sig,sd,chi)
+     &               nprn,sig,sd,chi,lord,ipsgen)
       endif
 
 !     LL, NLL, lumi0 integration
@@ -274,7 +326,7 @@ c--- Basic lowest-order integration
      &     (kpart==klumi0) ) then
          call boundregion(ndim,region)
          call vegasnr(region,ndim,resmNLLint,myinit,myncall,myitmx,
-     &        nprn,sig,sd,chi)
+     &        nprn,sig,sd,chi,lord,ipsgen)
       endif
 
 c---  NNLL, nllexpd, nnllexpd, lumi, lumi1  integration should have one extra dimensions
@@ -285,8 +337,17 @@ c---  (added and then taken away)
          ndim=ndim+1
          call boundregion(ndim,region)
          call vegasnr(region,ndim,resmNNLLint,myinit,myncall,myitmx,
-     &        nprn,sig,sd,chi)
+     &        nprn,sig,sd,chi,nloVirt,ipsgen)
          ndim=ndim-1
+
+      if (mykpart==ksnlo .and. doipsgen) then
+          sigips(ipsgen) = sigips(ipsgen) + sig
+          sdips(ipsgen) = sqrt(sdips(ipsgen)**2+sd**2)
+
+          if (ipsgen < maxipsgen) then
+            ipsgen = ipsgen + 1
+            goto 666
+          endif
       endif
 
 c--- If we're doing the tota integration, then set up the grid info
@@ -333,7 +394,7 @@ c--- (added and then taken away)
         ndim=ndim+1
         call boundregion(ndim,region)
         call vegasnr(region,ndim,virtint,myinit,myncall,myitmx,
-     &               nprn,sig,sd,chi)
+     &               nprn,sig,sd,chi,nloVirt,ipsgen)
         ndim=ndim-1
       endif
             
@@ -384,7 +445,7 @@ c---   unsubtracted real emission weight)
         ndim=ndim+3
         call boundregion(ndim,region)
         call vegasnr(region,ndim,realint,myinit,myncall,myitmx,
-     &              nprn,sigr,sdr,chi)
+     &              nprn,sigr,sdr,chi,nloReal,ipsgen)
         ndim=ndim-3
         if (rank == 0) write(6,*) 
         ncall=myncall
@@ -421,7 +482,7 @@ c      endif
         ndim=ndim+3
         call boundregion(ndim,region)
         call vegasnr(region,ndim,realint,myinit,ncall,myitmx,
-     &              nprn,sigr,sdr,chi)
+     &              nprn,sigr,sdr,chi,nloReal,ipsgen)
         ndim=ndim-3
         if (rank == 0) write(6,*) 
         ncall=myncall
@@ -477,7 +538,7 @@ c-- special input name for real grid
         ndim=ndim+3
         call boundregion(ndim,region)
         call vegasnr(region,ndim,realint,myinit,ncall,myitmx,
-     &              nprn,sigdk,sddk,chidk)
+     &              nprn,sigdk,sddk,chidk,nloReal,ipsgen)
         ndim=ndim-3
         if (rank == 0) write(6,*) 
         ncall=myncall
@@ -536,7 +597,7 @@ c-- special input name for real grid
         ndim=ndim+3
         call boundregion(ndim,region)
         call vegasnr(region,ndim,realint,myinit,ncall,myitmx,
-     &              nprn,sigWdk,sdWdk,chiWdk)
+     &              nprn,sigWdk,sdWdk,chiWdk,nloReal,ipsgen)
         ndim=ndim-3
         if (rank == 0) write(6,*) 
         ncall=myncall
@@ -616,7 +677,7 @@ c         write(6,*) 'Adjusting number of points for frag to',ncall
          call boundregion(ndim,region) 
          fragint_mode=.true.            ! for isolation
          call vegasnr(region,ndim,fragint,myinit,myncall,myitmx,
-     &                 nprn,sigfrag,sdfrag,chifrag)
+     &                 nprn,sigfrag,sdfrag,chifrag,nloFrag,ipsgen)
          fragint_mode=.false.            ! for isolation
          ndim=ndim-1
        rescale=.false.       ! turn rescaling off again
@@ -626,8 +687,13 @@ c         write(6,*) 'Adjusting number of points for frag to',ncall
 
 c--- handling of SCET processes
       if ((mykpart==knnlo) .or. (mykpart==ksnlo)) then 
-        sig=sumsig+sig
-        sd=sqrt(sumsd**2+sd**2)
+        if(doipsgen) then
+          sig = sumsig + sum(sigips(1:maxipsgen))
+          sd = sqrt(sumsd**2 + sum(sdips(1:maxipsgen)**2))
+        else
+          sig = sumsig + sig
+          sd = sqrt(sumsd**2+sd**2)
+        endif
 c--- return nproc to the value from the input file
         nproc=mynproc
         call chooser
@@ -652,7 +718,7 @@ c--- return nproc to the value from the input file
         sd=sqrt(sumsd)
         sdr=sqrt(sumsdr)
       endif
-      
+
 c--- special handling of multiple PS generation for
 c--- Z+gamma+jet and Z+gamma+gamma processes: we will loop
 c--- over ipsgen=1,..,n where n=2 for Z+gamma+jet and n=4 for  Z+gamma+gamma

@@ -19,6 +19,7 @@ c---- with minimum value taucut
       include 'hdecaymode.f'
       include 'masses.f'
       include 'debug.f'
+      include 'cutoff.f'
       real(dp):: r(mxdim),p(mxpart,4),ph(mxpart,4),Q(4),p3(4),p4(4)
       real(dp):: wbw,wt,wtdk,Qsq,rtshat,mass,Qsqmin,Qsqmax
       real(dp), parameter:: wt0=one/twopi
@@ -27,14 +28,14 @@ c---- with minimum value taucut
 
       wt=zip
 
+      Qsqmin=max(wsqmin,one) ! ensure minimum value of m(34)>1 GeV
+      Qsqmax=min(wsqmax,sqrts**2*0.999d0) ! ensure maximum value a bit below s
 c--- generate invariant mass of Q=p3+p4 
       if (n3==0) then
          wbw=one
-         Qsqmin=max(wsqmin,one) ! ensure minimum value of m(34)>1 GeV
-         Qsqmax=min(wsqmax,sqrts**2*0.999d0) ! ensure maximum value a bit below s
          call pick(2,Qsq,Qsqmin,Qsqmax,r(1),wbw)
       elseif (n3==1) then 
-         call breitw(r(1),wsqmin,wsqmax,mass3,width3,Qsq,wbw)
+         call breitw(r(1),Qsqmin,Qsqmax,mass3,width3,Qsq,wbw)
       endif
       
       rtshat=sqrt(Qsq)

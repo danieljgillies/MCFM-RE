@@ -1,62 +1,15 @@
-# Makefile routine.
-
-# Replace this with the location of Cernlib on your system (if desired)
-CERNLIB     = 
-# Replace this with the location of LHAPDF on your system (if desired)
-LHAPDFLIB   =
-
-# Flag for compiling with OpenMP (YES) or not (anything else)
-USEOMP = YES
 # Flag for compiling with MPI (YES) or not (anything else)
-# note: USEMPI -> YES automatically puts USEOMP -> YES
 USEMPI = NO
-ifeq ($(USEOMP),YES)
-  OBJNAME=obj_omp
-  OMPFLAG=-fopenmp
-  LIBEXT=_omp
-  MAIN = mcfm_omp.o
-else
-  OBJNAME=obj
-  OMPFLAG=
-  LIBEXT=
-  MAIN = mcfm.o
-endif
-ifeq ($(USEMPI),YES)
-  OBJNAME=obj_omp
-  OMPFLAG=-fopenmp
-  LIBEXT=_omp
-  MAIN = mcfm_mpi.o
-  MPIDUMMY=.
-else
-  MPIDUMMY=$(PWD)/src/mpidummy
-endif
-
-MCFMHOME        = $(PWD)
-SOURCEDIR       = $(MCFMHOME)/src
-VPATH		= $(DIRS)
-OBJDIR		= $(MCFMHOME)/$(OBJNAME)
-OUTPUT_OPTION	= -o $(OBJDIR)/$@
-BIN		= $(MCFMHOME)/Bin
-INCPATH  	= $(SOURCEDIR)/Inc
-QLDIR		= $(MCFMHOME)/QCDLoop/ql
-FFDIR		= $(MCFMHOME)/QCDLoop/ff
-TENSORREDDIR	= $(MCFMHOME)/TensorReduction
-PVDIR		= $(TENSORREDDIR)/pv
-RECURDIR	= $(TENSORREDDIR)/recur
-OVDIR		= $(TENSORREDDIR)/ov
-HELASDIR        = .
-OLODIR          = .
-JETVHETODIR = $(MCFMHOME)/JetVHeto
-
-# Set this to YES to link against OneLOop library to
-# allow alternative calculation of scalar integrals
-LINKONELOOP     = NO
 
 # Set this to NATIVE/PDFLIB/LHAPDF
 #   NATIVE -- internal routines
-#   PDFLIB -- PDFLIB v8.04
 #   LHAPDF -- Les Houches library
-PDFROUTINES = LHAPDF
+PDFROUTINES = NATIVE
+
+# Replace this with the location of Cernlib on your system (if desired)
+CERNLIB     =
+# Replace this with the location of LHAPDF on your system (if desired)
+LHAPDFLIB   =
 
 # Set this to NO/YES/FROOT
 #   NO  -- no n-tuple output or unweighting is possible
@@ -65,39 +18,73 @@ PDFROUTINES = LHAPDF
 #            output uses the FROOT package of P. Nadolsky.
 NTUPLES = NO
 
+OSXGFORTRAN =
+OSXGPP =
+
 ifeq ($(origin FC),environment)
     $(info Inheriting FC, CXX from environment)
-    F90 = $(FC)
-    $(info FC = F90 = $(FC))
+    $(info FC = $(FC))
     $(info CXX = $(CXX))
 else
-    ifeq ($(USEMPI),YES)
-      FC = mpifort
-      F90 = mpifort
-      CXX = mpic++
-    else
-      FC = gfortran
-      F90 = gfortran
-      CXX = g++
-    endif
+	ifeq ($(USEMPI),YES)
+	  FC = mpifort
+	  CXX = mpic++
+	  # for OpenMPI
+	  export OMPI_CXX=g++
+	  export OMPI_FC=gfortran
+	else
+	  FC = gfortran
+	  CXX = g++
+	endif
+
+	ifeq ($(OSXGFORTRAN),)
+	else
+		FC=$(OSXGFORTRAN)
+	endif
+
+	ifeq ($(OSXGPP),)
+	else
+		CXX=$(OSXGPP)
+	endif
 endif
 
 
+
+ifeq ($(USEMPI),YES)
+  MAIN = mcfm_mpi.o
+  MPIDUMMY=.
+else
+  MAIN = mcfm_omp.o
+  MPIDUMMY=$(PWD)/src/mpidummy
+endif
+
+MCFMHOME        = $(PWD)
+SOURCEDIR       = $(MCFMHOME)/src
+OBJNAME = obj
+OBJDIR		= $(MCFMHOME)/$(OBJNAME)
+OUTPUT_OPTION = -o $(OBJDIR)/$@
+BIN		= $(MCFMHOME)/Bin
+INCPATH  	= $(SOURCEDIR)/Inc
+TENSORREDDIR	= $(MCFMHOME)/TensorReduction
+PVDIR		= $(TENSORREDDIR)/pv
+PVEXTDIR	= $(TENSORREDDIR)/pvext
+RECURDIR	= $(TENSORREDDIR)/recur
+OVDIR		= $(TENSORREDDIR)/ov
+MOD_QCDLOOP=$(MCFMHOME)/qcdloop-2.0.2
+VPATH		= $(DIRS):$(MOD_QCDLOOP):$(INCPATH):$(TENSORREDDIR)/Include:$(SOURCEDIR)/mpidummy
+
 # Flags for compilation
-FFLAGS 	= -fno-f2c -ffixed-line-length-none $(OMPFLAG) -O2 -I$(INCPATH) -I$(MPIDUMMY) -I$(TENSORREDDIR)/Include -I$(OBJNAME) -I$(JETVHETODIR)
-# note: -static may be required if read/write libraries not found
-#FFLAGS += -static
-# -fimplicit-none
-F90FLAGS = -fno-f2c $(OMPFLAG) -I$(INCPATH) -I$(OBJNAME) -J$(OBJNAME) -I$(JETVHETODIR)
+FFLAGS 	= -fno-f2c -ffixed-line-length-none -fopenmp -O2 \
+ -I$(INCPATH) -I$(MPIDUMMY) -I$(TENSORREDDIR)/Include -L$(PVDIR) -L$(PVEXTDIR) -J$(OBJNAME) -I$(MOD_QCDLOOP)
 
 # If using FROOT package for ROOT ntuples, first specify C++ compiler:
-CXXFLAGS=$(CXXFLAGS0) -Wall $(DROOT) 
+CXXFLAGS=$(CXXFLAGS0) -std=c++11 -Wall $(DROOT) 
 # ROOTLIBS and ROOTINCLUDE are locations of ROOT libraries and header files.
 # Find the ROOT libraries and include directory automatically by running root-config 
 # or specify them manually by providing values for ROOTLIBS and ROOTINCLUDE below
 DMYROOT= -DMYROOT
-ROOTLIBS     := $(shell root-config --libs)
-ROOTINCLUDE  := -I $(shell root-config --incdir)
+ROOTLIBS     := $(shell root-config --libs 2> /dev/null)
+ROOTINCLUDE  := $(shell root-config --cflags 2> /dev/null)
 
 
 DIRS	=	$(MCFMHOME):\
@@ -109,10 +96,14 @@ DIRS	=	$(MCFMHOME):\
 		$(SOURCEDIR)/Wbb:$(SOURCEDIR)/Zbb:\
 		$(SOURCEDIR)/WHbbar:$(SOURCEDIR)/ZHbbar:\
 		$(SOURCEDIR)/WW:$(SOURCEDIR)/WZ:$(SOURCEDIR)/ZZ:\
+		$(SOURCEDIR)/Diboson: \
+		$(SOURCEDIR)/Wgajet:\
 		$(SOURCEDIR)/Top:$(SOURCEDIR)/Topdk:$(SOURCEDIR)/Singletop:\
 		$(SOURCEDIR)/TopH:$(SOURCEDIR)/TopZ:$(SOURCEDIR)/TopW:\
 		$(SOURCEDIR)/HWW:$(SOURCEDIR)/HZZ:$(SOURCEDIR)/Tau:\
-		$(SOURCEDIR)/Httbar:\
+		$(SOURCEDIR)/Httbar:$(SOURCEDIR)/Hjetmass\
+		$(SOURCEDIR)/Hjetmass/sushi\
+		$(SOURCEDIR)/Hjetmass/split\
 		$(SOURCEDIR)/W:$(SOURCEDIR)/Z:\
 		$(SOURCEDIR)/qpW:\
 		$(SOURCEDIR)/W1jet:$(SOURCEDIR)/Z1jet:\
@@ -138,6 +129,7 @@ DIRS	=	$(MCFMHOME):\
 		$(SOURCEDIR)/Gamgam:$(SOURCEDIR)/Dirgam:\
 		$(SOURCEDIR)/TopdkBSY:$(SOURCEDIR)/Topdecay:\
 		$(SOURCEDIR)/Frag:$(SOURCEDIR)/Zgamgam:$(SOURCEDIR)/Zgamjet:\
+		$(SOURCEDIR)/Zaj:\
 		$(SOURCEDIR)/SingletopH:$(SOURCEDIR)/SingletopZ:\
 		$(SOURCEDIR)/WpmZbj:$(SOURCEDIR)/DM:$(SOURCEDIR)/Monojet:\
                 $(SOURCEDIR)/Vec_DM:$(SOURCEDIR)/GG_DM:\
@@ -147,15 +139,53 @@ DIRS	=	$(MCFMHOME):\
                 $(SOURCEDIR)/SCET:$(SOURCEDIR)/TDHPL:\
                 $(SOURCEDIR)/SCET0j:\
                 $(SOURCEDIR)/Trigam/Mad:\
-		$(SOURCEDIR)/pwgplots:$(SOURCEDIR)/Multichan:$(SOURCEDIR)/TopH/Store/Mad\
-		$(SOURCEDIR)/UTools:$(SOURCEDIR)/WBFZZ\
+                $(SOURCEDIR)/pwgplots:$(SOURCEDIR)/Multichan:$(SOURCEDIR)/TopH/Store/Mad\
+                $(SOURCEDIR)/UTools:$(SOURCEDIR)/WBFZZ\
                 $(SOURCEDIR)/WBFWW:$(SOURCEDIR)/WBFWpWp:$(SOURCEDIR)/WBFWZ\
                 $(SOURCEDIR)/WH1jet:$(SOURCEDIR)/ZH1jet:$(SOURCEDIR)/QT:$(SOURCEDIR)/Mad\
-                $(SOURCEDIR)/QLFF
+                $(SOURCEDIR)/ZEW:$(SOURCEDIR)/TopEW:$(SOURCEDIR)/JetsEW
 
 
 # -----------------------------------------------------------------------------
 # Specify the object files. 
+
+EWFILES = \
+mcfmccdb0.o \
+qqb_z_ew_sudakov.o \
+z_ew_box.o \
+sudakov_DY.o \
+scalar_int.o \
+charge_op.o \
+qqb_z_ew_exact.o \
+self_VV_new.o \
+ggdilep.o
+
+EWFILES += \
+ggQQb_ew_oneloop.o \
+qqbQQb_ew_oneloop.o \
+qqb_QQb_ew_sudakov.o \
+qqb_QQb_mix.o \
+qqb_QQb_mix_g.o \
+qqb_QQb_mix_gs.o \
+qqb_QQb_mix_v.o \
+qqb_QQb_mix_z.o \
+
+EWFILES += \
+single.o \
+dijet_gg_ew.o \
+dijet_qqb_ew_bx.o \
+dijet_qqb_ew_tree.o \
+dijet_qqb_ew_vert.o \
+qqb_twojet_ew.o \
+qqb_twojet_ew_sudakov.o \
+qqb_twojet_ew_exact.o \
+twojet_ew_tree.o \
+qqb_twojet_mix.o \
+qqb_twojet_mix_g.o \
+qqb_twojet_mix_gs.o \
+qqb_twojet_mix_gqsub.o \
+qqb_twojet_mix_gqsub2.o \
+qqb_twojet_mix_z.o
 
 WH1JETFILES = \
 WHqqbgg.o \
@@ -191,6 +221,8 @@ gen3taucut.o \
 gen4taucut.o \
 genparton.o \
 genpartonVj.o \
+genVgataucut.o \
+genVgajtaucut.o \
 genVH.o \
 genVHjjtaucut.o \
 genVHjtaucut.o \
@@ -216,13 +248,18 @@ gamgamampsq.o \
 gamgamampsq_new.o \
 lumxmsq_gaga.o \
 lumxmsq_h.o \
+lumxmsq_h_Zga.o \
 lumxmsq_w.o \
 lumxmsq_wh.o \
 lumxmsq_z.o \
 lumxmsq_zh.o \
 qqb_gamgam_vbis.o \
 softggbis.o \
-softqqbis.o
+softqqbis.o \
+dxpdf_dfridr.o \
+midpoint_devpdf.o \
+tau0_powcorr_gg.o \
+tau0_powcorr_qa.o
 
 SCET1jFILES = \
 ampgggpmm.o \
@@ -925,16 +962,496 @@ qqb_higgs_odd.o \
 ehsv.o \
 ehsv_odd.o
 
+HJETFILES= \
+specialpoint.o \
+specialamp.o \
+qqbggHamp.o \
+qqbggHampsq.o \
+DelDBfunctions.o \
+DelDTfunctions.o \
+real2.o\
+integrals.o\
+hjetmass_bubints_init.o \
+hjetmass_boxints_init.o \
+hjetmass_triints_init.o \
+hjetmass_bubints_init_dp.o \
+hjetmass_boxints_init_dp.o \
+hjetmass_triints_init_dp.o \
+hjetmass.o \
+hjetmass_gvec.o \
+dilog.o \
+hjetmass_v.o \
+hjetmass_z.o \
+hjetmass_r.o \
+hjetmass_r_amp_qp.o \
+hjetmass_r_amp_dp.o \
+hjetmass_gs.o \
+gggH_new.o \
+gqqH_new.o \
+spinoru_qp.o \
+spinoru_dp.o \
+hjetmass_qqbgg_boxints_init_dp.o \
+hjetmass_qqbgg_bubints_init_dp.o \
+hjetmass_qqbgg_triints_init_dp.o \
+hjetmass_qqbgg_boxints_init.o \
+hjetmass_qqbgg_bubints_init.o \
+hjetmass_qqbgg_triints_init.o \
+hjetmass_HqqbQQb_dp.o \
+hjetmass_HqqbQQb.o \
+hjetmass_qqbQQb_bubints_init_dp.o \
+hjetmass_qqbQQb_triints_init_dp.o \
+hjetmass_qqbQQb_bubints_init.o \
+hjetmass_qqbQQb_triints_init.o \
+hjetmass_box_onemass_pppp_dp.o \
+hjetmass_box_onemass_pppp.o \
+hjetmass_box_pmpm_0_0_0_s123_s12_s23_dp.o \
+hjetmass_box_pmpm_0_0_0_s123_s12_s23.o \
+hjetmass_box_pmpm_0_0_0_s124_s14_s12_dp.o \
+hjetmass_box_pmpm_0_0_0_s124_s14_s12.o \
+hjetmass_box_pmpm_0_0_0_s134_s34_s14_dp.o \
+hjetmass_box_pmpm_0_0_0_s134_s34_s14.o \
+hjetmass_box_pmpm_0_0_0_s234_s23_s34_dp.o \
+hjetmass_box_pmpm_0_0_0_s234_s23_s34.o \
+hjetmass_box_pmpm_0_0_s12_mhsq_s34_s123_dp.o \
+hjetmass_box_pmpm_0_0_s12_mhsq_s34_s123.o \
+hjetmass_box_pmpm_0_0_s12_mhsq_s34_s124_dp.o \
+hjetmass_box_pmpm_0_0_s12_mhsq_s34_s124.o \
+hjetmass_box_pmpm_0_0_s14_mhsq_s23_s124_dp.o \
+hjetmass_box_pmpm_0_0_s14_mhsq_s23_s124.o \
+hjetmass_box_pmpm_0_0_s14_mhsq_s23_s134_dp.o \
+hjetmass_box_pmpm_0_0_s14_mhsq_s23_s134.o \
+hjetmass_box_pmpm_0_0_s23_mhsq_s14_s123_dp.o \
+hjetmass_box_pmpm_0_0_s23_mhsq_s14_s123.o \
+hjetmass_box_pmpm_0_0_s23_mhsq_s14_s234_dp.o \
+hjetmass_box_pmpm_0_0_s23_mhsq_s14_s234.o \
+hjetmass_box_pmpm_0_0_s34_mhsq_s12_s134_dp.o \
+hjetmass_box_pmpm_0_0_s34_mhsq_s12_s134.o \
+hjetmass_box_pmpm_0_0_s34_mhsq_s12_s234_dp.o \
+hjetmass_box_pmpm_0_0_s34_mhsq_s12_s234.o \
+hjetmass_box_pmpm_0_0_s34_mhsq_s12_s234_qp.o \
+hjetmass_box_pmpm_0_s12_0_mhsq_s123_s124_d.o \
+hjetmass_box_pmpm_0_s12_0_mhsq_s123_s124.o \
+hjetmass_box_pmpm_0_s14_0_mhsq_s124_s134_d.o \
+hjetmass_box_pmpm_0_s14_0_mhsq_s124_s134.o \
+hjetmass_box_pmpm_0_s23_0_mhsq_s123_s234_d.o \
+hjetmass_box_pmpm_0_s23_0_mhsq_s123_s234.o \
+hjetmass_box_pmpm_0_s34_0_mhsq_s134_s234_d.o \
+hjetmass_box_pmpm_0_s34_0_mhsq_s134_s234.o \
+hjetmass_box_ppmm_0_0_0_s123_s12_s23_dp.o \
+hjetmass_box_ppmm_0_0_0_s123_s12_s23.o \
+hjetmass_box_ppmm_0_0_0_s124_s14_s12_dp.o \
+hjetmass_box_ppmm_0_0_0_s124_s14_s12.o \
+hjetmass_box_ppmm_0_0_0_s134_s34_s14_dp.o \
+hjetmass_box_ppmm_0_0_0_s134_s34_s14.o \
+hjetmass_box_ppmm_0_0_0_s234_s23_s34_dp.o \
+hjetmass_box_ppmm_0_0_0_s234_s23_s34.o \
+hjetmass_box_ppmm_0_0_s12_mhsq_s34_s123_dp.o \
+hjetmass_box_ppmm_0_0_s12_mhsq_s34_s123.o \
+hjetmass_box_ppmm_0_0_s12_mhsq_s34_s124_dp.o \
+hjetmass_box_ppmm_0_0_s12_mhsq_s34_s124.o \
+hjetmass_box_ppmm_0_0_s14_mhsq_s23_s124_dp.o \
+hjetmass_box_ppmm_0_0_s14_mhsq_s23_s124.o \
+hjetmass_box_ppmm_0_0_s14_mhsq_s23_s134_dp.o \
+hjetmass_box_ppmm_0_0_s14_mhsq_s23_s134.o \
+hjetmass_box_ppmm_0_0_s23_mhsq_s14_s123_dp.o \
+hjetmass_box_ppmm_0_0_s23_mhsq_s14_s123.o \
+hjetmass_box_ppmm_0_0_s23_mhsq_s14_s234_dp.o \
+hjetmass_box_ppmm_0_0_s23_mhsq_s14_s234.o \
+hjetmass_box_ppmm_0_0_s34_mhsq_s12_s134_dp.o \
+hjetmass_box_ppmm_0_0_s34_mhsq_s12_s134.o \
+hjetmass_box_ppmm_0_0_s34_mhsq_s12_s234_dp.o \
+hjetmass_box_ppmm_0_0_s34_mhsq_s12_s234.o \
+hjetmass_box_ppmm_0_s12_0_mhsq_s123_s124_d.o \
+hjetmass_box_ppmm_0_s12_0_mhsq_s123_s124.o \
+hjetmass_box_ppmm_0_s14_0_mhsq_s124_s134_d.o \
+hjetmass_box_ppmm_0_s14_0_mhsq_s124_s134.o \
+hjetmass_box_ppmm_0_s23_0_mhsq_s123_s234_d.o \
+hjetmass_box_ppmm_0_s23_0_mhsq_s123_s234.o \
+hjetmass_box_ppmm_0_s34_0_mhsq_s134_s234_d.o \
+hjetmass_box_ppmm_0_s34_0_mhsq_s134_s234.o \
+hjetmass_box_pppm_0_0_0_s123_s12_s23_dp.o \
+hjetmass_box_pppm_0_0_0_s123_s12_s23.o \
+hjetmass_box_pppm_0_0_0_s124_s14_s12_dp.o \
+hjetmass_box_pppm_0_0_0_s124_s14_s12.o \
+hjetmass_box_pppm_0_0_0_s134_s34_s14_dp.o \
+hjetmass_box_pppm_0_0_0_s134_s34_s14.o \
+hjetmass_box_pppm_0_0_0_s234_s23_s34_dp.o \
+hjetmass_box_pppm_0_0_0_s234_s23_s34.o \
+hjetmass_box_pppm_0_0_s12_mhsq_s34_s123_dp.o \
+hjetmass_box_pppm_0_0_s12_mhsq_s34_s123.o \
+hjetmass_box_pppm_0_0_s12_mhsq_s34_s124_dp.o \
+hjetmass_box_pppm_0_0_s12_mhsq_s34_s124.o \
+hjetmass_box_pppm_0_0_s14_mhsq_s23_s124_dp.o \
+hjetmass_box_pppm_0_0_s14_mhsq_s23_s124.o \
+hjetmass_box_pppm_0_0_s14_mhsq_s23_s134_dp.o \
+hjetmass_box_pppm_0_0_s14_mhsq_s23_s134.o \
+hjetmass_box_pppm_0_0_s23_mhsq_s14_s123_dp.o \
+hjetmass_box_pppm_0_0_s23_mhsq_s14_s123.o \
+hjetmass_box_pppm_0_0_s23_mhsq_s14_s234_dp.o \
+hjetmass_box_pppm_0_0_s23_mhsq_s14_s234.o \
+hjetmass_box_pppm_0_0_s34_mhsq_s12_s134_dp.o \
+hjetmass_box_pppm_0_0_s34_mhsq_s12_s134.o \
+hjetmass_box_pppm_0_0_s34_mhsq_s12_s234_dp.o \
+hjetmass_box_pppm_0_0_s34_mhsq_s12_s234.o \
+hjetmass_box_pppm_0_s12_0_mhsq_s123_s124_d.o \
+hjetmass_box_pppm_0_s12_0_mhsq_s123_s124.o \
+hjetmass_box_pppm_0_s14_0_mhsq_s124_s134_d.o \
+hjetmass_box_pppm_0_s14_0_mhsq_s124_s134.o \
+hjetmass_box_pppm_0_s23_0_mhsq_s123_s234_d.o \
+hjetmass_box_pppm_0_s23_0_mhsq_s123_s234.o \
+hjetmass_box_pppm_0_s34_0_mhsq_s134_s234_d.o \
+hjetmass_box_pppm_0_s34_0_mhsq_s134_s234.o \
+hjetmass_box_pppp_0_0_0_s123_s12_s23_dp.o \
+hjetmass_box_pppp_0_0_0_s123_s12_s23.o \
+hjetmass_box_pppp_0_0_0_s124_s14_s12_dp.o \
+hjetmass_box_pppp_0_0_0_s124_s14_s12.o \
+hjetmass_box_pppp_0_0_0_s134_s34_s14_dp.o \
+hjetmass_box_pppp_0_0_0_s134_s34_s14.o \
+hjetmass_box_pppp_0_0_0_s234_s23_s34_dp.o \
+hjetmass_box_pppp_0_0_0_s234_s23_s34.o \
+hjetmass_box_pppp_0_0_s12_mhsq_s34_s123_dp.o \
+hjetmass_box_pppp_0_0_s12_mhsq_s34_s123.o \
+hjetmass_box_pppp_0_0_s12_mhsq_s34_s124_dp.o \
+hjetmass_box_pppp_0_0_s12_mhsq_s34_s124.o \
+hjetmass_box_pppp_0_0_s14_mhsq_s23_s124_dp.o \
+hjetmass_box_pppp_0_0_s14_mhsq_s23_s124.o \
+hjetmass_box_pppp_0_0_s14_mhsq_s23_s134_dp.o \
+hjetmass_box_pppp_0_0_s14_mhsq_s23_s134.o \
+hjetmass_box_pppp_0_0_s23_mhsq_s14_s123_dp.o \
+hjetmass_box_pppp_0_0_s23_mhsq_s14_s123.o \
+hjetmass_box_pppp_0_0_s23_mhsq_s14_s234_dp.o \
+hjetmass_box_pppp_0_0_s23_mhsq_s14_s234.o \
+hjetmass_box_pppp_0_0_s34_mhsq_s12_s134_dp.o \
+hjetmass_box_pppp_0_0_s34_mhsq_s12_s134.o \
+hjetmass_box_pppp_0_0_s34_mhsq_s12_s234_dp.o \
+hjetmass_box_pppp_0_0_s34_mhsq_s12_s234.o \
+hjetmass_box_pppp_0_s12_0_mhsq_s123_s124_d.o \
+hjetmass_box_pppp_0_s12_0_mhsq_s123_s124.o \
+hjetmass_box_pppp_0_s14_0_mhsq_s124_s134_d.o \
+hjetmass_box_pppp_0_s14_0_mhsq_s124_s134.o \
+hjetmass_box_pppp_0_s23_0_mhsq_s123_s234_d.o \
+hjetmass_box_pppp_0_s23_0_mhsq_s123_s234.o \
+hjetmass_box_pppp_0_s34_0_mhsq_s134_s234_d.o \
+hjetmass_box_pppp_0_s34_0_mhsq_s134_s234.o \
+hjetmass_box_twomass_easy_pppp_dp.o \
+hjetmass_box_twomass_easy_pppp.o \
+hjetmass_box_twomass_hard_pppp_dp.o \
+hjetmass_box_twomass_hard_pppp.o \
+hjetmass_bubble_pmpm_mhsq_dp.o \
+hjetmass_bubble_pmpm_mhsq.o \
+hjetmass_bubble_pmpm_s123_dp.o \
+hjetmass_bubble_pmpm_s123.o \
+hjetmass_bubble_pmpm_s124_dp.o \
+hjetmass_bubble_pmpm_s124.o \
+hjetmass_bubble_pmpm_s12_dp.o \
+hjetmass_bubble_pmpm_s12.o \
+hjetmass_bubble_pmpm_s134_dp.o \
+hjetmass_bubble_pmpm_s134.o \
+hjetmass_bubble_pmpm_s14_dp.o \
+hjetmass_bubble_pmpm_s14.o \
+hjetmass_bubble_pmpm_s234_dp.o \
+hjetmass_bubble_pmpm_s234.o \
+hjetmass_bubble_pmpm_s23_dp.o \
+hjetmass_bubble_pmpm_s23.o \
+hjetmass_bubble_pmpm_s34_dp.o \
+hjetmass_bubble_pmpm_s34.o \
+hjetmass_bubble_ppmm_mhsq_dp.o \
+hjetmass_bubble_ppmm_mhsq.o \
+hjetmass_bubble_ppmm_s123_dp.o \
+hjetmass_bubble_ppmm_s123.o \
+hjetmass_bubble_ppmm_s124_dp.o \
+hjetmass_bubble_ppmm_s124.o \
+hjetmass_bubble_ppmm_s134_dp.o \
+hjetmass_bubble_ppmm_s134.o \
+hjetmass_bubble_ppmm_s14_dp.o \
+hjetmass_bubble_ppmm_s14.o \
+hjetmass_bubble_ppmm_s234_dp.o \
+hjetmass_bubble_ppmm_s234.o \
+hjetmass_bubble_ppmm_s23_dp.o \
+hjetmass_bubble_ppmm_s23.o \
+hjetmass_bubble_pppm_mhsq_dp.o \
+hjetmass_bubble_pppm_mhsq.o \
+hjetmass_bubble_pppm_s124_dp.o \
+hjetmass_bubble_pppm_s124.o \
+hjetmass_bubble_pppm_s134_dp.o \
+hjetmass_bubble_pppm_s134.o \
+hjetmass_bubble_pppm_s14_dp.o \
+hjetmass_bubble_pppm_s14.o \
+hjetmass_bubble_pppm_s234_dp.o \
+hjetmass_bubble_pppm_s234.o \
+hjetmass_bubble_pppm_s34_dp.o \
+hjetmass_bubble_pppm_s34.o \
+hjetmass_qqbgg_box_pmmp_0_0_s12_mhsq_s34_s123.o \
+hjetmass_qqbgg_box_pmmp_0_0_s12_mhsq_s34_s124.o \
+hjetmass_qqbgg_box_pmmp_0_0_s12_mhsq_s34_s.o \
+hjetmass_qqbgg_box_pmmp_0_s12_0_mhsq_s123_.o \
+hjetmass_qqbgg_box_pmmp_0_s12_0_mhsq_s123_s124.o \
+hjetmass_qqbgg_box_pmpm_0_0_s12_mhsq_s34_s123.o \
+hjetmass_qqbgg_box_pmpm_0_0_s12_mhsq_s34_s124.o \
+hjetmass_qqbgg_box_pmpm_0_0_s12_mhsq_s34_s.o \
+hjetmass_qqbgg_box_pmpm_0_s12_0_mhsq_s123_.o \
+hjetmass_qqbgg_box_pmpm_0_s12_0_mhsq_s123_s124.o \
+hjetmass_qqbgg_box_pmpp_0_0_s12_mhsq_s34_s123.o \
+hjetmass_qqbgg_box_pmpp_0_0_s12_mhsq_s34_s124.o \
+hjetmass_qqbgg_box_pmpp_0_0_s12_mhsq_s34_s.o \
+hjetmass_qqbgg_box_pmpp_0_s12_0_mhsq_s123_.o \
+hjetmass_qqbgg_box_pmpp_0_s12_0_mhsq_s123_s124.o \
+hjetmass_qqbgg_bubble_pmmp_mhsq_dp.o \
+hjetmass_qqbgg_bubble_pmmp_mhsq.o \
+hjetmass_qqbgg_bubble_pmmp_s123_dp.o \
+hjetmass_qqbgg_bubble_pmmp_s123.o \
+hjetmass_qqbgg_bubble_pmmp_s124_dp.o \
+hjetmass_qqbgg_bubble_pmmp_s124.o \
+hjetmass_qqbgg_bubble_pmmp_s12_dp.o \
+hjetmass_qqbgg_bubble_pmmp_s12.o \
+hjetmass_qqbgg_bubble_pmmp_s34_dp.o \
+hjetmass_qqbgg_bubble_pmmp_s34.o \
+hjetmass_qqbgg_bubble_pmpm_mhsq_dp.o \
+hjetmass_qqbgg_bubble_pmpm_mhsq.o \
+hjetmass_qqbgg_bubble_pmpm_s123_dp.o \
+hjetmass_qqbgg_bubble_pmpm_s123.o \
+hjetmass_qqbgg_bubble_pmpm_s124_dp.o \
+hjetmass_qqbgg_bubble_pmpm_s124.o \
+hjetmass_qqbgg_bubble_pmpm_s12_dp.o \
+hjetmass_qqbgg_bubble_pmpm_s12.o \
+hjetmass_qqbgg_bubble_pmpm_s34_dp.o \
+hjetmass_qqbgg_bubble_pmpm_s34.o \
+hjetmass_qqbgg_bubble_pmpp_mhsq_dp.o \
+hjetmass_qqbgg_bubble_pmpp_mhsq.o \
+hjetmass_qqbgg_bubble_pmpp_s123_dp.o \
+hjetmass_qqbgg_bubble_pmpp_s123.o \
+hjetmass_qqbgg_bubble_pmpp_s124_dp.o \
+hjetmass_qqbgg_bubble_pmpp_s124.o \
+hjetmass_qqbgg_bubble_pmpp_s12_dp.o \
+hjetmass_qqbgg_bubble_pmpp_s12.o \
+hjetmass_qqbgg_triangle_pmmp_s123_mhsq_0_d.o \
+hjetmass_qqbgg_triangle_pmmp_s123_mhsq_0.o \
+hjetmass_qqbgg_triangle_pmmp_s123_mhsq_0_rat.o \
+hjetmass_qqbgg_triangle_pmmp_s123_mhsq_0_r.o \
+hjetmass_qqbgg_triangle_pmmp_s124_mhsq_0_d.o \
+hjetmass_qqbgg_triangle_pmmp_s124_mhsq_0.o \
+hjetmass_qqbgg_triangle_pmmp_s124_mhsq_0_rat.o \
+hjetmass_qqbgg_triangle_pmmp_s124_mhsq_0_r.o \
+hjetmass_qqbgg_triangle_pmmp_s12_s123_0_dp.o \
+hjetmass_qqbgg_triangle_pmmp_s12_s123_0.o \
+hjetmass_qqbgg_triangle_pmmp_s12_s124_0_dp.o \
+hjetmass_qqbgg_triangle_pmmp_s12_s124_0.o \
+hjetmass_qqbgg_triangle_pmmp_s34_0_0_dp.o \
+hjetmass_qqbgg_triangle_pmmp_s34_0_0.o \
+hjetmass_qqbgg_triangle_pmmp_s34_mhsq_s12_.o \
+hjetmass_qqbgg_triangle_pmmp_s34_mhsq_s12.o \
+hjetmass_qqbgg_triangle_pmmp_s34_mhsq_s12_rat.o \
+hjetmass_qqbgg_triangle_pmpm_s123_mhsq_0_d.o \
+hjetmass_qqbgg_triangle_pmpm_s123_mhsq_0.o \
+hjetmass_qqbgg_triangle_pmpm_s123_mhsq_0_rat.o \
+hjetmass_qqbgg_triangle_pmpm_s123_mhsq_0_r.o \
+hjetmass_qqbgg_triangle_pmpm_s124_mhsq_0_d.o \
+hjetmass_qqbgg_triangle_pmpm_s124_mhsq_0.o \
+hjetmass_qqbgg_triangle_pmpm_s124_mhsq_0_rat.o \
+hjetmass_qqbgg_triangle_pmpm_s124_mhsq_0_r.o \
+hjetmass_qqbgg_triangle_pmpm_s12_s123_0_dp.o \
+hjetmass_qqbgg_triangle_pmpm_s12_s123_0.o \
+hjetmass_qqbgg_triangle_pmpm_s12_s124_0_dp.o \
+hjetmass_qqbgg_triangle_pmpm_s12_s124_0.o \
+hjetmass_qqbgg_triangle_pmpm_s34_0_0_dp.o \
+hjetmass_qqbgg_triangle_pmpm_s34_0_0.o \
+hjetmass_qqbgg_triangle_pmpm_s34_mhsq_s12_.o \
+hjetmass_qqbgg_triangle_pmpm_s34_mhsq_s12.o \
+hjetmass_qqbgg_triangle_pmpm_s34_mhsq_s12_rat.o \
+hjetmass_qqbgg_triangle_pmpp_s123_mhsq_0_d.o \
+hjetmass_qqbgg_triangle_pmpp_s123_mhsq_0.o \
+hjetmass_qqbgg_triangle_pmpp_s123_mhsq_0_rat.o \
+hjetmass_qqbgg_triangle_pmpp_s123_mhsq_0_r.o \
+hjetmass_qqbgg_triangle_pmpp_s124_mhsq_0_d.o \
+hjetmass_qqbgg_triangle_pmpp_s124_mhsq_0.o \
+hjetmass_qqbgg_triangle_pmpp_s124_mhsq_0_rat.o \
+hjetmass_qqbgg_triangle_pmpp_s124_mhsq_0_r.o \
+hjetmass_qqbgg_triangle_pmpp_s12_s123_0_dp.o \
+hjetmass_qqbgg_triangle_pmpp_s12_s123_0.o \
+hjetmass_qqbgg_triangle_pmpp_s12_s124_0_dp.o \
+hjetmass_qqbgg_triangle_pmpp_s12_s124_0.o \
+hjetmass_qqbgg_triangle_pmpp_s34_mhsq_s12_.o \
+hjetmass_qqbgg_triangle_pmpp_s34_mhsq_s12.o \
+hjetmass_qqbgg_triangle_pmpp_s34_mhsq_s12_rat.o \
+hjetmass_triangle_pmpm_s12_0_0_dp.o \
+hjetmass_triangle_pmpm_s12_0_0.o \
+hjetmass_triangle_pmpm_s123_0_mhsq_dp.o \
+hjetmass_triangle_pmpm_s123_0_mhsq.o \
+hjetmass_triangle_pmpm_s123_0_mhsq_rat_dp.o \
+hjetmass_triangle_pmpm_s123_0_mhsq_rat.o \
+hjetmass_triangle_pmpm_s124_0_mhsq_dp.o \
+hjetmass_triangle_pmpm_s124_0_mhsq.o \
+hjetmass_triangle_pmpm_s124_0_mhsq_rat_dp.o \
+hjetmass_triangle_pmpm_s124_0_mhsq_rat.o \
+hjetmass_triangle_pmpm_s12_s123_0_dp.o \
+hjetmass_triangle_pmpm_s12_s123_0.o \
+hjetmass_triangle_pmpm_s12_s123_0_rat_dp.o \
+hjetmass_triangle_pmpm_s12_s123_0_rat.o \
+hjetmass_triangle_pmpm_s12_s124_0_dp.o \
+hjetmass_triangle_pmpm_s12_s124_0.o \
+hjetmass_triangle_pmpm_s12_s124_0_rat_dp.o \
+hjetmass_triangle_pmpm_s12_s124_0_rat.o \
+hjetmass_triangle_pmpm_s134_0_mhsq_dp.o \
+hjetmass_triangle_pmpm_s134_0_mhsq.o \
+hjetmass_triangle_pmpm_s134_0_mhsq_rat_dp.o \
+hjetmass_triangle_pmpm_s134_0_mhsq_rat.o \
+hjetmass_triangle_pmpm_s14_0_0_dp.o \
+hjetmass_triangle_pmpm_s14_0_0.o \
+hjetmass_triangle_pmpm_s14_s124_0_dp.o \
+hjetmass_triangle_pmpm_s14_s124_0.o \
+hjetmass_triangle_pmpm_s14_s124_0_rat_dp.o \
+hjetmass_triangle_pmpm_s14_s124_0_rat.o \
+hjetmass_triangle_pmpm_s14_s134_0_dp.o \
+hjetmass_triangle_pmpm_s14_s134_0.o \
+hjetmass_triangle_pmpm_s14_s134_0_rat_dp.o \
+hjetmass_triangle_pmpm_s14_s134_0_rat.o \
+hjetmass_triangle_pmpm_s23_0_0_dp.o \
+hjetmass_triangle_pmpm_s23_0_0.o \
+hjetmass_triangle_pmpm_s234_0_mhsq_dp.o \
+hjetmass_triangle_pmpm_s234_0_mhsq.o \
+hjetmass_triangle_pmpm_s234_0_mhsq_rat_dp.o \
+hjetmass_triangle_pmpm_s234_0_mhsq_rat.o \
+hjetmass_triangle_pmpm_s23_mhsq_s14_dp.o \
+hjetmass_triangle_pmpm_s23_mhsq_s14.o \
+hjetmass_triangle_pmpm_s23_mhsq_s14_rat_dp.o \
+hjetmass_triangle_pmpm_s23_mhsq_s14_rat.o \
+hjetmass_triangle_pmpm_s23_s123_0_dp.o \
+hjetmass_triangle_pmpm_s23_s123_0.o \
+hjetmass_triangle_pmpm_s23_s123_0_rat_dp.o \
+hjetmass_triangle_pmpm_s23_s123_0_rat.o \
+hjetmass_triangle_pmpm_s23_s234_0_dp.o \
+hjetmass_triangle_pmpm_s23_s234_0.o \
+hjetmass_triangle_pmpm_s23_s234_0_rat_dp.o \
+hjetmass_triangle_pmpm_s23_s234_0_rat.o \
+hjetmass_triangle_pmpm_s34_0_0_dp.o \
+hjetmass_triangle_pmpm_s34_0_0.o \
+hjetmass_triangle_pmpm_s34_mhsq_s12_dp.o \
+hjetmass_triangle_pmpm_s34_mhsq_s12.o \
+hjetmass_triangle_pmpm_s34_mhsq_s12_rat_dp.o \
+hjetmass_triangle_pmpm_s34_mhsq_s12_rat.o \
+hjetmass_triangle_pmpm_s34_s134_0_dp.o \
+hjetmass_triangle_pmpm_s34_s134_0.o \
+hjetmass_triangle_pmpm_s34_s134_0_rat_dp.o \
+hjetmass_triangle_pmpm_s34_s134_0_rat.o \
+hjetmass_triangle_pmpm_s34_s234_0_dp.o \
+hjetmass_triangle_pmpm_s34_s234_0.o \
+hjetmass_triangle_pmpm_s34_s234_0_rat_dp.o \
+hjetmass_triangle_pmpm_s34_s234_0_rat.o \
+hjetmass_triangle_ppmm_s123_0_mhsq_dp.o \
+hjetmass_triangle_ppmm_s123_0_mhsq.o \
+hjetmass_triangle_ppmm_s123_0_mhsq_rat_dp.o \
+hjetmass_triangle_ppmm_s123_0_mhsq_rat.o \
+hjetmass_triangle_ppmm_s124_0_mhsq_dp.o \
+hjetmass_triangle_ppmm_s124_0_mhsq.o \
+hjetmass_triangle_ppmm_s124_0_mhsq_rat_dp.o \
+hjetmass_triangle_ppmm_s124_0_mhsq_rat.o \
+hjetmass_triangle_ppmm_s134_0_mhsq_dp.o \
+hjetmass_triangle_ppmm_s134_0_mhsq.o \
+hjetmass_triangle_ppmm_s134_0_mhsq_rat_dp.o \
+hjetmass_triangle_ppmm_s134_0_mhsq_rat.o \
+hjetmass_triangle_ppmm_s14_0_0_dp.o \
+hjetmass_triangle_ppmm_s14_0_0.o \
+hjetmass_triangle_ppmm_s14_s124_0_dp.o \
+hjetmass_triangle_ppmm_s14_s124_0.o \
+hjetmass_triangle_ppmm_s14_s124_0_rat_dp.o \
+hjetmass_triangle_ppmm_s14_s124_0_rat.o \
+hjetmass_triangle_ppmm_s14_s134_0_dp.o \
+hjetmass_triangle_ppmm_s14_s134_0.o \
+hjetmass_triangle_ppmm_s14_s134_0_rat_dp.o \
+hjetmass_triangle_ppmm_s14_s134_0_rat.o \
+hjetmass_triangle_ppmm_s23_0_0_dp.o \
+hjetmass_triangle_ppmm_s23_0_0.o \
+hjetmass_triangle_ppmm_s234_0_mhsq_dp.o \
+hjetmass_triangle_ppmm_s234_0_mhsq.o \
+hjetmass_triangle_ppmm_s234_0_mhsq_rat_dp.o \
+hjetmass_triangle_ppmm_s234_0_mhsq_rat.o \
+hjetmass_triangle_ppmm_s23_mhsq_s14_dp.o \
+hjetmass_triangle_ppmm_s23_mhsq_s14.o \
+hjetmass_triangle_ppmm_s23_mhsq_s14_rat_dp.o \
+hjetmass_triangle_ppmm_s23_mhsq_s14_rat.o \
+hjetmass_triangle_ppmm_s23_s123_0_dp.o \
+hjetmass_triangle_ppmm_s23_s123_0.o \
+hjetmass_triangle_ppmm_s23_s123_0_rat_dp.o \
+hjetmass_triangle_ppmm_s23_s123_0_rat.o \
+hjetmass_triangle_ppmm_s23_s234_0_dp.o \
+hjetmass_triangle_ppmm_s23_s234_0.o \
+hjetmass_triangle_ppmm_s23_s234_0_rat_dp.o \
+hjetmass_triangle_ppmm_s23_s234_0_rat.o \
+hjetmass_triangle_pppm_s123_0_mhsq_dp.o \
+hjetmass_triangle_pppm_s123_0_mhsq.o \
+hjetmass_triangle_pppm_s123_0_mhsq_rat_dp.o \
+hjetmass_triangle_pppm_s123_0_mhsq_rat.o \
+hjetmass_triangle_pppm_s124_0_mhsq_dp.o \
+hjetmass_triangle_pppm_s124_0_mhsq.o \
+hjetmass_triangle_pppm_s124_0_mhsq_rat_dp.o \
+hjetmass_triangle_pppm_s124_0_mhsq_rat.o \
+hjetmass_triangle_pppm_s134_0_mhsq_dp.o \
+hjetmass_triangle_pppm_s134_0_mhsq.o \
+hjetmass_triangle_pppm_s134_0_mhsq_rat_dp.o \
+hjetmass_triangle_pppm_s134_0_mhsq_rat.o \
+hjetmass_triangle_pppm_s14_0_0_dp.o \
+hjetmass_triangle_pppm_s14_0_0.o \
+hjetmass_triangle_pppm_s14_s124_0_dp.o \
+hjetmass_triangle_pppm_s14_s124_0.o \
+hjetmass_triangle_pppm_s14_s124_0_rat_dp.o \
+hjetmass_triangle_pppm_s14_s124_0_rat.o \
+hjetmass_triangle_pppm_s14_s134_0_dp.o \
+hjetmass_triangle_pppm_s14_s134_0.o \
+hjetmass_triangle_pppm_s14_s134_0_rat_dp.o \
+hjetmass_triangle_pppm_s14_s134_0_rat.o \
+hjetmass_triangle_pppm_s234_0_mhsq_dp.o \
+hjetmass_triangle_pppm_s234_0_mhsq.o \
+hjetmass_triangle_pppm_s234_0_mhsq_rat_dp.o \
+hjetmass_triangle_pppm_s234_0_mhsq_rat.o \
+hjetmass_triangle_pppm_s23_mhsq_s14_dp.o \
+hjetmass_triangle_pppm_s23_mhsq_s14.o \
+hjetmass_triangle_pppm_s23_mhsq_s14_rat_dp.o \
+hjetmass_triangle_pppm_s23_mhsq_s14_rat.o \
+hjetmass_triangle_pppm_s34_0_0_dp.o \
+hjetmass_triangle_pppm_s34_0_0.o \
+hjetmass_triangle_pppm_s34_mhsq_s12_dp.o \
+hjetmass_triangle_pppm_s34_mhsq_s12.o \
+hjetmass_triangle_pppm_s34_mhsq_s12_rat_dp.o \
+hjetmass_triangle_pppm_s34_mhsq_s12_rat.o \
+hjetmass_triangle_pppm_s34_s134_0_dp.o \
+hjetmass_triangle_pppm_s34_s134_0.o \
+hjetmass_triangle_pppm_s34_s134_0_rat_dp.o \
+hjetmass_triangle_pppm_s34_s134_0_rat.o \
+hjetmass_triangle_pppm_s34_s234_0_dp.o \
+hjetmass_triangle_pppm_s34_s234_0.o \
+hjetmass_triangle_pppm_s34_s234_0_rat_dp.o \
+hjetmass_triangle_pppm_s34_s234_0_rat.o \
+hjetmass_triangle_pppp_s123_0_mhsq_dp.o \
+hjetmass_triangle_pppp_s123_0_mhsq.o \
+hjetmass_triangle_pppp_s123_0_mhsq_rat_dp.o \
+hjetmass_triangle_pppp_s123_0_mhsq_rat.o \
+hjetmass_triangle_pppp_s124_0_mhsq_dp.o \
+hjetmass_triangle_pppp_s124_0_mhsq.o \
+hjetmass_triangle_pppp_s124_0_mhsq_rat_dp.o \
+hjetmass_triangle_pppp_s124_0_mhsq_rat.o \
+hjetmass_triangle_pppp_s134_0_mhsq_dp.o \
+hjetmass_triangle_pppp_s134_0_mhsq.o \
+hjetmass_triangle_pppp_s134_0_mhsq_rat_dp.o \
+hjetmass_triangle_pppp_s134_0_mhsq_rat.o \
+hjetmass_triangle_pppp_s234_0_mhsq_dp.o \
+hjetmass_triangle_pppp_s234_0_mhsq.o \
+hjetmass_triangle_pppp_s234_0_mhsq_rat_dp.o \
+hjetmass_triangle_pppp_s234_0_mhsq_rat.o \
+hjetmass_qqbgg_box_pmpp_0_0_s12_mhsq_s34_s123_dp.o \
+hjetmass_qqbgg_triangle_pmpp_s34_mhsq_s12_dp.o \
+hjetmass_qqbgg_box_pmpm_0_0_s12_mhsq_s34_s123_dp.o \
+hjetmass_qqbgg_triangle_pmpm_s34_mhsq_s12_dp.o \
+hjetmass_qqbgg_box_pmmp_0_0_s12_mhsq_s34_s123_dp.o \
+hjetmass_qqbgg_triangle_pmmp_s34_mhsq_s12_dp.o
+
+
 INTEGRATEFILES = \
 dgauss.o \
-vegas.o \
 ebook.o \
 mbook.o \
-tmpmbook.o \
-ran0.o \
-ran1.o \
-ran2nr.o \
-rn.o
+cxx11_random.cpo \
+cxx11_random_mod.o \
+updatehisto.o
 
 LIBFILES = \
 cli2.o \
@@ -943,7 +1460,8 @@ lenocc.o \
 Li2.o \
 Li3.o \
 Li4.o \
-WGPLG.o
+WGPLG.o \
+cln.o
 
 SPINORFILES = \
 fillgam.o \
@@ -958,8 +1476,11 @@ pol_real.o \
 cdot.o
 
 NEEDFILES = \
-qlinit.o \
-ffinit_mine.o \
+usercode_f77.o \
+olo_dummy.o \
+lhcbcode.o \
+set_anomcoup.o \
+debugtools_m.o \
 maketaucut.o \
 maketaucut_bb.o \
 mcfm_writelhe.o \
@@ -972,9 +1493,6 @@ hbbdecay_v.o \
 arraysort.o \
 aveptjet.o \
 banner.o \
-basic_di_frix.o \
-basic_frix.o \
-basic_Vfrix.o \
 boost.o \
 boostx.o \
 branch.o \
@@ -1006,7 +1524,6 @@ getbs.o \
 getptilde.o \
 getptildejet.o \
 getptQ1.o \
-gtperp.o \
 higgsp.o \
 higgsw.o \
 histofin.o \
@@ -1023,6 +1540,7 @@ mcfm_exit.o \
 mcfm_init.o \
 mcfm_vegasnr.o \
 mcfm_vegas_nnlo.o \
+mcfm_vegas_adaptive.o \
 vegasnr.o \
 massfrun.o \
 ptyrap.o \
@@ -1031,8 +1549,8 @@ read_jetcuts.o \
 read_dm_params.o\
 readcoup.o \
 reader_input.o \
-realhistos.o \
 reset_aem.o \
+relativeewhisto.o \
 Rgen.o \
 scaleset.o \
 scaleset_m34.o \
@@ -1044,6 +1562,7 @@ scaleset_Msqpt5sq.o \
 scaleset_Msqptj1sq.o \
 scaleset_Msqsumptjsq.o \
 scaleset_m34sqsumptjsq.o \
+scaleset_ptj1.o \
 scaleset_ptphoton.o \
 scaleset_HT.o \
 scaleset_ddis.o \
@@ -1071,7 +1590,7 @@ writeinput.o \
 writeout.o \
 writereference.o \
 dips_mass.o \
-zeromsq.o \
+zeromsq.o
 
 PARTONFILES = \
 checkpath.o \
@@ -1087,7 +1606,6 @@ gen2a.o \
 gen2jet.o \
 gen2m.o \
 gen3.o \
-gen3a.o \
 gen3b.o \
 gen3h.o \
 gen_higgszgam.o \
@@ -1097,12 +1615,9 @@ gen3jetgaga.o \
 gen3m.o \
 gen3m_rap.o \
 gen3mdk.o \
-gen3from2.o \
 gen4.o \
 gen4_intf.o \
 gen4_3m.o \
-gen4a.o \
-gen4from3.o \
 gen4h.o \
 gen4handc.o \
 gen4m.o\
@@ -1112,8 +1627,7 @@ gen_HZgamj.o \
 gen5.o \
 gen5h.o \
 phase5h.o \
-gen5a.o \
-gen5from4.o \
+phase5Vgam.o \
 gen5mdk.o \
 gen6.o \
 gen6_rap.o \
@@ -1135,13 +1649,7 @@ gen_soft.o \
 gen_Vphotons_jets.o \
 gen_Vphotons_jets_dkrad.o \
 gen_Vphotons_jets_dkrad2.o \
-genff.o \
-genii.o \
-genif.o \
-genrad.o \
-genrff.o \
-genrif.o \
-genrii.o \
+genVphoton.o \
 gen_stop.o \
 phase2.o \
 phase3.o \
@@ -1149,6 +1657,7 @@ phase3m.o \
 phase4.o \
 phase41.o \
 phase4m.o \
+phase4Vgam.o \
 phase5.o \
 phase5a.o \
 phase51.o \
@@ -1183,10 +1692,7 @@ gen_realps.o \
 lowint.o \
 realint.o \
 virtint.o \
-scetint.o \
-virtfin.o \
-resmNLLint.o \
-resmNNLLint.o
+scetint.o 
 
 QQHFILES = \
 qq_Hqq_g.o \
@@ -1474,6 +1980,7 @@ ggttz.o
 USERFILES = \
 autoplots.o \
 bookplot.o \
+bookrelew.o \
 cdfhwwcuts.o \
 cms_higgsWW.o \
 ATLAS_hww.o \
@@ -1484,10 +1991,8 @@ CMS_hzz_vbf.o \
 dm_cuts.o\
 deltarj.o \
 durhamalg.o \
-eventhandler.o \
 etdoublebin.o \
 METHTdoublebin.o \
-fill_APPLgrid.o \
 fill_stdhep.o \
 filterW_bjet.o \
 filterWbbmas.o \
@@ -1530,6 +2035,8 @@ nplotter_tbbar.o \
 nplotter_ttbar.o \
 nplotter_ttw.o \
 nplotter_ttZ.o \
+nplotter_tt_tot.o \
+nplotter_twojet.o \
 nplotter_Vgamma.o \
 nplotter_VV.o \
 nplotter_VHbbar.o \
@@ -1544,6 +2051,7 @@ nplotter_WWjet.o \
 nplotter_zgamgam.o \
 nplotter_zgamjet.o \
 nplotter_Zbbbar.o \
+nplotter_Zjets.o \
 nplotter_Ztj.o \
 nplotter_Ztjdk.o \
 nplotter_ZZlept.o \
@@ -1594,6 +2102,7 @@ W1JETFILES = \
 A5NLO.o \
 A51.o \
 A52.o \
+A53.o \
 qqb_w1jet_gs.o \
 qqb_w1jet_v.o \
 qqb_w1jet_z.o \
@@ -1759,6 +2268,14 @@ triangle7new.o \
 triangle9new.o \
 vpole.o \
 wwamps.o
+
+DIBOSONFILES := $(DIBOSONFILES) \
+zgamma_amps.o \
+wzgamma_scheme.o \
+spinoru_s.o \
+omega_wzgamma.o \
+lumxmsq_zgamma.o \
+vvconfig_m.o
 
 WZFILES = \
 qqb_wz.o \
@@ -1926,6 +2443,16 @@ qqb_z1jet_z.o \
 qqb_z_gvec.o
 
 Z2JETFILES = \
+A6axBDK.o \
+BDKqqbggAxAmp.o \
+qqbggAxbox3x12x4.o \
+qqbggAxbox3x4x12.o \
+qqbggAxslCoeffs.o \
+qqbggAxtri123x4x56.o \
+qqbggAxtri12x3x456.o \
+qqbZgg_floop.o \
+qqbZggtree.o \
+Ltfunctions.o \
 qqb_z2jetx_new.o \
 qqb_z2jet_gvecx_new.o \
 qqb_z2jet_gs_new.o \
@@ -1938,8 +2465,10 @@ a63.o \
 a63z.o \
 a6ax.o \
 atreez.o \
+A6texact.o \
 fmt.o \
 fzip.o \
+Ftexact.o \
 makem.o \
 makemb.o \
 msq_ZqqQQg.o \
@@ -1994,29 +2523,30 @@ qqb_zgam_fragdips.o \
 qqb_zgam_frag.o
 
 ZGAMJETFILES = \
+a6treega.o \
 a6treeQL.o \
-a6virtQL_lc.o \
 a6virtQL_slc.o \
-a6virtQL_floop.o \
-amp_zqqagg_ql.o \
-amp_zqqQQgam_ql.o \
-qqb_z2jetx_swap.o\
-xzqqag.o \
-xzqqag_v.o \
-xzqqag_n.o \
-xzqqagg.o \
-xzqqQQa.o \
-msq_zqqbagg.o \
-msq_zqqbQQba.o \
-qqb_zaj.o \
-qqb_zaj_v.o \
-qqb_zaj_gvec.o \
-qqb_zaj_z.o \
-qqb_zaj_g.o \
-qqb_zaj_gs.o \
-qqb_zaj_swap.o \
+qqb_z2jetx_swap.o \
 qqb_zaj_frag.o \
-qqb_zaj_fragdips.o
+qqb_zaj_fragdips.o \
+amp_zqqagg_ql.o 
+
+ZAJFILES = \
+zaj_utils.o \
+zaj_tree_mod.o \
+zaj_tree.o \
+zaj_virt_mod.o \
+zaj_virt_l_mod.o \
+zaj_virt.o \
+zajj_tree.o \
+zajj_tree_mod.o \
+omega_ee3jet_m.o \
+zajj_anomcoup_mod.o \
+zajj_assembly_qqbQQb.o \
+zajj_assembly_qqbgg.o \
+qqb_zaj_z.o \
+qqb_zaj_gs.o \
+qqb_zaj_gvec.o
 
 ZGAMGAMFILES = \
 a6virtLL.o \
@@ -2031,6 +2561,11 @@ qqb_zaa_z.o \
 qqb_zaa_frag.o \
 qqb_zaa_fragdips.o
 
+WGAJETFILES = \
+amp_wqqagg.o \
+msq_wqqbagg.o \
+qqb_waj_g.o \
+xwqqagg.o
 
 WGAMGAMFILES = \
 msqWaa.o \
@@ -2170,23 +2705,17 @@ qqb_zbjet_gs.o \
 qqb_zbjet_v.o \
 qqb_zbjet_z.o
 
-# ifeq ($(GRID),APPLGRID)
-# USERFILES += mcfm_grid.o gridwrap.o
-# else
-USERFILES += gridwrap.o
-# endif
+APPLGRID= \
+gridwrap_dummy.o \
+fill_APPLgrid.o
 
-LIBDIR=.
-LIBFLAGS=-ljetvheto -lqcdloop$(LIBEXT) -lff$(LIBEXT) -lov$(LIBEXT) -lpv$(LIBEXT) -lsmallG$(LIBEXT) -lsmallY$(LIBEXT) -lsmallP$(LIBEXT) -lsmallF$(LIBEXT)
+LIBDIR=$(MCFMHOME)/qcdloop-2.0.2/local/lib
+LIBFLAGS=-lqcdloop -lov -lpv  -lpvext -lsmallG -lsmallY -lsmallP -lsmallF -lstdc++
 
-# the files that do not go into the library                                                      
-NONLIB= \
-$(MAIN) \
-usercode.o  
 
 # Check NTUPLES flag
 ifeq ($(NTUPLES),FROOT)
-  USERFILES += mcfm_froot.o froot.co
+  USERFILES += mcfm_froot.o froot.cpo
   LIBFLAGS += $(ROOTLIBS)
   NTUPMSG='   ----> MCFM compiled with FROOT n-tuple output <----'
  else
@@ -2212,26 +2741,16 @@ ifeq ($(NTUPLES),FROOT)
   endif
 endif
 
-# Check PDFROUTINES flag and add appropriate files
-ifeq ($(PDFROUTINES),PDFLIB)
-   PARTONFILES += \
-   alfamz.o \
-   fdist_pdflib.o \
-   pdfwrap_pdflib.o
-   LIBDIR=$(CERNLIB)
-   LIBFLAGS += -lpdflib804
-   ifeq (,$(findstring packlib,$(LIBFLAGS)))
-     LIBFLAGS += -lpacklib -lmathlib
-   endif
-   PDFMSG='   ----> MCFM compiled with PDFLIB routines <----'
-else
 ifeq ($(PDFROUTINES),LHAPDF)
    PARTONFILES += \
    alfamz_lhapdf.o \
    fdist_lhapdf.o \
    pdfwrap_lhapdf.o
-   LIBDIR += -L$(LHAPDFLIB)
    LIBFLAGS += -lLHAPDF
+   ifeq ($(LHAPDFLIB),)
+   else
+     LIBDIR += -Wl,-rpath=$(LHAPDFLIB) -L$(LHAPDFLIB)
+   endif
    PDFMSG='   ----> MCFM compiled with LHAPDF routines <----'
 else
 ifeq ($(PDFROUTINES),NATIVE)
@@ -2239,6 +2758,7 @@ ifeq ($(PDFROUTINES),NATIVE)
    alfamz.o \
    CT10Pdf.o \
    CT14Pdf.o \
+   CT14Pdfqed.o \
    POLINT4F.o \
    Ctq4Fn.o \
    Ctq5Par.o \
@@ -2259,37 +2779,20 @@ ifeq ($(PDFROUTINES),NATIVE)
    mrst2004.o \
    mrst2004f3.o \
    mrst2004f4.o \
+   mrst2004qed.o \
    mstwpdf.o \
    MMHTmstwpdf.o \
    mt.o \
    NNPDFDriver.o \
-   eks98r.o \
    fdist_linux.o \
-   pdfwrap_linux.o
+   pdfwrap_linux.o \
+   eks98r.o
    PDFMSG='   ----> MCFM compiled with its own PDFs only <----'
 else
    ERRORMSG=Please set PDFROUTINES equal to NATIVE/PDFLIB/LHAPDF
    $(error $(ERRORMSG))
 endif
 endif
-endif
-
-ifeq ($(LINKONELOOP),YES)
-  LIBDIR += -L$(OLODIR)
-  LIBFLAGS += -lavh_olo
-else
-  NONLIB += olo_dummy.o
-  NONLIBOMP += olo_dummy.o
-endif
-
-#LIBDIR += -L~/Madgraph/madgraph_1.10/lib
-# Master program.
-# extra lines: -L$(CRNLIB) -L~/Madgraph/madgraph_1.10/lib
-#              -ldhelas
-
-#LIBFLAGS += -ldhelas
-
-OMPTEST = $(PARTONFILES) testff.o
 
 OURCODE = $(LIBFILES) $(NEEDFILES)  $(PROCDEPFILES) $(SPINORFILES) \
           $(PHASEFILES) $(SINGLETOPFILES) \
@@ -2298,9 +2801,11 @@ OURCODE = $(LIBFILES) $(NEEDFILES)  $(PROCDEPFILES) $(SPINORFILES) \
           $(WCJETFILES) $(WBFROMCFILES) $(WBJETFILES) \
 	  $(W2JETVIRTFILES) $(WHBBARFILES) $(WGAMFILES) $(ZGAMFILES) \
           $(WWFILES) $(WZFILES) $(ZFILES) $(ZHBBARFILES) \
+		  $(DIBOSONFILES) \
+		$(WGAJETFILES)\
           $(ZZFILES) $(ZGFILES) $(W1JETFILES) $(Z2JETFILES) \
 	    $(Z1JETFILES) $(HWWFILES) $(HZZFILES) $(VVFILES) \
-          $(TAUTAUFILES) $(HTTBARFILES) \
+          $(TAUTAUFILES) $(HTTBARFILES) $(HJETFILES) \
           $(BBHIGGSFILES) $(WBBFILES) $(ZBBFILES) \
           $(QQHFILES) $(QQHWWFILES) $(QQHZZFILES) $(GGHFILES) $(GGHGFILES) \
           $(GGHGGREALFILES) $(GGHGGvirtFILES) $(H4PCODEFILES) \
@@ -2311,122 +2816,76 @@ OURCODE = $(LIBFILES) $(NEEDFILES)  $(PROCDEPFILES) $(SPINORFILES) \
 	  $(GAMGAMFILES) $(DIRGAMFILES) \
 	  $(WBBMFILES) $(ZBBMFILES) $(FRAGFILES) \
 	  $(TOPDKBSYFILES) $(TOPDECAYFILES) \
-	  $(GGHZGAFILES) $(ZGAMJETFILES) $(ZGAMGAMFILES) \
+	  $(GGHZGAFILES) $(ZGAMJETFILES) $(ZAJFILES) $(ZGAMGAMFILES) \
 	  $(WGAMGAMFILES) $(HHFILES) \
 	  $(SINGLETOPHFILES) $(SINGLETOPZFILES) \
 	  $(DMFILES) $(TRIGAMFILES) $(FOURGAMFILES) \
 	  $(WPMZBJFILES) $(MULTICHANFILES) \
 	  $(PWGPLOTSFILES) \
 	  $(CHECKINGFILES) $(UTOOLSFILES) $(WBFFILES) \
-          $(SCETFILES)  $(SCET0jFILES) $(TDHPLFILES) $(WH1JETFILES)
+          $(SCETFILES) $(SCET0jFILES) $(TDHPLFILES) $(WH1JETFILES) $(EWFILES) \
+		  $(INTEGRATEFILES)
           
-OTHER = $(INTEGRATEFILES) $(PARTONFILES) $(WPWP2JFILES) $(F90FILES) 
+OTHER = $(PARTONFILES) $(WPWP2JFILES) $(F90FILES) 
 
-ALLMCFM = $(OURCODE) $(OTHER) $(NONLIB)
-ALLMCFMOMP = $(OURCODE) $(OTHER) $(NONLIBOMP)
-MCFMLIB = $(OURCODE) $(OTHER) 
+ALLMCFM = $(OURCODE) $(MAIN) $(OTHER)
 
 ifeq ($(USEMPI),YES)
 else
   OURCODE += mpi_stubs.o
 endif
 
-
-# CERNLIB libraries for PDFLIB: -lpdflib804 -lmathlib -lpacklib 
-
-mcfm$(LIBEXT): $(ALLMCFM)
-	$(FC) $(FFLAGS) -L$(LIBDIR) -L$(QLDIR) -L$(FFDIR) -L$(PVDIR) -L$(RECURDIR) -L$(OVDIR) -L$(JETVHETODIR) -o $@ \
-	$(patsubst %,$(OBJNAME)/%,$(ALLMCFM)) $(LIBFLAGS) 
-	mv mcfm$(LIBEXT) Bin/
-	@echo $(PDFMSG)
-	@echo $(NTUPMSG)
-	@echo "   ----> Executable is mcfm$(LIBEXT) <----"
-
-test: $(OMPTEST)
-	$(FC) -Wall $(FFLAGS) -L$(QLDIR) -L$(FFDIR)  -o $@ \
-	$(patsubst %,$(OBJNAME)/%,$(OMPTEST)) -lqcdloop -lff  
-	mv test Bin/
-	@echo $(PDFMSG)
-	@echo $(NTUPMSG)
-
-mcfmalt: mcfmlib $(NONLIB)
-	$(FC) $(FFLAGS) -L$(LIBDIR) -L$(QLDIR) -L$(FFDIR) -L$(PVDIR) -L$(RECURDIR) -L$(OVDIR) -L$(JETVHETODIR) -o $@ \
-	$(patsubst %,$(OBJNAME)/%,$(NONLIB)) -lmcfm $(LIBFLAGS) 
-	mv mcfmalt Bin/mcfm
-	@echo $(PDFMSG)
-	@echo $(NTUPMSG)
-
-mcfmcc: mcfmlib $(MAIN) cxxusercode.o
-	$(FC) $(FFLAGS) -L$(LIBDIR) -L$(QLDIR) -L$(FFDIR) -L$(PVDIR) -L$(RECURDIR) -L$(OVDIR) -L$(JETVHETODIR) -o $@ \
-	$(patsubst %,$(OBJNAME)/%,$(MAIN)) $(OBJNAME)/cxxusercode.o -lmcfm $(LIBFLAGS) \
-	`fastjet-config` --libs -lstdc++
-	mv mcfmcc Bin/
-	@echo $(PDFMSG)
-	@echo $(NTUPMSG)
-
-mcfmlib: $(MCFMLIB)
-	ar -r libmcfm.a $(patsubst %,$(OBJNAME)/%,$(MCFMLIB))
-	ranlib libmcfm.a
-
-# for FROOT package
-%.co: %.c
-	$(CXX) -c $(CXXFLAGS) $(DMYROOT) $(ROOTINCLUDE) -o $(OBJNAME)/$@ $<
-# TM Include F90 files too
-%.o: %.f90
-	$(F90) $(F90FLAGS) -c -o $(OBJDIR)/$@ $<
-
-%.o: %.cc
-	$(CXX) -c $(CXXFLAGS) `fastjet-config --cxxflags` -o $(OBJNAME)/$@ $<
-
-# for c++ targets
-#%.o: %.cxx
-#	$(CXX) -c $(CXXFLAGS) -o obj/$@ $<
-# -----------------------------------------------------------------------------
-# Specify other options.
-
-FTNCHEKPATH = /home/ellis/Fortran/Ftnchek/ftnchek-3.1.2
-FORCHKPATH = /home/ellis/bin/
+#FTNCHEKPATH = /home/ellis/Fortran/Ftnchek/ftnchek-3.1.2
+#FORCHKPATH = /home/ellis/bin/
 
 # Specify the dependencies of the .o files and the rules to make them.
 
 FOROPTS = -include=$(INCPATH) -nonovice -nopretty -quiet
 
-.SUFFIXES: .prj
+#.SUFFIXES: .prj
 
 # improved so that .prj files are moved out of src directory and
 # into base, only for .f files that don't already exist there
-.f.prj: 
-		$(FTNCHEKPATH)/ftnchek -project -noextern\
-            $(FOROPTS) $< ; \
-            if ! [ -e $(MCFMHOME)/$(notdir $<) ] ; then \
-            mv $(basename $<).prj $(MCFMHOME) ; fi
-            
-PRJS =      $(OURCODE:.o=.prj) 
+#.f.prj:
+#		$(FTNCHEKPATH)/ftnchek -project -noextern\
+#            $(FOROPTS) $< ; \
+#            if ! [ -e $(MCFMHOME)/$(notdir $<) ] ; then \
+#            mv $(basename $<).prj $(MCFMHOME) ; fi
 
-check:      $(PRJS) 
-		$(FTNCHEKPATH)/ftnchek $(FOROPTS) $(PRJS)
+#PRJS =      $(OURCODE:.o=.prj)
+#check:      $(PRJS)
+#		$(FTNCHEKPATH)/ftnchek $(FOROPTS) $(PRJS)
+#PRJSF =      $(OURCODE:.o=.f)
+#checkf:
+#		$(FORCHKPATH)/forchk -allc -I $(INCPATH) $(PRJSF)
 
 
 
-PRJSF =      $(OURCODE:.o=.f) 
+Bin/mcfm_omp: $(ALLMCFM)
+	@$(FC) $(FFLAGS) -L$(LIBDIR) -L$(PVDIR) -L$(RECURDIR) -L$(OVDIR) -o $@ \
+	$(patsubst %,$(OBJNAME)/%,$(ALLMCFM)) $(LIBFLAGS) 
+	@echo $(PDFMSG)
+	@echo $(NTUPMSG)
+	@echo "   ----> Executable is mcfm_omp <----"
 
-checkf:      
-		$(FORCHKPATH)/forchk -allc -I $(INCPATH) $(PRJSF)
+%.cpo: %.cpp
+	$(CXX) -std=c++11 -c $(CXXFLAGS) $(INCPATH) -o $(OBJNAME)/$@ $<
+
+%.o: %.f90
+	$(FC) $(FFLAGS) -c -o $(OBJNAME)/$@ $<
+
+%.o: %.f
+	$(FC) $(FFLAGS) -c -o $(OBJNAME)/$@ $<
 
 clean:
-	- rm -f *.o obj/*.o obj/*.mod obj_omp/*.o obj_omp/*.mod Bin/mcfm QCDLoop/*/*.o *.s *.prj *~ core
+	- rm -f obj/*.o obj/*.cpo obj/*.mod Bin/mcfm_omp
+
+debug: Bin/mcfm_omp
+	cd $(BIN) && OMP_NUM_THREADS=1 gdb -ex run ./mcfm_omp
+
+run: Bin/mcfm_omp
+	cd $(BIN) && ./mcfm_omp
 
 # -----------------------------------------------------------------------------
 
-# DO NOT DELETE
-
-consts_dp.o:
-spinfns.o: consts_dp.o
-recurrenceA.o: consts_dp.o spinfns.o
-recurrenceB.o: consts_dp.o spinfns.o recurrenceA.o
-recurrenceC.o: consts_dp.o spinfns.o recurrenceA.o recurrenceB.o
-recurrence.o: consts_dp.o spinfns.o recurrenceA.o recurrenceB.o recurrenceC.o
-qqqqampl.o: consts_dp.o spinfns.o recurrence.o
-qqqqgampl.o: consts_dp.o spinfns.o recurrence.o
-qqb_wpwp_qqb.o: qqqqampl.o consts_dp.o
-qqb_wpwp_qqb_g.o: qqqqgampl.o consts_dp.o
+include depends.mk

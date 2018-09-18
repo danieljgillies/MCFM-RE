@@ -4,6 +4,7 @@
 !  C.~Anastasiou, E.~W.~N.~Glover and M.~E.~Tejeda-Yeomans,
 !     Eq. B.10
       real(dp):: AGTYG2u
+      include 'constants.f'
       include 'zeta.f'
       real(dp)::s,t,Lx,Ly,Lu
 

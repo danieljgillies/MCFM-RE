@@ -1,4 +1,5 @@
        subroutine HHamps(p1,p2,p3,p4,gauge)
+         use mod_qcdloop_c
       implicit none
       include 'types.f'
 C--    Formula taken from Glover and van der Bij
@@ -10,17 +11,10 @@ C--    Nucl. Phys. B309 (1988) 202
       include 'cplx.h'
       include 'masses.f'
       include 'scale.f'
-      include 'first.f'
       real(dp):: p1(4),p2(4),p3(4),p4(4),ss,tt,uu,
      & p3sq,p4sq,mQsq,mhsq
       complex(dp):: triangle(1,2),box(1,2),gauge(1,2),
-     & D123,D213,D132,C12,C23,C13,C34,qlI4,qlI3
-
-c--- initialize QCDLoop, if necessary
-      if (first) then
-        call qlinit
-        first=.false.
-      endif
+     & D123,D213,D132,C12,C23,C13,C34
 
 C----Signs for momenta chosen such that p1+p2+p3+p4=0
       ss=(p1(4)+p2(4))**2

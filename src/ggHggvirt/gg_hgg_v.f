@@ -21,7 +21,7 @@ c    Calculation is fully analytic
       include 'hdecaymode.f'
       integer:: j,k
       real(dp):: p(mxpart,4),msq(fn:nf,fn:nf),s34
-      real(dp):: hdecay,Asq,fac,msqgamgam
+      real(dp):: hdecay,Asq,fac,msqhgamgam
       real(dp):: qrqr,qarb,aqbr,abab,qbra,bqar
       real(dp):: qaqa,aqaq,qqqq,aaaa
       real(dp):: qagg,aqgg,qgqg,gqqg,agag,gaag,ggqa
@@ -64,7 +64,7 @@ C   Deal with Higgs decay
       elseif (hdecaymode == 'bqba') then
           call hbbdecay(p,3,4,hdecay)
       elseif (hdecaymode == 'gaga') then
-          hdecay=msqgamgam(hmass)
+          hdecay=msqhgamgam(s34)
       else
       write(6,*) 'Unimplemented process in gg_hgg_v'
       stop

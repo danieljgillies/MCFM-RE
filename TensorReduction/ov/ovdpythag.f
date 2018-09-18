@@ -2,8 +2,9 @@ C  (C) Copr. 1986-92 Numerical Recipes Software ]2w.1,r1..
 
       FUNCTION ovdpythag(a,b)
       implicit none
-      DOUBLE PRECISION a,b,ovdpythag
-      DOUBLE PRECISION absa,absb
+      include 'types.f'
+      REAL(DP):: a,b,ovdpythag
+      REAL(DP):: absa,absb
       absa=abs(a)
       absb=abs(b)
       if(absa.gt.absb)then

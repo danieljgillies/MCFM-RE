@@ -21,5 +21,3 @@
      &     ag_scale,refwt,refwt2,
      &     contrib,dipole
 !$omp threadprivate(/gridweight/,/gridevent/)
-      
-

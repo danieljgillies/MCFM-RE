@@ -6,10 +6,10 @@ endif
 FFLAGS 	= -g
 
 recurdir:
-	(cd smallG; make) 
-	(cd smallY; make) 
-	(cd smallP; make) 
-	(cd smallF; make) 
+	(cd smallG; $(MAKE)) 
+	(cd smallY; $(MAKE)) 
+	(cd smallP; $(MAKE)) 
+	(cd smallF; $(MAKE)) 
 
 # -----------------------------------------------------------------------------
 

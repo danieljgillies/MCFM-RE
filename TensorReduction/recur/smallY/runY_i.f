@@ -5,6 +5,7 @@ C---  Calculates Di, requires D00i
 C---  Small terms of order Xtwiddle(0,j)*Dii
 C---  Denominator Xtwiddle(i,j)
 
+      include 'types.f'
       include 'TRconstants.f' 
       include 'pvDnames.f' 
       include 'pvDv.f' 
@@ -12,9 +13,9 @@ C---  Denominator Xtwiddle(i,j)
       include 'Darrays.f' 
       integer ep,N0,i,j,i1,n,m,np
       parameter(np=3)
-      double precision Xtwiddle(0:np,0:np),
+      real(dp):: Xtwiddle(0:np,0:np),
      . Gtwiddle(np,np),f(np),Gtt(np,np,np,np)
-      double complex Shat2(np,z1max,-2:0),Czero1(z1max,-2:0),
+      complex(dp):: Shat2(np,z1max,-2:0),Czero1(z1max,-2:0),
      . bit,pole
 
 

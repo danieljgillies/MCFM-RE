@@ -1,4 +1,5 @@
       subroutine upperdk_parttri(q,upper_tri,first)
+        use mod_qcdloop_c
       implicit none
       include 'types.f'
       include 'constants.f'
@@ -259,6 +260,7 @@ c      write(*,*) 'epmin in upperdk_tri', epmin
      & facuLl,facdLl,vert25x1,vert25x2,vert25x3,
      & vert16x2,vert16x3,vert16x4,vert16x5,vert16x6,vert16x7,
      & vert16x8,vert16x9,vert16x10,vert16x11,vert16x12,vert16x13)
+        use mod_qcdloop_c
       implicit none
       include 'types.f'
       include 'constants.f'
@@ -273,7 +275,7 @@ c      write(*,*) 'epmin in upperdk_tri', epmin
       complex(dp):: vert25x1,vert25x2,vert25x3,vert16x2,vert16x3,
      & vert16x4,vert16x5,vert16x6,vert16x7,vert16x8,vert16x9,
      & vert16x10,vert16x11,vert16x12,vert16x13
-      complex(dp):: qlI2diffs346s25(-2:0),qlI2,qlI3,qlI2diff(-2:0)
+      complex(dp):: qlI2diffs346s25(-2:0),qlI2diff(-2:0)
       complex(dp):: qlI2diffs134s25(-2:0)
       complex(dp):: qlI2x25,qlI2x34,qlI2x134,qlI2x346
       real(dp):: p2Dp5

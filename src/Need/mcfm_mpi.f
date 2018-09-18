@@ -12,7 +12,7 @@
 *
       call mpi_init_thread(mpi_thread_multiple,support,ierr)
       call mpi_comm_rank(mpi_comm_world,rank,ierr)      
-      call mpi_comm_size(mpi_comm_world,size,ierr)
+      call mpi_comm_size(mpi_comm_world,world_size,ierr)
       call mpi_get_processor_name(procname,mylen,ierr)
 
       t0=mpi_wtime()

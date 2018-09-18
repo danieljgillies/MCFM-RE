@@ -25,9 +25,11 @@ c---  sqrt(M^2+pt34^2), where M is the mass of the particle (34)
      &   (kcase==kZbbbar) .or.
      &   (kcase==kggfus0) .or.
      &   (kcase==kggfus1) .or.
+     &   (kcase==khjetma) .or.
      &   (kcase==kggfus2) .or.
      &   (kcase==kggfus3) .or.
      &   (kcase==kgagajj) .or.
+     &   (kcase==kh2jmas) .or.
      &   (kcase==khttjet) .or.
      &   (kcase==kHigaga) .or.
      &   (kcase==kHgagaj)) then

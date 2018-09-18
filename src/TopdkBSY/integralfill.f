@@ -1,4 +1,5 @@
       subroutine integralfill(p)
+        use mod_qcdloop_c
       implicit none
       include 'types.f'
 C-----Authors: John Campbell and Keith Ellis, November 2011
@@ -10,18 +11,9 @@ C-----Authors: John Campbell and Keith Ellis, November 2011
       include 'masses.f'
       include 'scale.f'
       include 'massiveintegrals.f'
-      include 'first.f'
       real(dp):: p(mxpart,4)
       integer:: nu,p2,p3,j
       real(dp):: mt2,xbeta2,s12,s13,s23,twop1Dp2,twop1Dp3,gram
-      complex(dp):: qlI4,qlI3,qlI2
-
-
-c--- initialize QCDLoop on first pass
-      if (first) then
-        call qlinit
-        first=.false.
-      endif
 
       do j=1,2
       if (j==1) then 

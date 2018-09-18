@@ -11,8 +11,8 @@
       write(6,*) 'In writeout'
       do n=1,mxpart
       do j=1,4
-      write(6,'(a8,i3,a,i3,a3,g24.15,a2)')
-     & '      p(',n,',',j,') =',p(n,j),'._dp'
+      write(6,'(a8,i3,a,i3,a3,e24.15,a3)')
+     & '      p(',n,',',j,') =',p(n,j),'_dp'
       enddo
       enddo
       write(6,'(a3,4e24.16)') 'p1',p(1,1),p(1,2),p(1,3),p(1,4)

@@ -1,4 +1,5 @@
       subroutine scalardk(q,yscalar)
+        use mod_qcdloop_c
       implicit none
       include 'types.f'
       
@@ -17,7 +18,7 @@
       include 'decl_kininv.f'
       integer:: j3,k1,k2,ep
       complex(dp):: prW,yscalar(2,-2:0),
-     & qlI2,qlI3,qlI2diff(-2:0),izb,
+     & qlI2diff(-2:0),izb,
      & vert25x4,vert16x1,cprop,iprZ
       real(dp):: q(mxpart,4),mtsq
       real(dp):: p2Dp5,sinW,cosW,he

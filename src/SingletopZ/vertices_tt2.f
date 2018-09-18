@@ -2,6 +2,7 @@
      &  vert25x1,vert25x2,vert25x3,vert25x4,vert25x5,vert25x6,
      &  vert25x7,vert25x8,vert25x9,vert25x10,vert25x11,
      &  vert25x12)
+        use mod_qcdloop_c
       implicit none
       include 'types.f'
       include 'constants.f'
@@ -15,7 +16,7 @@
       
       real(dp):: mtsq
       integer:: ep
-      complex(dp):: qlI2,qlI3,epqlI3,ep2qlI3
+      complex(dp):: epqlI3,ep2qlI3
       complex(dp):: facuLl,facuRl,facuRLdiff
       complex(dp):: vert25x1,vert25x2,vert25x3,vert25x4
       complex(dp):: vert25x5,vert25x6,vert25x7,vert25x8,vert25x9

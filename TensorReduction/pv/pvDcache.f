@@ -1,15 +1,16 @@
       integer function pvDcache(p1s,p2s,p3s,p4s,p1p2,p2p3,
      . m1s,m2s,m3s,m4s)
       implicit none
+      include 'types.f'
       include 'pvDnames.f'
       include 'TRclear.f'
+      include 'TRconstants.f'
       include 'TRonshellcutoff.f'
       include 'pvforcerecalc.f'
       include 'pvDitry.f'
-      double precision para(Pdd),p1s,p2s,p3s,p4s,p1p2,p2p3,
-     . m1s,m2s,m3s,m4s
-      integer j,jtable,Ntrue
-      double precision,save:: tableD(Pdd,Ndmax)
+      real(dp):: para(Pdd),p1s,p2s,p3s,p4s,p1p2,p2p3,m1s,m2s,m3s,m4s
+      integer:: j,jtable,Ntrue
+      real(dp),save:: tableD(Pdd,Ndmax)
       integer,save:: Nstore=0
 !$omp threadprivate(tableD,Nstore)
 
@@ -61,7 +62,7 @@ C    and fill the common block starting at position pvDcache
       pvDitry(pvDcache)=-1 ! label tensor as unchecked
       Nstore=Nstore+1
       do j=1,Pdd
-        if(abs(para(j)) .lt. onshellcutoff) para(j)=0d0
+        if(abs(para(j)) .lt. onshellcutoff) para(j)=zero
       enddo
       do j=1,Pdd
       tableD(j,Nstore)=para(j)

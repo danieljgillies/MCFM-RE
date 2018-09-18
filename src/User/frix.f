@@ -1,20 +1,17 @@
-!---------- Generic Frixione Routine, will take eps and delta_0 from input.DAT 
-!--------   n will be har.e-_dpcoded but can be changed below. 
-!--------- C. Williams July 2011 
+!--- Implementation of "Frixione" or "smooth cone" isolation. according to
+!--- the procedure described in S. Frixione,hep-ph/9801442
 
+!---  C. Williams July 2011 
+!---  C. Williams July 2015 -- extended to allow for multiple partons
+!---                           in the cone (can happen at NNLO)
 
-!----- p -momentum array 
-!----- passed, should be obvious!
-!----- j - photon identification in p i.e. p(j,i) = photon(i) 
-!----- isub whether we are working with a dipole or not 
-
-!===== C. Williams July 2015
-!===== extended to allow for multiple partons in the cone which can 
-!==== happen at NNLO, 
       subroutine frix(p,passed,j,isub) 
+!----- p -momentum array passed
+!----- j - photon identification in p i.e. p(j,nu) = photon(nu) 
+!----- isub whether we are working with a dipole or not 
+!----- paramaters eps, delta_0 and n_pow are taken from input.DAT 
       implicit none
       include 'types.f'
-       
       include 'constants.f'
       include 'nf.f'
       include 'mxpart.f'
@@ -35,33 +32,33 @@
       passed=.true. 
 
       if(first) then 
-         first=.false. 
+        first=.false. 
 !----- check for non-zero parameters, if zero exit with warning 
-         if((epsilon_h<vsmall).or.(cone_ang<vsmall)) then 
+        if((epsilon_h<vsmall).or.(cone_ang<vsmall)) then 
 !$omp master
-         if (rank == 0) then
-       write(6,*)
-       write(6,*)'************** Frixione Isolation    ***************'
-       write(6,*)'*   Read zero parameters, not isolating            *'
-       write(6,*) '* Warning, this may be unsafe in general *'
-       write(6,99)'*  eps_phot = ',epsilon_h,' delta_0 = ',cone_ang, '*'
-       write(6,97)'*  n = ',n_pow,'                                   *'
-       write(6,*)'****************************************************'
-         endif
+          if (rank == 0) then
+          write(6,*)
+          write(6,*) '************** Frixione Isolation    ***************'
+          write(6,*) '*   Read zero parameters, not isolating            *'
+          write(6,*) '*   WARNING: this may be unsafe in general         *'
+          write(6,99)'*  eps_phot = ',epsilon_h,' delta_0 = ',cone_ang, '*'
+          write(6,97)'*  n = ',n_pow,'                                   *'
+          write(6,*) '****************************************************'
+          endif
 !$omp end master
-         return
-         endif
+          return
+        endif
       
 
 !$omp master
-       if (rank == 0) then
-       write(6,*)
-       write(6,*)'************** Frixione Isolation    ***************'
-       write(6,*)'*                                                  *'
-       write(6,99)'*  eps_phot = ',epsilon_h,', delta_0 = ',cone_ang,  '*'
-       write(6,97)'*  n = ',n_pow,'                                   *'
-       write(6,*)'****************************************************'
-       endif
+        if (rank == 0) then
+        write(6,*)
+        write(6,*) '************** Frixione Isolation    ***************'
+        write(6,*) '*                                                  *'
+        write(6,99)'*  eps_phot = ',epsilon_h,', delta_0 = ',cone_ang,  '*'
+        write(6,97)'*  n = ',n_pow,'                                   *'
+        write(6,*) '****************************************************'
+        endif
 !$omp end master
       endif
 
@@ -75,14 +72,14 @@
       
       pref=ret_ET(p,j)*epsilon_h/((1._dp-cos(cone_ang))**n_pow)
 !      pref=epsilon_h/((1._dp-cos(cone_ang))**n_pow)
-      ET_had=0_dp
+      ET_had=0._dp
   
 !===== this section is altered now to allow for an additional parton 
 !===== < R_ij inside the cone too, which can happen at NNLO
       itag=0
       do i=3,2+npart-isub
 !===== reset ET_had for each initial hadron
-         ET_had =0_dp 
+         ET_had =0._dp 
 !======first thing, find a hadron inside isolation cone
          if(is_hadronic(i).and.(R(p,i,j)<cone_ang)) then 
             ET_had=ET_had+ret_ET(p,i)
@@ -143,7 +140,7 @@ c                  itag=2
       ptsq=p(j,1)**2+p(j,2)**2
       ret_ET=p(j,4)*sqrt(ptsq)/(sqrt(ptsq+p(j,3)**2))
 
-      if(ptsq==0) ret_ET=0_dp
+      if(ptsq==0) ret_ET=0._dp
       return 
       end
       

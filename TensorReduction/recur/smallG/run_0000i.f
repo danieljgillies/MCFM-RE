@@ -3,6 +3,7 @@
       implicit none 
 C     Fixes D0000i
 C     known D00i,D0000  corrections of order Delta D00iii 
+      include 'types.f'
       include 'TRconstants.f'   
       include 'pvDnames.f'   
       include 'pvDv.f'   
@@ -10,9 +11,9 @@ C     known D00i,D0000  corrections of order Delta D00iii
       include 'Darrays.f'   
       integer ep,N0,k,l,n,m,i1,np 
       parameter(np=3) 
-      double precision DetGr,Gtwiddle(np,np),Gtt(np,np,np,np), 
+      real(dp):: DetGr,Gtwiddle(np,np),Gtt(np,np,np,np), 
      . f(np) 
-      double complex Shat4zz(np,z1max,-2:0),Shat5zzzz(np,-2:0), 
+      complex(dp):: Shat4zz(np,z1max,-2:0),Shat5zzzz(np,-2:0), 
      . S0000i(np,-2:0),Shat5zz(np,z2max,-2:0),bit,pole
         
       do ep=-2,0

@@ -1,4 +1,5 @@
       subroutine computescalars(k1,k2,k3,k4,k5,k6,scints)
+        use mod_qcdloop_c
       implicit none
       include 'types.f'
 c--- routine to compute all scalar integrals used in the Wbbm calculation
@@ -15,13 +16,12 @@ c--- routine to compute all scalar integrals used in the Wbbm calculation
       integer:: k1,k2,k3,k4,k5,k6,nu,iep
       real(dp):: p2(4),p3(4),p23(4),p123(4),p234(4),p1234(4),
      & p12(4),p34(4),s23,s123,s234,s34,s12,s1234,msq
-      complex(dp):: qlI4,qlI3,qlI2,qlI1
       common/writescalars/writescalars
 !$omp threadprivate(/writescalars/)
 
 c--- initialize QCDLoop, if necessary
       if (first) then
-        call qlinit
+c       call qlinit
         first=.false.
         if (writescalars) then
           open(unit=67,file='scalars.out',status='unknown')

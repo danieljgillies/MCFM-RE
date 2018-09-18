@@ -1,5 +1,7 @@
       SUBROUTINE vegasnr(region,ndim,fxn,init,ncall,itmx,nprn,tgral,sd,
-     *chi2a)
+     *chi2a,part,ips)
+        use cxx11random
+        implicit none
       
       include 'types.f'
       include 'constants.f'
@@ -26,7 +28,6 @@
       include 'facscale.f'
       include 'scale.f'
       include 'stopscales.f'
-      include 'qlfirst.f'
       include 'ptilde.f'
       include 'bitflags.f'
       include 'flags.f'
@@ -44,25 +45,31 @@
       include 'epinv2.f'
       include 'histo.f'
       include 'hbbparams.f'
+      include 'anomcoup.f'
+      include 'lhcb.f'
       include 'mpicommon.f'
+      include 'parttypes.f'
       integer:: init,itmx,itmxloop,ndim,nprn,NDMX
       integer(kind=8) ncall,ng,npg,nd,ndo,k
       real(dp):: tgral,chi2a,sd,region(2*mxdim),fxn,ALPH,TINY
+      integer(kind(lord)), intent(in) :: part
+      integer, intent(in) :: ips
 c--- Note: NDMX increased to 100 (from 50) compared with versions 5.1 and
 c---  earlier, to aid calculation of H+2 jets process
       PARAMETER (ALPH=1.5_dp,NDMX=100,TINY=1e-30_dp)
 c--- DEBUG: no adapting
 c      PARAMETER (ALPH=zip,NDMX=100,TINY=1e-30_dp)
       EXTERNAL fxn
-C     USES fxn,ran2,rebin
-      integer:: i,l,idum,it,j,jj,mds,ia(MXDIM),kg(MXDIM)
+C     USES fxn,rebin
+      integer:: i,l,it,j,jj,mds,ia(MXDIM),kg(MXDIM)
       real(dp):: calls,dv2g,dxg,f,f2,rc,ti,tsi,wgt,xjac,
      *xxn,xnd,xo,dt(MXDIM),dx(MXDIM),r(NDMX),x(MXDIM),
-     *xin(NDMX),ran2,ran2nr,dumran
+     *xin(NDMX)
       double precision xi(NDMX,MXDIM),fb,fbr,f2b,f2br,d(NDMX,MXDIM),
      *dr(NDMX,MXDIM),di(NDMX,MXDIM),dir(NDMX,MXDIM)
       real(dp):: schi,si,swgt,p1ext(4),p2ext(4)
       real(dp):: t,ct,cfun,cfun2,cd(NDMX,MXDIM),cdi(NDMX,MXDIM)
+      real(dp) :: shist(nplot,maxnbin)
       character*255 runname
       integer:: nlength
       logical:: bin,dorebin,dryrun,kahan
@@ -74,9 +81,11 @@ C     USES fxn,ran2,rebin
 !$omp threadprivate(/pext/)
       parameter(kahan=.false.)
       integer ierr
+      integer :: lastIter
       SAVE
 
 
+      lastIter = 1
       dorebin=.true.  
       mds=0
       if(init<=0)then
@@ -90,7 +99,7 @@ C     USES fxn,ran2,rebin
         swgt=zip
         schi=zip
       endif
-      if (init<=2)then
+      if (init<=3)then
         nd=NDMX
         ng=1
 c--- DEBUG
@@ -134,6 +143,16 @@ c--- read-in grid if necessary
      &   '_'//ingridfile,' *'
         write(6,*)'****************************************************'
            call flush(6)
+             read(11,'(ES25.15)') si
+             read(11,'(ES25.15)') swgt
+             read(11,'(ES25.15)') schi
+             read(11,'(I10)') lastIter
+             if (init <= 1) then
+                 si = 0._dp
+                 swgt = 0._dp
+                 schi = 0._dp
+                 lastIter = 1
+             endif
            do j=1,ndim
              read(11,203) jj,(xi(i,j),i=1,nd)
            enddo
@@ -174,7 +193,7 @@ c--- in case of target error, cap at 100 iterations
         itmxloop=itmx
       endif
       
-      do 28 it=1,itmxloop
+      do 28 it=lastIter,itmxloop+(lastIter-1)
         ti=zip
         tsi=zip
         do 16 j=1,ndim
@@ -199,28 +218,23 @@ c--- in case of target error, cap at 100 iterations
 !$omp& schedule(dynamic)
 !$omp& default(private)
 !$omp& shared(npg,xjac,ncall,ndim,kg,dxg,xi,region,dx,xnd)
-!$omp& shared(fbr,f2br,dir,dr,cfun,cfun2,cd,cdi,rank,size)
+!$omp& shared(fbr,f2br,dir,dr,cfun,cfun2,cd,cdi,rank,world_size)
 !$omp& copyin(/xmin/,/taumin/,/cutoff/,/jetcuts/,/breit/,/zerowidth/)
 !$omp& copyin(/srdiags/,/vsymfact/,/qcdcouple/,/ewcouple/,/masses/)
 !$omp& copyin(/interference/,/facscale/,/mcfmscale/,/stopscales/)
-!$omp& copyin(/ipsgen/,/pext/,/ColC/,/qlfirst/,/ptildes/)
-!$omp& copyin(/bitflags/,/flags/,/lastphot/)
+!$omp& copyin(/ipsgen/,/pext/,/ColC/,/ptildes/)
+!$omp& copyin(/bitflags/,/flags/,/lastphot/,/lhcb/)
 !$omp& copyin(/QCDb0/,/nodecay/,/swapxz/,/heavyflav/)
 !$omp& copyin(/notag/,/nflav/,/reset/,/pvmaxindex/)
 !$omp& copyin(/epinv/,/epinv2/,/plotindex/,/hbbparams/)
-          do 19 k=1,npg/size
+!$omp& copyin(/anomcoup/)
+          do 19 k=1,npg/world_size
             wgt=xjac
-!$omp critical(VegasRandom)
 c--- note: added (ndim+1) to use as random variable for PS branches 
 c--- note: added (ndim+2) to use as random variable in new_pspace
-            do j=1,size
-               do l=1,ndim+2
-                  dumran=ran2nr()
-                  if (j.eq.rank+1) x(l)=dumran
-!           x(l)=one-ran2() ! this way, agrees with vegas_Pomp
-               enddo
+            do l=1,ndim+2
+              x(l) = cxx11_random_number()
             enddo
-!$omp end critical(VegasRandom)
         do 17 j=1,ndim
               xxn=(kg(j)-x(j))*dxg+one
               ia(j)=max(min(int(xxn),NDMX),1)
@@ -302,6 +316,15 @@ c--- note: added (ndim+2) to use as random variable in new_pspace
      .                 mpi_sum,0,mpi_comm_world,ierr)
        call mpi_reduce(dir,di,NDMX*MXDIM,mpi_double_precision,
      .                 mpi_sum,0,mpi_comm_world,ierr)
+
+       if (bin) then
+        call mpi_reduce(hist,shist,nplot*maxnbin,MPI_DOUBLE_PRECISION,
+     .       mpi_sum,0,mpi_comm_world,ierr)
+        hist(:,:) = shist(:,:)
+
+c       more synchronization for counters here..
+       endif
+
        if (rank.eq.0) then
           f2b=sqrt(f2b*npg)
           f2b=(f2b-fb)*(f2b+fb)
@@ -326,6 +349,10 @@ c--- note: added (ndim+2) to use as random variable in new_pspace
         chi2a=max((schi-si*tgral)/(it-.99_dp),zip)
         sd=sqrt(one/swgt)
         tsi=sqrt(tsi)
+
+        if (bin) then
+          call updatehisto(part,ips,ncall)
+        endif
 
         if(nprn.ge.0)then
 c          write(6,201) it,ti,tsi,tgral,sd,chi2a
@@ -400,6 +427,10 @@ c--- write-out grid if necessary
      &           //outgridfile,'  *'
         write(6,*)'****************************************************'
             call flush(6)
+             write(11,'(ES25.15)') si
+             write(11,'(ES25.15)') swgt
+             write(11,'(ES25.15)') schi
+             write(11,'(I10)') lastIter+itmxloop
             do j=1,ndim
                write(11,203) j,(xi(i,j),i=1,nd)
             enddo

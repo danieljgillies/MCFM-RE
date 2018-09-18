@@ -4,28 +4,29 @@ c--- modified by J. Campbell, 11/14/2012 to better handle comparison
 c--- of floating points using precision given by EPS 
       SUBROUTINE pvdsvdcmp(a,m,n,mp,np,w,v)
       implicit none
-      INTEGER m,mp,n,np,NMAX
-      DOUBLE PRECISION a(mp,np),v(np,np),w(np)
-      PARAMETER (NMAX=500)
+      include 'types.f'
+      include 'TRconstants.f'
+      INTEGER:: m,mp,n,np
+      real(dp)::a(mp,np),v(np,np),w(np)
+      integer,parameter:: nmax=500
 CU    USES pvdpythag
-      INTEGER i,its,j,jj,k,l,nm
-      DOUBLE PRECISION anorm,c,f,g,h,s,scale,x,y,z,rv1(NMAX),pvdpythag
-      double precision EPS
-      parameter(EPS=1d-8)
-      g=0.0d0
-      scale=0.0d0
-      anorm=0.0d0
+      integer:: i,its,j,jj,k,l,nm
+      real(dp):: anorm,c,f,g,h,s,scale,x,y,z,rv1(NMAX),pvdpythag
+      real(dp),parameter:: EPS=1.d-8
+      g=zero
+      scale=zero
+      anorm=zero
       do 25 i=1,n
         l=i+1
         rv1(i)=scale*g
-        g=0.0d0
-        s=0.0d0
-        scale=0.0d0
+        g=zero
+        s=zero
+        scale=zero
         if(i.le.m)then
           do 11 k=i,m
             scale=scale+abs(a(k,i))
 11        continue
-          if(scale.ne.0.0d0)then
+          if(scale.ne.zero)then
             do 12 k=i,m
               a(k,i)=a(k,i)/scale
               s=s+a(k,i)*a(k,i)
@@ -35,7 +36,7 @@ CU    USES pvdpythag
             h=f*g-s
             a(i,i)=f-g
             do 15 j=l,n
-              s=0.0d0
+              s=zero
               do 13 k=i,m
                 s=s+a(k,i)*a(k,j)
 13            continue
@@ -50,14 +51,14 @@ CU    USES pvdpythag
           endif
         endif
         w(i)=scale *g
-        g=0.0d0
-        s=0.0d0
-        scale=0.0d0
+        g=zero
+        s=zero
+        scale=zero
         if((i.le.m).and.(i.ne.n))then
           do 17 k=l,n
             scale=scale+abs(a(i,k))
 17        continue
-          if(scale.ne.0.0d0)then
+          if(scale.ne.zero)then
             do 18 k=l,n
               a(i,k)=a(i,k)/scale
               s=s+a(i,k)*a(i,k)
@@ -70,7 +71,7 @@ CU    USES pvdpythag
               rv1(k)=a(i,k)/h
 19          continue
             do 23 j=l,m
-              s=0.0d0
+              s=zero
               do 21 k=l,n
                 s=s+a(j,k)*a(i,k)
 21            continue
@@ -87,12 +88,12 @@ CU    USES pvdpythag
 25    continue
       do 32 i=n,1,-1
         if(i.lt.n)then
-          if(g.ne.0.0d0)then
+          if(g.ne.zero)then
             do 26 j=l,n
               v(j,i)=(a(i,j)/a(i,l))/g
 26          continue
             do 29 j=l,n
-              s=0.0d0
+              s=zero
               do 27 k=l,n
                 s=s+a(i,k)*v(k,j)
 27            continue
@@ -102,11 +103,11 @@ CU    USES pvdpythag
 29          continue
           endif
           do 31 j=l,n
-            v(i,j)=0.0d0
-            v(j,i)=0.0d0
+            v(i,j)=zero
+            v(j,i)=zero
 31        continue
         endif
-        v(i,i)=1.0d0
+        v(i,i)=1._dp
         g=rv1(i)
         l=i
 32    continue
@@ -114,12 +115,12 @@ CU    USES pvdpythag
         l=i+1
         g=w(i)
         do 33 j=l,n
-          a(i,j)=0.0d0
+          a(i,j)=zero
 33      continue
-        if(g.ne.0.0d0)then
-          g=1.0d0/g
+        if(g.ne.zero)then
+          g=1._dp/g
           do 36 j=l,n
-            s=0.0d0
+            s=zero
             do 34 k=l,m
               s=s+a(k,i)*a(k,j)
 34          continue
@@ -133,10 +134,10 @@ CU    USES pvdpythag
 37        continue
         else
           do 38 j= i,m
-            a(j,i)=0.0d0
+            a(j,i)=zero
 38        continue
         endif
-        a(i,i)=a(i,i)+1.0d0
+        a(i,i)=a(i,i)+1._dp
 39    continue
       do 49 k=n,1,-1
         do 48 its=1,30
@@ -147,8 +148,8 @@ CU    USES pvdpythag
 c            if((abs(rv1(l))+anorm).eq.anorm)  goto 2
 c            if((abs(w(nm))+anorm).eq.anorm)  goto 1
 41        continue
-1         c=0.0d0
-          s=1.0d0
+1         c=zero
+          s=1._dp
           do 43 i=l,k
             f=s*rv1(i)
             rv1(i)=c*rv1(i)
@@ -157,7 +158,7 @@ c            if((abs(f)+anorm).eq.anorm) goto 2
             g=w(i)
             h=pvdpythag(f,g)
             w(i)=h
-            h=1.0d0/h
+            h=1._dp/h
             c= (g*h)
             s=-(f*h)
             do 42 j=1,m
@@ -169,7 +170,7 @@ c            if((abs(f)+anorm).eq.anorm) goto 2
 43        continue
 2         z=w(k)
           if(l.eq.k)then
-            if(z.lt.0.0d0)then
+            if(z.lt.zero)then
               w(k)=-z
               do 44 j=1,n
                 v(j,k)=-v(j,k)
@@ -190,11 +191,11 @@ c            if((abs(f)+anorm).eq.anorm) goto 2
           y=w(nm)
           g=rv1(nm)
           h=rv1(k)
-          f=((y-z)*(y+z)+(g-h)*(g+h))/(2.0d0*h*y)
-          g=pvdpythag(f,1.0d0)
+          f=((y-z)*(y+z)+(g-h)*(g+h))/(2.0_dp*h*y)
+          g=pvdpythag(f,1._dp)
           f=((x-z)*(x+z)+h*((y/(f+sign(g,f)))-h))/x
-          c=1.0d0
-          s=1.0d0
+          c=1._dp
+          s=1._dp
           do 47 j=l,nm
             i=j+1
             g=rv1(i)
@@ -217,8 +218,8 @@ c            if((abs(f)+anorm).eq.anorm) goto 2
 45          continue
             z=pvdpythag(f,h)
             w(j)=z
-            if(z.ne.0.0d0)then
-              z=1.0d0/z
+            if(z.ne.zero)then
+              z=1._dp/z
               c=f*z
               s=h*z
             endif
@@ -231,7 +232,7 @@ c            if((abs(f)+anorm).eq.anorm) goto 2
               a(jj,i)=-(y*s)+(z*c)
 46          continue
 47        continue
-          rv1(l)=0.0d0
+          rv1(l)=zero
           rv1(k)=f
           w(k)=x
 48      continue

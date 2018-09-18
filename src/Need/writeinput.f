@@ -26,14 +26,11 @@ c--- by the strings 'lstring' and 'rstring'
       include 'removebr.f'
       include 'dynamicscale.f'
       include 'stopscales.f'
-      include 'vanillafiles.f'
       include 'alfacut.f'
       include 'betacut.f'
       include 'verbose.f'
       include 'debug.f'
       include 'new_pspace.f'
-      include 'virtonly.f'
-      include 'realonly.f'
       include 'noglue.f'
       include 'realwt.f'
       include 'lc.f'
@@ -51,6 +48,7 @@ c--- by the strings 'lstring' and 'rstring'
       include 'nproc.f'
       include 'taucut.f'
       include 'iterat.f'
+      include 'ewcorr.f'
       include 'mpicommon.f'
       include 'jetvheto.f'
       include 'kappa.f'
@@ -59,12 +57,11 @@ c      include 'ptilde.f'
 c      include 'APPLinclude.f'
 c--- APPLgrid - end
       character*(*) tag,lstring,rstring
-      character*72 f93,f94,f95,f96,f97,f98,f99
+      character*72 f92,f93,f94,f95,f96,f97,f98,f99
       character*15 kpartstring
       logical:: dryrun,makecuts,writeall,spira,writerefs
       integer:: unitno, nmin,nmax
       integer:: ih1,ih2,origij
-      integer:: NPTYPE,NGROUP,NSET
       real(dp):: rtsmin,Rcut
  
       common/writerefs/writerefs
@@ -76,13 +73,14 @@ c--- APPLgrid - end
       common/density/ih1,ih2
       common/dryrun/dryrun
       
-      common/pdflib/NPTYPE,NGROUP,NSET
-      
       common/Rcut/Rcut
       common/makecuts/makecuts
 
       common/origij/origij
 
+c--- f92 alternate 2xfloating point format
+      f92='('''//lstring//''',1x,f11.2,'','',f11.2,8x,''['',a,'']'','''
+     & //rstring//''')' 
 c--- f93 scientific format
       f93='('''//lstring//''',es20.2E2,12x,''['',a,'']'','''
      & //rstring//''')' 
@@ -90,7 +88,7 @@ c--- f94 integer::.XXYY format
       f94='('''//lstring//''',11x,i4,''.'',2a2,12x,''['',a,'']'','''
      & //rstring//''')' 
 c--- f95 2xfloating point format
-      f95='('''//lstring//''',f8.3,'','',f8.3,16x,''['',a,'']'','''
+      f95='('''//lstring//''',1x,f11.2,'','',f11.2,8x,''['',a,'']'','''
      & //rstring//''')' 
 c--- f96 character format            
       f96='('''//lstring//''',a20,12x,''['',a,'']'','''//rstring//''')' 
@@ -124,9 +122,6 @@ c--- f99 floating point format
       if ((tag == 'dswhisto') .or. (writeall)) then
       write(unitno,fmt=f98) dswhisto,'dswhisto'
       endif
-c      if ((tag == 'creategrid') .or. (writeall)) then
-c      write(unitno,fmt=f98) creategrid,'creategrid'
-c      endif
       if ((tag == 'writerefs') .or. (writeall)) then
       write(unitno,fmt=f98) writerefs,'writerefs'
       endif
@@ -239,6 +234,9 @@ c--- catch special scale choices for stop+b process
       if ((tag == 'Gflag') .or. (writeall)) then
       write(unitno,fmt=f98) Gflag,'Gflag'
       endif
+      if ((tag == 'ewcorr') .or. (writeall)) then
+      write(unitno,fmt=f96) ewcorr,'ewcorr'
+      endif
       
       if (writeall) then
       write(unitno,*)
@@ -262,12 +260,6 @@ c--- catch special scale choices for stop+b process
       endif
       if ((tag == 'pdlabel') .or. (writeall)) then
       write(unitno,fmt=f96) pdlabel,'pdlabel'
-      endif
-      if ((tag == 'NGROUP') .or. (writeall)) then
-      write(unitno,fmt=f97) NGROUP,'NGROUP'
-      endif
-      if ((tag == 'NSET') .or. (writeall)) then
-      write(unitno,fmt=f97) NSET,'NSET'
       endif
       if ((tag == 'LHAPDF group') .or. (writeall)) then
       write(unitno,fmt=f96) PDFname,'LHAPDF group'
@@ -324,14 +316,11 @@ c--- catch special scale choices for stop+b process
       if ((tag == 'algorithm') .or. (writeall)) then
       write(unitno,fmt=f96) algorithm,'algorithm'
       endif
-      if ((tag == 'ptjetmin') .or. (writeall)) then
-      write(unitno,fmt=f99) ptjetmin,'ptjetmin'
+      if ((tag == 'ptjet') .or. (writeall)) then
+      write(unitno,fmt=f95) ptjetmin,ptjetmax,'ptjet range'
       endif
-      if ((tag == 'etajetmin') .or. (writeall)) then
-      write(unitno,fmt=f99) etajetmin,'etajetmin'
-      endif
-      if ((tag == 'etajetmax') .or. (writeall)) then
-      write(unitno,fmt=f99) etajetmax,'etajetmax'
+      if ((tag == 'etajet') .or. (writeall)) then
+      write(unitno,fmt=f95) etajetmin,etajetmax,'etajet range'
       endif
       if ((tag == 'Rcut') .or. (writeall)) then
       write(unitno,fmt=f99) Rcut,'Rcut'
@@ -340,10 +329,10 @@ c--- catch special scale choices for stop+b process
       write(unitno,fmt=f98) makecuts,'makecuts'
       endif
       if ((tag == 'leptpt') .or. (writeall)) then
-      write(unitno,fmt=f99) leptpt,'leptpt'
+      write(unitno,fmt=f95) leptptmin,leptptmax,'leptpt range'
       endif
       if ((tag == 'leptrap') .or. (writeall)) then
-      write(unitno,fmt=f99) leptrap,'leptrap'
+      write(unitno,fmt=f95) leptrapmin,leptrapmax,'leptrap range'
       endif
       if ((tag == 'leptveto') .or. (writeall)) then
       write(unitno,fmt=f95) leptveto1min,leptveto1max,'leptveto'
@@ -352,10 +341,10 @@ c--- catch special scale choices for stop+b process
       write(unitno,fmt=f99) misspt,'misspt'
       endif
       if ((tag == 'leptpt2') .or. (writeall)) then
-      write(unitno,fmt=f99) leptpt2,'leptpt2'
+      write(unitno,fmt=f95) leptpt2min,leptpt2max,'leptpt2 range'
       endif
       if ((tag == 'leptrap2') .or. (writeall)) then
-      write(unitno,fmt=f99) leptrap2,'leptrap2'
+      write(unitno,fmt=f95) leptrap2min,leptrap2max,'leptrap2 range'
       endif
       if ((tag == 'leptveto2') .or. (writeall)) then
       write(unitno,fmt=f95) leptveto2min,leptveto2max,'leptveto2'
@@ -378,11 +367,11 @@ c--- catch special scale choices for stop+b process
       if ((tag == 'lbjscheme') .or. (writeall)) then
       write(unitno,fmt=f97) lbjscheme,'lbjscheme'
       endif
-      if ((tag == 'ptbjetmin') .or. (writeall)) then
-      write(unitno,fmt=f99) ptbjetmin,'ptbjetmin'
+      if ((tag == 'ptbjet') .or. (writeall)) then
+      write(unitno,fmt=f95) ptbjetmin,ptbjetmax,'ptbjet range'
       endif
-      if ((tag == 'etabjetmax') .or. (writeall)) then
-      write(unitno,fmt=f99) etabjetmax,'etabjetmax'
+      if ((tag == 'etabjet') .or. (writeall)) then
+      write(unitno,fmt=f95) etabjetmin,etabjetmax,'etabjet range'
       endif
 
       if (writeall) then
@@ -400,10 +389,10 @@ c--- catch special scale choices for stop+b process
       write(unitno,fmt=f99) frag_scale,'frag_scale'
       endif
       if ((tag == 'gammpt') .or. (writeall)) then
-      write(unitno,fmt=f99) gammpt,'gammpt'
+      write(unitno,fmt=f95) gammptmin,gammptmax,'gammpt range'
       endif
       if ((tag == 'gammrap') .or. (writeall)) then
-      write(unitno,fmt=f99) gammrap,'gammrap'
+      write(unitno,fmt=f95) gammrapmin,gammrapmax,'gammrap range'
       endif
       if ((tag == 'gammpt2') .or. (writeall)) then
       write(unitno,fmt=f99) gammpt2,'gammpt2'
@@ -504,25 +493,6 @@ c--- catch special scale choices for stop+b process
       if ((tag == 'hwidth_ratio') .or. (writeall)) then
       write(unitno,fmt=f99) hwidth_ratio,'Gamma_H/Gamma_H(SM)'
       endif
-      
-
-      if (writeall) then
-      write(unitno,*)
-      write(unitno,*) 
-     & lstring//' [How to resume/save a run] )'
-      endif
-      if ((tag == 'readin') .or. (writeall)) then
-      write(unitno,fmt=f98) readin,'readin'
-      endif
-      if ((tag == 'writeout') .or. (writeall)) then
-      write(unitno,fmt=f98) writeout,'writeout'
-      endif
-      if ((tag == 'ingridfile') .or. (writeall)) then
-      write(unitno,fmt=f96) ingridfile,'ingridfile'
-      endif
-      if ((tag == 'outgridfile') .or. (writeall)) then
-      write(unitno,fmt=f96) outgridfile,'outgridfile'
-      endif
 
       if (writeall) then
       write(unitno,*)
@@ -538,12 +508,6 @@ c--- catch special scale choices for stop+b process
       if ((tag == 'new_pspace') .or. (writeall)) then
       write(unitno,fmt=f98) new_pspace,'new_pspace'
       endif
-      if ((tag == 'virtonly') .or. (writeall)) then
-      write(unitno,fmt=f98) virtonly,'virtonly'
-      endif
-      if ((tag == 'realonly') .or. (writeall)) then
-      write(unitno,fmt=f98) realonly,'realonly'
-      endif
       if ((tag == 'spira') .or. (writeall)) then
       write(unitno,fmt=f98) spira,'spira'
       endif
@@ -558,9 +522,6 @@ c--- catch special scale choices for stop+b process
       endif
       if ((tag == 'omitgg') .or. (writeall)) then
       write(unitno,fmt=f98) omitgg,'omitgg'
-      endif
-      if ((tag == 'vanillafiles') .or. (writeall)) then
-      write(unitno,fmt=f98) vanillafiles,'vanillafiles'
       endif
 !      if ((tag == 'nmin') .or. (writeall)) then
 !      write(unitno,fmt=f97) nmin,'nmin'

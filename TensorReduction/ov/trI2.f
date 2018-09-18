@@ -1,4 +1,4 @@
-      double complex function trI2(p1,m1,m2,mu2,ep) 
+      function trI2(p1,m1,m2,mu2,ep) 
 c--- this is a switchyard routine: depending on value of
 c--- integer variable, this routine either:
 c---  TRscalarselect = 1    calls QCDLoop for scalar integral
@@ -6,9 +6,10 @@ c---  TRscalarselect = 2    calls OneLOop for scalar integral
 c---  TRscalarselect = 3    calls both routines and compares results
 c      use avh_olo
       implicit none
+      include 'types.f'
       include 'TRscalarselect.f'
-      double precision p1,m1,m2,mu2
-      double complex qlI2,resQCDLoop,resOneLOop,result(0:2)
+      real(dp):: p1,m1,m2,mu2
+      complex(dp):: trI2,qlI2,resQCDLoop,resOneLOop,result(0:2)
       integer ep
 
       TRscalarselect=1

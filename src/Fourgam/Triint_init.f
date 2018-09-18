@@ -3,6 +3,7 @@
 !===== For use with qqb->4gamma and qqb->2j2gamma
 !===== coefficients by same author.
       subroutine Triint_init(i1,i2,i3,i4,i5,i6,Triint,ord)
+        use mod_qcdloop_c
       implicit none
       include 'types.f'
       include 'constants.f'
@@ -13,7 +14,7 @@
       include 'scale.f'
       integer:: i1,i2,i3,i4,i5,i6
       integer:: ord
-      complex(dp):: Triint(90), qlI3
+      complex(dp):: Triint(90)
       real(dp):: t
 
       t(i1,i2,i3) = s(i1,i2) + s(i2,i3) + s(i3,i1)

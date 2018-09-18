@@ -27,12 +27,17 @@
       include 'ipsgen.f'
       include 'iterat.f'
       include 'mpicommon.f'
+      include 'verbose.f'
+      include 'nproc.f'
+      include 'histo.f'
+      include 'accumhist.f'
       real(dp):: integ,integ_err,r,er
       logical:: dryrun
+      logical, parameter :: newIntegration = .false.
       integer:: itmxplots
-      character*72 inputfile,workdir
+      character*256 inputfile,workdir
       common/dryrun/dryrun
-       
+
 * basic variable initialization, print-out
       call mcfm_init(inputfile,workdir)
 
@@ -55,6 +60,10 @@
 *   dryrun = .true. , readin = .false. : accumulate during warmup
 *   dryrun = .true. , readin = .true.  : accumulate with frozen grid
 
+      if (newIntegration) then
+        call mcfm_vegas_adaptive(integ,integ_err)
+      else
+
       if ((dryrun .eqv. .false.) .or. 
      &    ((dryrun) .and. (readin .eqv. .false.))) then
 * Initialize efficiency variables      
@@ -63,6 +72,9 @@
         ntotzero=0
         ntotshot=0
         call mcfm_vegas(0,itmx1,ncall1,dryrun,integ,integ_err)
+        if (verbose) then
+          write (*,*) "warmup run result: ", integ, " +/- ", integ_err
+        endif
         itmxplots=itmx1
       endif
 * This is the mcfm_vegas(accum) call
@@ -81,6 +93,10 @@
         call mcfm_vegas(1,itmx2,ncall2,.true.,integ,integ_err)
         itmxplots=itmx2
       endif
+
+      endif
+
+      call finalizehist()
       
 * So far we have not used VEGAS to generate any events.
 * Make sure future calls to "getevent" are aware of this :

@@ -6,24 +6,25 @@
       include 'mxpart.f'
       include 'first.f'
       include 'plabel.f'
+      include 'taucut.f'
       integer npart,i5,i6,i7
       integer, save :: ipp
 !$omp threadprivate(ipp)
       real(dp):: p(mxpart,4),t15,t25,t16,t26,t56,t17,t27,t57,t67,
-     & n1(4),n2(4),n5(4),n6(4),n7(4)
+     & n1(4),n2(4),n5(4),n6(4),n7(4),Q(4),lambda
 
 c---  determine beginning of parton entries in plabel
       if (first) then
         first=.false.
         ipp=3
-        do while ((ipp < mxpart ) .and. (plabel(ipp) .ne. 'pp'))
+        do while ((ipp < mxpart ) .and. (plabel(ipp) .ne. 'pp') .and. (plabel(ipp) .ne. ''))
           ipp=ipp+1
         enddo
         if (ipp == mxpart) then
           write(6,*) 'Could not identify partons in smalltau.f'
           stop
         endif
-c        write(6,*) 'found ipp=',ipp  
+!        write(6,*) 'found ipp=',ipp  
       endif
       i5=ipp
       i6=ipp+1
@@ -41,6 +42,16 @@ c--- reference direction for particle 5
 c--- compute N-jettiness tau contributions
       t15=abs(n1(4)*p(i5,4)-n1(1)*p(i5,1)-n1(2)*p(i5,2)-n1(3)*p(i5,3))
       t25=abs(n2(4)*p(i5,4)-n2(1)*p(i5,1)-n2(2)*p(i5,2)-n2(3)*p(i5,3))
+      if (tauboost) then
+! account for boost into singlet c.-m. frame
+        Q(:)=p(3,:)
+        if (ipp > 4) Q(:)=Q(:)+p(4,:)
+        if (ipp > 5) Q(:)=Q(:)+p(5,:)
+        if (ipp > 6) Q(:)=Q(:)+p(6,:)
+        lambda=sqrt((Q(4)+Q(3))/(Q(4)-Q(3)))
+        t15=t15*lambda
+        t25=t25/lambda
+      endif
 
 c--- apply small cut based on value of cutoff (set in input.DAT)
       if (t15 < cutoff) return 1

@@ -13,6 +13,7 @@ c--- JC: 11/22/2012 added an extra level of recursion. No additional
 c---     identities are used, but the extra loop improves the
 c---     numerical precision
 
+      include 'types.f'
       include 'TRconstants.f'
       include 'pvCnames.f'
       include 'pvCv.f'
@@ -23,10 +24,10 @@ c---     numerical precision
       integer C234,C134,C124,C123,np,ep,N0,i,j,k,l,pvCcache,
      . i1,i2,i3,i4,i5,n,m,jx,step,kgt,lgt,ixt,jxt
       parameter(np=3)
-      double precision p1,p2,p3,p4,p1p2,p2p3,m1,m2,m3,m4,f(np),
+      real(dp):: p1,p2,p3,p4,p1p2,p2p3,m1,m2,m3,m4,f(np),
      . Gtwiddle(np,np),Xtwiddle0(np),Gr(np,np),DetGr,Gtt(np,np,np,np),
      . Xtwiddle(0:np,0:np),Y(4,4),DetY,Xtmax
-      double complex 
+      complex(dp):: 
      . Shat3zz(np,-2:0),Shat4zz(np,z1max,-2:0),
      . Shat5zz(np,z2max,-2:0),Shat6zz(np,z3max,-2:0),
      . Shat5zzzz(np,-2:0),Shat6zzzz(np,z1max,-2:0),
@@ -35,7 +36,7 @@ c---     numerical precision
      . Shat1(np,-2:0),Shat2(np,z1max,-2:0),
      . Shat3(np,z2max,-2:0),Shat4(np,z3max,-2:0),Shat5(np,z4max,-2:0),
      . Shat6(np,z5max,-2:0),Shat7(np,z6max,-2:0)
-      double complex csum0(-2:0),csum1(-2:0),csum2(-2:0),
+      complex(dp) csum0(-2:0),csum1(-2:0),csum2(-2:0),
      . csum11(-2:0),csum00(-2:0),csum12(-2:0),csum22(-2:0),
      . csum111(-2:0),csum112(-2:0),csum122(-2:0),csum222(-2:0),
      . csum1111(-2:0),csum1112(-2:0),csum1122(-2:0),

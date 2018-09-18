@@ -1,6 +1,6 @@
-# Makefile routine.
 VPATH		= $(PWD)/obj
 INCPATH  	= $(PWD)/../Include
+QCDLOOP_DIR=$(PWD)/../../qcdloop-2.0.2
 OUTPUT_OPTION	= -o $(PWD)/obj/$@
 
 OLODIR          = /Users/johnmc/Research/OneLOop-3.3.1
@@ -11,15 +11,12 @@ else
     FC = gfortran
 endif
 # For linking against OneLOop
-FFLAGS 	= -O2 -fno-f2c -g -I$(INCPATH) -Iobj -Jobj -I$(OLODIR)
+FFLAGS 	= -O2 -fno-f2c -fopenmp -g -I$(INCPATH) -Iobj -Jobj -I$(OLODIR) 
 # no linking
-FFLAGS 	= -O2 -fno-f2c -g -I$(INCPATH) -Iobj -Jobj
+FFLAGS 	= -O2 -fno-f2c -fopenmp -g -I$(INCPATH) -Iobj -Jobj -I$(QCDLOOP_DIR)
 
 
 LIBRARY = libov.a
-
-# -----------------------------------------------------------------------------
-# Specify the object files. 
 
 OBJS = \
 trI1.o \
@@ -56,22 +53,9 @@ pvfndd.o \
 zlubksb.o \
 zsvbksb.o
       
-
-      
 $(LIBRARY):	$(OBJS)
 		ar cru $(LIBRARY) $(patsubst %,obj/%,$(OBJS))
 		ranlib $(LIBRARY)
- 
-# -----------------------------------------------------------------------------
-# Specify other options.
-
 
 clean:
-	- rm -f *.o obj/*.o obj_omp/*.o *.s *.prj *~ core
-
-# -----------------------------------------------------------------------------
-
-# DO NOT DELETE
-
-
-# LocalWords:  Makefile
+	- rm -f *.o obj/*.o *.s *.prj *.a *~ core

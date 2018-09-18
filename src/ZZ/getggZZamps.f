@@ -36,7 +36,6 @@ c--- expected to be unreliable, namely pt(Z)<ptZsafetycut set below
       include 'zprods_decl.f'
       include 'scale.f'
       include 'docheck.f'
-      include 'qlfirst.f'
       include 'first.f'
       logical:: dolight,dobottom,dotop,ggZZuse6d
       integer:: h1,h2,h34,h56,up,dn,om,nu
@@ -86,10 +85,6 @@ c--- omit t,b quark loops for pt(Z) < "ptZsafetycut_massive"  (for num. stabilit
         write(6,*)'*                                                  *'
         write(6,*)'****************************************************'
         first=.false. 
-        if (qlfirst) then
-          qlfirst=.false.
-          call qlinit
-        endif
    54   format(' *  Numer. stability: pt(Z) >',f6.3,' GeV ',a11,' *')
       endif
 

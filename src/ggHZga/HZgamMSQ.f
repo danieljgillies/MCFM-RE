@@ -25,6 +25,7 @@ C-----Matrix element squared for the Higgs going to l^-(p3) l^+(p5) Gamma(p5)
       integer:: j,top,p3,p4,p5
       parameter(top=2)
       save mt_eff
+!$omp threadprivate(mt_eff)
                         
       if (first) then            
 c--- run mt to appropriate scale

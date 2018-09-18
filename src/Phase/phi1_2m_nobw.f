@@ -29,10 +29,11 @@ c     delta(p2^2-s2) delta(p3^2-s3)
       w3=s3max-s3min
       s3=s3max*x3+s3min*(1._dp-x3)
 
+      if (s3 < 0._dp) return 1
       m3=sqrt(s3)
       costh=two*xth-one      
       phi=twopi*xphi
-      sinth=sqrt(one-costh**2)
+      sinth=sqrt(max(one-costh**2,zip))
       cphi=cos(phi)
       sphi=sin(phi)
       lambda=((s1-s2-s3)**2-4._dp*s2*s3)

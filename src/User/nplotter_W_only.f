@@ -23,7 +23,7 @@ c---                1  --> counterterm for real radiation
       include 'histo.f'
       include 'jetlabel.f'
       include 'outputflags.f'
-      include 'nproc.f'
+      include 'nwz.f'
       real(dp):: p(mxpart,4),wt,wt2,yrap,pt,r,yraptwo,etaraptwo,
      & y3,y4,y5,pt3,pt4,pt5,Re5,y34,eta34
       integer:: switch,n,nplotmax
@@ -68,8 +68,8 @@ c--- W rapidity and pseudorapidity
       y34=yraptwo(3,4,p)
       eta34=etaraptwo(3,4,p)
 
-c--- If nproc=1, plot e^+(4). If nproc=6, plot e^-(3).
-      if(nproc == 1) then
+c--- For W+ processes plot e^+(4).  Otherwise (W-) plot e^-(3).
+      if(nwz == +1) then
          y4=yrap(4,p)
          pt4=pt(4,p)
       else
@@ -77,11 +77,10 @@ c--- If nproc=1, plot e^+(4). If nproc=6, plot e^-(3).
          pt3=pt(3,p)
       endif
 c---      eventpart=4+jets
-c---      print*, nproc
       if(jets > 0) then
          pt5=pt(5,p)
          y5=yrap(5,p)
-         if(nproc == 1) then
+         if(nwz == +1) then
             Re5=R(p,4,5)
          else
             Re5=R(p,3,5)
@@ -125,12 +124,15 @@ c---     xmax:  highest value to bin
 c---       dx:  bin width
 c---   llplot:  equal to "lin"/"log" for linear/log scale
 
+       call bookplot(n,tag,'xsec',0.5_dp,wt,wt2,0._dp,1._dp,1._dp,'lin')
+       n=n+1
+
        call bookplot(n,tag,'W rapidity',y34,wt,wt2,-6._dp,6._dp,0.2_dp,'lin')
        call ebookplot(n,tag,y34,wt)
        n=n+1
        call bookplot(n,tag,'W ps-rap',eta34,wt,wt2,-6._dp,6._dp,0.2_dp,'lin')
        n=n+1
-      if(nproc == 1) then
+      if(nwz == +1) then
          call bookplot(n,tag,'y(lep)',y4,wt,wt2,-6._dp,6._dp,0.2_dp,'lin')
          n=n+1
          call bookplot(n,tag,'pt(lep)',pt4,wt,wt2,0._dp,100._dp,2._dp,'lin')

@@ -52,8 +52,8 @@ C
       xli2=-CLZ-.25*(CLZ)**2
        do 13 j=1,Num
         xli2 = xli2 + c2fac(j) * clz**(2*j+1)
- 13	continue
-	xcdil=xli2
+ 13     continue
+        xcdil=xli2
       RETURN
       END
  

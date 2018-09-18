@@ -225,6 +225,9 @@ c-----
       n=n+1
       endif
 
+      call bookplot(n,tag,'total cross', 0.5d0,wt,wt2,0d0,100d0,1d0,'lin')
+      n=n+1
+
       
 ************************************************************************
 *                                                                      *
@@ -486,7 +489,9 @@ c---   llplot:  equal to "lin"/"log" for linear/log scale
 !-----mllgam
       call bookplot(n,tag,'m(l,l,gam)',m345,wt,wt2,0._dp,250._dp,5._dp,'lin')
       n=n+1
-       
+      call bookplot(n,tag,'total cross', 0.5d0,wt,wt2,0d0,100d0,1d0,'lin')
+      n=n+1
+
 ************************************************************************
 *                                                                      *
 *     FINAL BOOKKEEPING                                                *

@@ -1,4 +1,5 @@
       subroutine vertices_tt1(mtsq,ep,vert1,vert2,vert3,vert4,vert5)
+        use mod_qcdloop_c
       implicit none
       include 'types.f'
       include 'constants.f'
@@ -14,7 +15,7 @@
       integer:: ep
       complex(dp):: vert1,vert2,vert3,vert4,vert5 
       real(dp):: dentt1
-      complex(dp):: qlI2diffs345s16,qlI2,qlI3
+      complex(dp):: qlI2diffs345s16
        mtsq=mt**2
        dentt1=1d0/( -s345 + s16)
        qlI2diffs345s16=qlI2(s345,0d0,mtsq,musq,ep)-

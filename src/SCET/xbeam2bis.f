@@ -10,6 +10,7 @@
       include 'scet_const.f'
       include 'facscale.f'
       include 'scale.f'
+      include 'tiny.f'
       real(dp), intent(in) ::zin,xb,QB
       real(dp), intent(out) :: btau(-5:5,-1:3)
       real(dp)::
@@ -39,7 +40,6 @@
      & I2gqi,I2qiqbiz,I2qiqjz,I2qiqbjz,I2qigz,
      & I2qiqbi,I2qiqj,I2qiqbj,I2qig
       integer :: ih,j,k
-      real(dp), parameter:: tiny=1.e-15_dp
 
 c--- changing variables so z integral ranges from xb to 1
       zb = (one - xb)*zin + xb

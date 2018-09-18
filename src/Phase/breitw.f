@@ -27,6 +27,12 @@ c--- in case the maximum msq is very small, just generate linearly for safety
           almax=+pi/two
           almin=-pi/two
       else
+c--- if generating off-resonance then just do logarithmic sampling in msq
+          if (mminsq > rmass**2) then
+            wt=one
+            call pick(2,msq,mminsq,mmaxsq,x1,wt)
+            return
+          endif          
           almin=atan((mminsq-rmass**2)/rmass/rwidth)
           almax=atan((mmaxsq-rmass**2)/rmass/rwidth)
           al=(almax-almin)*x1+almin

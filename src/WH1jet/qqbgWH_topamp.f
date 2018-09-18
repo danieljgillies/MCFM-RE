@@ -3,6 +3,7 @@
 !===== C.Williams July 2015 
 !====== amplitude for q(i1)^-+qb(i2)^+ + ell^-(i3)+ell^+(i4)+g(i5) + Higgs 
 !===== where the Higgs is radiated from the top loop 
+        use mod_qcdloop_c
       implicit none 
       include 'types.f' 
       complex(dp):: qqbgWH_topamp
@@ -21,7 +22,6 @@
       complex(dp):: zab2,zab3
       complex(dp):: helpart,intfunc,fac,prop34
       complex(dp):: tri,bmH,bmgH
-      complex(dp):: qlI3,qlI2
       real(dp):: mt2
       logical useeft_wh
       common/useeft_wh/useeft_wh
@@ -45,9 +45,9 @@
       prop34=cplx1(s34)/cplx2(s34-wmass**2,wmass*wwidth)
       
       if(useeft_wh) then 
-      fac=-im*sqrt(gsq)*gwsq*prop34*as/(3_dp*pi*sqrt(vevsq))/rt2
+      fac=-im*sqrt(gsq)*gwsq*prop34*as/(3._dp*pi*sqrt(vevsq))/rt2
       else
-      fac=im*sqrt(gsq)*ason4pi*gwsq*prop34*mt2/wmass*gw/rt2/2_dp
+      fac=im*sqrt(gsq)*ason4pi*gwsq*prop34*mt2/wmass*gw/rt2/2._dp
       endif
 
 !=== Spin independent function this is just the form factor 
@@ -66,12 +66,12 @@
       xd=one/(s12345-s1234)
   
       if(useeft_wh) then 
-      intfunc=1_dp
+      intfunc=1._dp
       else
-         tri=qlI3(s12345,s1234,0_dp,mt2,mt2,mt2,musq,0) 
+         tri=qlI3(s12345,s1234,0._dp,mt2,mt2,mt2,musq,0) 
          bmgH=qlI2(s1234,mt2,mt2,musq,0) 
          bmH=qlI2(s12345,mt2,mt2,musq,0) 
-         intfunc=8_dp*((0.5_dp*(one-4_dp*mt2*xd)*tri
+         intfunc=8._dp*((0.5_dp*(one-4._dp*mt2*xd)*tri
      &        + s1234*xd**2*(bmgH-bmH)-xd))
       endif
 !      write(6,*) 'tri coefficient ',0.5_dp*(one-4_dp*mt2*xd)*helpart*8

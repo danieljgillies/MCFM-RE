@@ -27,7 +27,6 @@
       include 'cutoff.f'
       include 'hbbparams.f'
       include 'noglue.f'
-      include 'qlfirst.f'
       integer:: j,k,ig
       real(dp):: msq(-nf:nf,-nf:nf),msq0(-nf:nf,-nf:nf),
      & p(mxpart,4),fac,s34,s56,s127,virt5_VH,subuv,
@@ -63,12 +62,6 @@ c--set msq=0 to initialize
 
       cutoff_orig=cutoff
 
-c--- initialize QCDLoop
-      if (qlfirst) then
-        qlfirst=.false.
-        call qlinit
-      endif
-      
       if(hdecaymode.ne.'wpwm') then
          ig=7
       else

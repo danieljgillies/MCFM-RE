@@ -2,15 +2,15 @@
       implicit none
       include 'types.f'
       
-      character*72 workdir
-      character*72 inputfile,getinput
+      character*256 workdir
+      character*256 inputfile,getinput
       integer:: nargs,lenocc,lenarg
 c--- work out the name of the input file and return it
 
 
-      nargs=iargc()
+      nargs=command_argument_count()
       if (nargs >= 1) then
-        call getarg(1,inputfile)
+        call get_command_argument(1,inputfile)
       else
         inputfile='input.DAT'
       endif
@@ -25,7 +25,7 @@ c--- truncate if the directory / is included
            lenarg=lenarg-1
         endif
         if (nargs >= 2) then
-          call getarg(2,getinput)
+          call get_command_argument(2,getinput)
           inputfile=workdir(1:lenarg)//'/'//getinput
         else  
           inputfile=workdir(1:lenarg)//'/input.DAT'

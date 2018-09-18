@@ -22,7 +22,7 @@ c     delta(p2^2) delta(p3^2)
       wt=0._dp
 
       s=p0(4)**2-p0(1)**2-p0(2)**2-p0(3)**2  
-      if (s < zip) then
+      if (s <= zip) then
 c       if (case(1:5) .ne. 'vlchk') then 
 !        write(6,*) 's<0 in phi3m0',s
 c       endif
@@ -31,7 +31,7 @@ c       endif
 
       roots=sqrt(s)
       costh=two*xth-one    
-      sinth=sqrt(one-costh**2)
+      sinth=sqrt(max(one-costh**2,zip))
       phi=twopi*xphi
 
       wt=wt0

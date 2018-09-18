@@ -5,7 +5,9 @@ C     FC0...FB2 are the rank 0,...2 bubble functions
 C     Lorentz indices are stored as linear array, thus FD2(y2(n1,n2),ep)
 C     Author: R.K.Ellis (January 2013)
 C     Implementing the formula of Denner and Dittmaier arXiv:hep-ph/0509141 
+        use mod_qcdloop_c
       implicit none
+      include 'types.f'
       include 'TRconstants.f'
       include 'TRonshellcutoff.f'
       include 'TRscale.f'
@@ -15,22 +17,23 @@ C     Implementing the formula of Denner and Dittmaier arXiv:hep-ph/0509141
       include 'ovBnames.f'
       include 'ovBsave.f'
       integer N,ep,nl,in,iP,n1,n2
-      double precision p1sq,m0sq,m1sq,f1,iep,p1(4)
-      double complex A0(-2:0),B0(-2:0),B1(-2:0),B00(-2:0),B11(-2:0),
+      real(dp):: p1sq,m0sq,m1sq,f1,iep,p1(4)
+      complex(dp):: A0(-2:0),B0(-2:0),B1(-2:0),B00(-2:0),B11(-2:0),
      & FB0(-2:0),FB1(y1max,-2:0),FB2(y2max,-2:0),trI1,
-     & xp,xm,rt,arg,arg1,pvfndd,cln,xpvfndd
+     & xp,xm,rt,arg,arg1,pvfndd,xpvfndd
       logical p1sqnonzero
-      double precision fac,facnp
-      double precision,save::idp1(0:2),id(0:2),idm1(0:2)
+      real(dp):: fac,facnp
+      real(dp),save::idp1(0:2),id(0:2),idm1(0:2)
       logical,save:: scaleset=.false.
       logical,save:: first=.true.
-      double precision para(Pbb)
-      double precision,save::tableB(Pbb,Nbmax)      
+      real(dp):: para(Pbb)
+      real(dp),save::tableB(Pbb,Nbmax)      
       integer, save:: Nstore=0
       integer :: jtable,j,Ntrue
 !$omp threadprivate(scaleset,first,idp1,id,idm1,tableB,Nstore)
 
 C-----statement functions
+      include 'cplx.h'
       fac(n)=(-1d0)**n/dfloat(n+1)
       facnp(in,iP)=(-1d0)**(iP-2*in-1)
 C-----end statement functions
@@ -147,24 +150,24 @@ c      enddo
 C---deal with special cases for m0sq=0, p1sq=m1sq, DD(4.13)
       if (abs((p1sq-m1sq)/musq) .lt. onshellcutoff) then
       nl=0
-      B0(-1)=dcmplx(fac(nl))
+      B0(-1)=cplx1(fac(nl))
       B0(0)=B0(-1)
-     . *dcmplx(log(musq/m1sq)+2d0/dfloat(nl+1))
+     . *cplx1(log(musq/m1sq)+2d0/dfloat(nl+1))
 
       nl=1
-      B1(-1)=dcmplx(fac(nl))
+      B1(-1)=cplx1(fac(nl))
       B1(0)=B1(-1)
-     . *dcmplx(log(musq/m1sq)+2d0/dfloat(nl+1))
+     . *cplx1(log(musq/m1sq)+2d0/dfloat(nl+1))
 
       nl=2
-      B11(-1)=dcmplx(fac(nl))
+      B11(-1)=cplx1(fac(nl))
       B11(0)=B11(-1)
-     . *dcmplx(log(musq/m1sq)+2d0/dfloat(nl+1))
+     . *cplx1(log(musq/m1sq)+2d0/dfloat(nl+1))
 
       else
 C---deal with special cases for m0sq=0, DD(4.12)
-      arg=dcmplx(1d0-m1sq/p1sq)
-      arg1=dcmplx(m1sq-p1sq)
+      arg=cplx1(1d0-m1sq/p1sq)
+      arg1=cplx1(m1sq-p1sq)
       iep=sign(1d0,p1sq)
 
 c--- if p1sq=0 too, root is formally infinite and pvfndd should be zero
@@ -177,57 +180,57 @@ c--- if p1sq=0 too, root is formally infinite and pvfndd should be zero
 
       nl=0
       if (p1sqnonzero) xpvfndd=pvfndd(nl,arg,iep)
-      B0(-1)=dcmplx(fac(nl))
+      B0(-1)=cplx1(fac(nl))
       B0(0)=B0(-1)
-     . *(dcmplx(log(musq)+1d0/dfloat(nl+1))-cln(arg1,-1d0)-xpvfndd)
+     . *(cplx1(log(musq)+1d0/dfloat(nl+1))-cln(arg1,-1d0)-xpvfndd)
       nl=1
       if (p1sqnonzero) xpvfndd=pvfndd(nl,arg,iep)
-      B1(-1)=dcmplx(fac(nl))
+      B1(-1)=cplx1(fac(nl))
       B1(0)=B1(-1)
-     . *(dcmplx(log(musq)+1d0/dfloat(nl+1))-cln(arg1,-1d0)-xpvfndd)
+     . *(cplx1(log(musq)+1d0/dfloat(nl+1))-cln(arg1,-1d0)-xpvfndd)
       nl=2
       if (p1sqnonzero) xpvfndd=pvfndd(nl,arg,iep)
-      B11(-1)=dcmplx(fac(nl))
+      B11(-1)=cplx1(fac(nl))
       B11(0)=B11(-1)
-     . *(dcmplx(log(musq)+1d0/dfloat(nl+1))-cln(arg1,-1d0)-xpvfndd)
+     . *(cplx1(log(musq)+1d0/dfloat(nl+1))-cln(arg1,-1d0)-xpvfndd)
 
       endif
 
       elseif (abs(p1sq/musq) .lt. onshellcutoff) then
 C---deal with special case, p1sq=0
-      xp=dcmplx(m0sq/(m0sq-m1sq))  ! other root is formally infinite
+      xp=cplx1(m0sq/(m0sq-m1sq))  ! other root is formally infinite
 
       nl=0
-      B0(-1)=dcmplx(fac(nl))
+      B0(-1)=cplx1(fac(nl))
       B0(0)=B0(-1)
-     . *(dcmplx(log(musq/m0sq))-pvfndd(nl,xp,1d0))
+     . *(cplx1(log(musq/m0sq))-pvfndd(nl,xp,1d0))
       nl=1
-      B1(-1)=dcmplx(fac(nl))
+      B1(-1)=cplx1(fac(nl))
       B1(0)=B1(-1)
-     . *(dcmplx(log(musq/m0sq))-pvfndd(nl,xp,1d0))
+     . *(cplx1(log(musq/m0sq))-pvfndd(nl,xp,1d0))
       nl=2
-      B11(-1)=dcmplx(fac(nl))
+      B11(-1)=cplx1(fac(nl))
       B11(0)=B11(-1)
-     . *(dcmplx(log(musq/m0sq))-pvfndd(nl,xp,1d0))
+     . *(cplx1(log(musq/m0sq))-pvfndd(nl,xp,1d0))
       
       else
 C----general case, DD (4.8)
-      rt=sqrt(dcmplx((m1sq-m0sq-p1sq)**2-4d0*p1sq*m0sq))
-      xp=0.5d0*(-dcmplx(m1sq-m0sq-p1sq)+rt)/p1sq
-      xm=0.5d0*(-dcmplx(m1sq-m0sq-p1sq)-rt)/p1sq
+      rt=sqrt(cplx1((m1sq-m0sq-p1sq)**2-4d0*p1sq*m0sq))
+      xp=0.5d0*(-cplx1(m1sq-m0sq-p1sq)+rt)/p1sq
+      xm=0.5d0*(-cplx1(m1sq-m0sq-p1sq)-rt)/p1sq
 
       nl=0
-      B0(-1)=dcmplx(fac(nl))
+      B0(-1)=cplx1(fac(nl))
       B0(0)=B0(-1)
-     . *(dcmplx(log(musq/m0sq))-pvfndd(nl,xp,1d0)-pvfndd(nl,xm,-1d0))
+     . *(cplx1(log(musq/m0sq))-pvfndd(nl,xp,1d0)-pvfndd(nl,xm,-1d0))
       nl=1
-      B1(-1)=dcmplx(fac(nl))
+      B1(-1)=cplx1(fac(nl))
       B1(0)=B1(-1)
-     . *(dcmplx(log(musq/m0sq))-pvfndd(nl,xp,1d0)-pvfndd(nl,xm,-1d0))
+     . *(cplx1(log(musq/m0sq))-pvfndd(nl,xp,1d0)-pvfndd(nl,xm,-1d0))
       nl=2
-      B11(-1)=dcmplx(fac(nl))
+      B11(-1)=cplx1(fac(nl))
       B11(0)=B11(-1)
-     . *(dcmplx(log(musq/m0sq))-pvfndd(nl,xp,1d0)-pvfndd(nl,xm,-1d0))
+     . *(cplx1(log(musq/m0sq))-pvfndd(nl,xp,1d0)-pvfndd(nl,xm,-1d0))
 
       endif
 

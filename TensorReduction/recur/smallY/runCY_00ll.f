@@ -4,14 +4,15 @@ C---  Expression for Eq. 5.58a
 C---  Calculates C00ll
 C---  Small terms of order Xtwiddle(0,k)*Ciii,Xtwiddle(0,0)*Ciiii
 C---  Denominator Gtwiddle(k,l)
+      include 'types.f'
       include 'pvCnames.f' 
       include 'pvCv.f' 
       include 'Carraydef.f' 
       include 'Carrays.f' 
       integer ep,N0,k,l,np
       parameter(np=2)
-      double precision Xtwiddle(0:np,0:np),Gtwiddle(np,np)
-      double complex Shat4(np,z3max,-2:0)
+      real(dp):: Xtwiddle(0:np,0:np),Gtwiddle(np,np)
+      complex(dp):: Shat4(np,z3max,-2:0)
 
       do ep=-2,0
       Cv(czzii(z2(l,l))+N0,ep)=

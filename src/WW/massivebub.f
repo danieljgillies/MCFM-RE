@@ -1,4 +1,5 @@
       subroutine massivebub(k1,k4,k2,k3,k5,k6,za,zb,bub)
+        use mod_qcdloop_c
       implicit none
       include 'types.f'
       
@@ -13,22 +14,12 @@ c----Bubble coefficients extracted from BDK 11.5, 11.8
       include 'scale.f'
       include 'blabels.f'
       include 'docheck.f'
-      include 'first.f'
       character*9 st,st1
       integer:: j,k1,k2,k3,k4,k5,k6,h1,h2,e
       complex(dp):: b(2,2,7),bcoeff(8),bub(2,2,-2:0),Bint(7,-2:0),
-     & qlI2,tmp
+     & tmp
       real(dp):: mtsq,s12,s34,s56,s134,s156
       mtsq=mt**2
-
-c--- QCDLoop already initialized from call to massivebox
-      if (first) then
-      first=.false. 
-      call qlinit
-c      write(6,*) 'mtsq',mtsq
-c      write(6,*) 'musq',musq
-c      pause
-      endif
 
 c--- note: these look unnatural due to the
 c---       (k1,k4,k2,k3,k5,k6) ordering in the call

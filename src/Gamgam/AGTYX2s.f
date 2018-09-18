@@ -12,6 +12,7 @@
       function X2sx(t,u,Lx,Ly,Ls)
       implicit none
       include 'types.f'
+      include 'constants.f'
       include 'zeta.f'
       real(dp):: X2sx
       real(dp)::t,u,Lx,Ly,Ls

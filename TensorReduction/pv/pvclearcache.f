@@ -3,7 +3,7 @@
       include 'TRclear.f'
       include 'pvRespectmaxcindex.f'
       include 'TRbadpoint.f'
-      integer j
+      integer:: j
       do j=1,5
       clear(j)=.true.
       enddo

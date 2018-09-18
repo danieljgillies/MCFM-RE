@@ -3,15 +3,16 @@
       implicit none
 C---Fixes D00i according to 5.44 Denner-Dittmaier
 C---knowing Di,D00 with correction of order Delta*Diii
+      include 'types.f'
       include 'TRconstants.f'
       include 'pvDnames.f'
       include 'pvDv.f'
       include 'Darraydef.f'
       include 'Darrays.f'
       integer ep,N0,k,l,n,m,i1
-      double precision DetGr,Gtwiddle(3,3),Gtt(3,3,3,3),
+      real(dp):: DetGr,Gtwiddle(3,3),Gtt(3,3,3,3),
      . f(3)
-      double complex S00i(3,-2:0),Shat3zz(3,-2:0),
+      complex(dp):: S00i(3,-2:0),Shat3zz(3,-2:0),
      . Shat2(3,3,-2:0),Shat3(3,z2max,-2:0),pole,bit
  
       do ep=-2,0

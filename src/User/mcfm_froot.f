@@ -39,6 +39,8 @@ c--- it should finalize the output and close opened files, if necessary
       
       call PrintNT()
       call RootNTOutp()
+      write(6,*) '<----- Finalized FROOT n-tuple ----->' 
+      call flush(6)
       
       return
       end
@@ -47,7 +49,6 @@ c--- it should finalize the output and close opened files, if necessary
       subroutine FROOT_book
       implicit none
       include 'types.f'
-      
       include 'npart.f'
       include 'mxdim.f'
       include 'scale.f'
@@ -64,14 +65,14 @@ c--- Extra definitions to facilitate dummy call to lowint
       character*255 runname
       integer:: lenocc
       logical:: first
-      common/iarray/imaxmom,ipdf            
+!      common/iarray/imaxmom,ipdf
       common/runname/runname
       data first/.true./
       save first
 
 c--- Need to ascertain the correct size for momenta n-tuples when this routine
 c--- is called for the first time, achieved via a dummy call to lowint
-      if (first) then      
+      if (first) then
         do ifill=1,mxdim
           r(ifill)=0.5_dp
         enddo
@@ -83,9 +84,9 @@ c--- (in versions 5.1 and before, this occured when calling lowint)
         scale=scale_store
         facscale=facscale_store
         
-        imaxmom=npart
-        if ((kpart==kreal).or.(kpart==ktota).or.(kpart==ktodk))
-     &    imaxmom=imaxmom+1
+!        imaxmom=npart
+!        if ((kpart==kreal).or.(kpart==ktota).or.(kpart==ktodk))
+!     &    imaxmom=imaxmom+1
 
         first=.false.
       endif
@@ -110,36 +111,47 @@ c --- Create an empty ntuple with the usual file name:
       subroutine FROOT_fill(p,wt)
       implicit none
       include 'types.f'
-      
       include 'constants.f'
+      include 'npart.f'
       include 'nf.f'
       include 'mxpart.f'
       include 'cplx.h'
       include 'wts_bypart.f'
-      include 'PDFerrors.f'      
+      include 'PDFerrors.f'
+      include 'kpart.f'
       real(dp):: p(mxpart,4)
       real(dp):: wt 
 c--- Extra common block to carry the information about maximum momenta entries
-      integer:: imaxmom,ipdf
-      common/iarray/imaxmom,ipdf
-      integer:: i
+!      integer:: imaxmom,ipdf
+!      common/iarray/imaxmom,ipdf
+      integer:: i,mykpart
 c--- assume at most 10 final state particles and 60 PDF sets
       real pfill(105)
       character*3 labelE,labelx,labely,labelz
       character*5 labelPDF
-      logical:: first
 c--- force pfill to be allocated statically
-      common/pfillcommon/pfill      
-      data first/.true./
-      save first
+      common/pfillcommon/pfill
+      common/mykpart/mykpart
+      integer, save::imaxmom,ipdf
+      logical, save::first=.true.
       
 c--- If the event weight is zero, don't bother to add the n-tuple
       if (wt == 0._dp) then
         return
       endif
-
+      
 c--- On the first call, must set-up all branches
       if (first) then
+c--- setup number of momentum entries to be filled
+        imaxmom=npart
+        if ((mykpart==kreal).or.(mykpart==ktota).or.(mykpart==ktodk))
+     &    imaxmom=imaxmom+1
+        if (mykpart==knnlo) imaxmom=imaxmom+2
+c--- determine if we need space in array to store PDF weights (ipdf)
+        ipdf=0
+        if (PDFerrors) then
+          ipdf= maxPDFsets
+        endif
         do i=1,imaxmom
           write(labelx,72) i+2
           write(labely,73) i+2
@@ -166,7 +178,6 @@ c---    then include PDF errors if necessary
         endif
         first=.false.
       endif
-      
 
       do i=1,imaxmom
 c---    set up single precision variables for momenta

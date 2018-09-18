@@ -15,7 +15,7 @@
       include 'hdecaymode.f'
 C  in is the label of the momentum contracted with n
       integer::j,k,in
-      real(dp)::msq(-nf:nf,-nf:nf),msqgamgam
+      real(dp)::msq(-nf:nf,-nf:nf),msqhgamgam
       real(dp)::n(4),p(mxpart,4),hdecay,s34,fac,
      & qqgghn_ab,qqgghn_ba,qqgghn_sym,
      & c1234,c1243,c1423,Asq
@@ -38,7 +38,7 @@ C   Deal with Higgs decay
       elseif (hdecaymode == 'bqba') then
           call hbbdecay(p,3,4,hdecay)
       elseif (hdecaymode == 'gaga') then
-          hdecay=msqgamgam(hmass)
+          hdecay=msqhgamgam(s34)
       else
       write(6,*) 'Unimplemented process in gg_hgg_gvec'
       stop

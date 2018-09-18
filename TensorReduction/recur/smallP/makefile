@@ -1,4 +1,3 @@
-# Makefile routine.
 VPATH		= $(PWD)/obj
 INCPATH1 = $(PWD)/../Include/
 INCPATH2 = $(PWD)/../../Include/
@@ -9,13 +8,9 @@ ifeq ($(origin FC),environment)
 else
     FC = gfortran
 endif
-FFLAGS 	= -O2 -fno-f2c -g -I$(INCPATH1) -I$(INCPATH2) -Iobj -Jobj
+FFLAGS 	= -O2 -fno-f2c -fopenmp -g -I$(INCPATH1) -I$(INCPATH2) -Iobj -Jobj
 
 LIBRARY	      = libsmallP.a
-
-
-# -----------------------------------------------------------------------------
-# Specify the object files. 
 
 OBJS = \
 Cfill_recur3.o \
@@ -47,27 +42,13 @@ runP_iii.o \
 runP_iiii.o \
 runP_iiiii.o
 
-
 $(LIBRARY):	$(OBJS) 
 		ar cru $(LIBRARY) $(patsubst %,obj/%,$(OBJS))
 		ranlib $(LIBRARY)
 		mv $(LIBRARY) ..
  
-
-# -----------------------------------------------------------------------------
-
-
-
 all:		$(LIBRARY)
 
-
-# -----------------------------------------------------------------------------
-
 clean:
-	- rm -f obj/*.o *.s *.prj *.a *~ core
-
-# -----------------------------------------------------------------------------
-
-# DO NOT DELETE
-
+	- rm -f obj/*.o ../$(LIBRARY)
 

@@ -1,5 +1,5 @@
-      SUBROUTINE pvIpiksrt(n,arr)
-      INTEGER n,arr(n),i,j,a
+      subroutine pvIpiksrt(n,arr)
+      integer::n,arr(n),i,j,a
       do 12 j=2,n
         a=arr(j)
         do 11 i=j-1,1,-1

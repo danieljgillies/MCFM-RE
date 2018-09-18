@@ -1,4 +1,70 @@
+      subroutine gg_hgg_Zgam(p,msq)
+        implicit none
+        include 'types.f'
+        include 'mxpart.f'
+        include 'hdecaymode.f'
+        include 'nf.f'
+        include 'msq_struc.f'
+        include 'masses.f'
+ 
+        real(dp), intent(in) :: p(mxpart,4)
+        real(dp), intent(out) :: msq(-nf:nf,-nf:nf)
+
+        integer, parameter :: iglue1 = 6, iglue2 = 7
+        real(dp) :: shsq, hdecay, HZgamMSQ, dotvec
+
+        call gg_hgg_nodecay(p,iglue1,iglue2,msq)
+
+! Note that decay must be computed after matrix elements above, in order
+! that s(i,j) common block that is used in HZgamMSQ is filled correctly
+        shsq = dotvec(p(3,:)+p(4,:)+p(5,:), p(3,:)+p(4,:)+p(5,:))
+        hdecay = HZgamMSQ(3,4,5)
+        hdecay = hdecay/((shsq-hmass**2)**2+(hmass*hwidth)**2)
+
+        msq = msq * hdecay
+        msq_struc = msq_struc * hdecay
+
+      end subroutine
+
       subroutine gg_hgg(p,msq)
+        implicit none
+        include 'types.f'
+        include 'mxpart.f'
+        include 'hdecaymode.f'
+        include 'nf.f'
+        include 'msq_struc.f'
+        include 'masses.f'
+
+        real(dp), intent(in) :: p(mxpart,4)
+        real(dp), intent(out) :: msq(-nf:nf,-nf:nf)
+
+        integer, parameter :: iglue1 = 5, iglue2 = 6
+        real(dp) :: hdecay,s34
+        real(dp) :: dotvec, msqhgamgam
+
+        s34 = dotvec(p(3,:)+p(4,:), p(3,:)+p(4,:))
+
+        if (hdecaymode == 'tlta') then
+            call htautaudecay(p,3,4,hdecay)
+        elseif (hdecaymode == 'bqba') then
+            call hbbdecay(p,3,4,hdecay)
+        elseif (hdecaymode == 'gaga') then
+            hdecay=msqhgamgam(s34)
+        else
+        write(6,*) 'Unimplemented process in gg_hgg_v'
+        stop
+        endif
+        hdecay=hdecay/((s34-hmass**2)**2+(hmass*hwidth)**2)
+
+        call gg_hgg_nodecay(p,iglue1,iglue2,msq)
+
+        msq = msq * hdecay
+        msq_struc = msq_struc * hdecay
+
+      end subroutine
+
+
+      subroutine gg_hgg_nodecay(p,iglue1,iglue2,msq)
       implicit none
       include 'types.f'
       
@@ -16,9 +82,13 @@ c     g(-p1)+g(-p2) -->  H(p3)+g(p_iglue1=5)+g(p_iglue2=6)
       include 'zprods_com.f'
       include 'msq_struc.f'
       include 'nflav.f'
-      include 'hdecaymode.f'
-      integer:: j,k,iglue1,iglue2
-      real(dp):: p(mxpart,4),Asq,fac,msqhgamgam
+
+      real(dp), intent(in) :: p(mxpart,4)
+      integer, intent(in) :: iglue1, iglue2
+      real(dp), intent(out) :: msq(-nf:nf,-nf:nf)
+
+      integer:: j,k
+      real(dp):: Asq,fac
       real(dp):: Hgggg,Hgggg_1256,Hgggg_1265,Hgggg_1625
 c     &                     ,Hgggg_1652,Hgggg_1562,Hgggg_1526
       real(dp):: Hqagg,Haqgg,Hgqqg,Hgaag,Hqgqg,Hagag,Hggqa
@@ -39,32 +109,12 @@ c     &                     ,Hgggg_1652,Hgggg_1562,Hgggg_1526
      & Hqarb,Hqaqa,Hqbqb,
      & Haqbr,Haqaq,Hbqbq,
      & Hqaaq
-      real(dp):: msq(-nf:nf,-nf:nf),hdecay,s34
-
-      parameter(iglue1=5,iglue2=6)
-
 
 C---fill spinor products up to maximum number
       call spinoru(iglue2,p,za,zb)  
-
-      s34=(p(3,4)+p(4,4))**2
-     & -(p(3,1)+p(4,1))**2-(p(3,2)+p(4,2))**2-(p(3,3)+p(4,3))**2
-
-C   Deal with Higgs decay
-      if (hdecaymode == 'tlta') then
-          call htautaudecay(p,3,4,hdecay)
-      elseif (hdecaymode == 'bqba') then
-          call hbbdecay(p,3,4,hdecay)
-      elseif (hdecaymode == 'gaga') then
-          hdecay=msqhgamgam(s34)
-      else
-      write(6,*) 'Unimplemented process in gg_hgg_v'
-      stop
-      endif
-      hdecay=hdecay/((s34-hmass**2)**2+(hmass*hwidth)**2)
-
+      
       Asq=(as/(three*pi))**2/vevsq
-      fac=gsq**2*Asq*hdecay
+      fac=gsq**2*Asq
 
 c--- four gluon terms
       call HggggLO(1,2,iglue1,iglue2,

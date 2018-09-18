@@ -375,6 +375,7 @@ c--- Routine to convert MCFM plabel to PDG number
       
 
       subroutine mcfm_getflavour(msq,j,k)
+        use cxx11random
       implicit none
       include 'types.f'
       
@@ -383,7 +384,7 @@ c--- Routine to convert MCFM plabel to PDG number
       include 'mxpart.f'
       include 'cplx.h'
       integer:: j,k
-      real(dp):: msq(-nf:nf,-nf:nf),msqsum,ran2,ptr
+      real(dp):: msq(-nf:nf,-nf:nf),msqsum,ptr
 
 c--- total of absolute weights      
       msqsum=zip
@@ -394,7 +395,7 @@ c--- total of absolute weights
       enddo
       
 c--- random weight between 0 and this total
-      ptr=msqsum*ran2()
+      ptr=msqsum*cxx11_random_number()
 
 c--- recover corresponding j,k      
       msqsum=zip

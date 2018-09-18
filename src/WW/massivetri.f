@@ -1,4 +1,5 @@
       subroutine massivetri(k1,k2,k3,k4,k5,k6,za,zb,triang)
+        use mod_qcdloop_c
       implicit none
       include 'types.f'
       
@@ -12,22 +13,13 @@
       include 'zprods_decl.f'
       include 'docheck.f'
       complex(dp)::c(2,2,12),d(2,2,6),Cint(12,-2:0),
-     & triang(2,2,-2:0),qlI3,tmp
+     & triang(2,2,-2:0),tmp
       real(dp):: s12,s34,s56,s134,s156,mtsq,Delta
       integer:: j,k1,k2,k3,k4,k5,k6,e,h1,h2
       common/transferbox/d
 !$omp threadprivate(/transferbox/)
 
       mtsq=mt**2
-
-c--- QCDLoop already initialized from call to massivebox
-c      if (first) then
-c      first=.false. 
-c      write(6,*) 'mtsq',mtsq
-c      write(6,*) 'musq',musq
-c      call qlinit
-cc      pause
-c      endif
 
       s134=s(k1,k3)+s(k1,k4)+s(k3,k4)
       s156=s(k2,k3)+s(k2,k4)+s(k3,k4)

@@ -45,7 +45,7 @@ c---- Author: C. Williams, June 2012
       if (zerowidth) then
         taumin=mass3**2/sqrts**2
       else
-        taumin=max(wsqmin,gammpt**2)/sqrts**2
+        taumin=max(wsqmin,gammptmin**2)/sqrts**2
       endif
       
       lntaum=log(taumin)

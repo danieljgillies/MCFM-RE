@@ -33,6 +33,9 @@ c---- calculation at NNLO at "ipermille" per mille level of precision
       elseif ((nproc == 285)) then
         if (ipermille == 10) taucut=1.e-2_dp
         if (ipermille ==  2) taucut=1.e-3_dp
+      elseif (nproc == 300 .or. nproc == 305) then
+          if (ipermille==10) taucut=0.1_dp
+          if (ipermille==2) taucut=0.01_dp
       else
         write(6,*) 'Pre-determined value of taucut not available'
         write(6,*) 'for nproc = ',nproc

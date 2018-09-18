@@ -1,26 +1,28 @@
       subroutine ovDcheck(rank,q1,q2,q3,m1s,m2s,m3s,m4s,
      & FD0,FD1,FD2,FD3,FD4,failed)
       implicit none
+      include 'types.f'
       include 'TRconstants.f'
       include 'TRydef.f'
       include 'pvverbose.f'
       include 'TRmetric.f'
       integer n2,n3,n4,ep,nu,rank,epmin
-      double precision q1(4),q2(4),q3(4),p2(4),p3(4),p23(4),Dacc
-      double precision q1Dq1,q2Dq2,q3Dq3,q1Dq2,q2Dq3,q1Dq3,
+      real(dp):: q1(4),q2(4),q3(4),p2(4),p3(4),p23(4),Dacc
+      real(dp):: q1Dq1,q2Dq2,q3Dq3,q1Dq2,q2Dq3,q1Dq3,
      & m1s,m2s,m3s,m4s,sing4(-2:0),f1,f2,f3
-      double complex 
+      complex(dp)::
      & FC01(-2:0),FC11(y1max,-2:0),FC21(y2max,-2:0),FC31(y3max,-2:0),
      & FC02(-2:0),FC12(y1max,-2:0),FC22(y2max,-2:0),FC32(y3max,-2:0),
      & FC03(-2:0),FC13(y1max,-2:0),FC23(y2max,-2:0),FC33(y3max,-2:0),
      & FC04(-2:0),FC14(y1max,-2:0),FC24(y2max,-2:0),FC34(y3max,-2:0)
-      double complex FC14a(y1max,-2:0),FC24a(y2max,-2:0),
+      complex(dp):: FC14a(y1max,-2:0),FC24a(y2max,-2:0),
      & FC34a(y3max,-2:0)
-      double complex FD0(-2:0),FD1(y1max,-2:0),FD2(y2max,-2:0),
+      complex(dp):: FD0(-2:0),FD1(y1max,-2:0),FD2(y2max,-2:0),
      & FD3(y3max,-2:0),FD4(y4max,-2:0),trhs,tq,C00(-2:0),tau3(4,-2:0)
       logical failed
       integer ierr
       parameter(epmin=0) ! Only check finite pieces
+      include 'cplx.h'
       
       failed=.false.
       ierr=0
@@ -349,7 +351,7 @@ c      if (pvverbose) write(6,*) -0.5d0*(+f1*FD0(ep))
      & -m1s*FD2(y2(n3,n4),ep)
       trhs=
      & -FC24a(y2(n3,n4),ep)
-     & +dcmplx(sing4(ep))
+     & +cplx1(sing4(ep))
       call checkaccuracy(trhs,tq,Dacc,failed) 
       if (failed) then
         ierr=40

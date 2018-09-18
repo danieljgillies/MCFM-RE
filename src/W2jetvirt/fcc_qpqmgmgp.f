@@ -79,7 +79,7 @@
      .(za(j1,j3)*zb(j3,j6)+za(j1,j4)*zb(j4,j6))**2)/
      .(za(j1,j4)*za(j3,j4)*(-(za(j1,j3)*zb(j2,j3))-za(j1,j4)*zb(j2,j4))*
      .*
-     .3_dp*zb(j5,j6)*t(j1,j3,j4))+
+     .3._dp*zb(j5,j6)*t(j1,j3,j4))+
      .(za(j1,j3)**3*zb(j2,j6)**2*t(j1,j3,j4))/
      .(za(j1,j4)*za(j3,j4)*(-(za(j1,j3)*zb(j2,j3))-za(j1,j4)*zb(j2,j4))*
      .*3*
@@ -116,8 +116,8 @@
      .za(j2,j5)*zb(j2,j3)*zb(j4,j6))-
      .zb(j1,j4)*(-(za(j1,j2)*zb(j1,j3))-za(j2,j4)*zb(j3,j4))*
      .(za(j1,j3)*za(j2,j5)*zb(j2,j6)+
-     .2_dp*za(j1,j5)*(-(za(j1,j3)*zb(j1,j6))-za(j3,j4)*zb(j4,j6)))+
-     .2_dp*za(j2,j3)*za(j2,j5)*zb(j3,j4)*
+     .2._dp*za(j1,j5)*(-(za(j1,j3)*zb(j1,j6))-za(j3,j4)*zb(j4,j6)))+
+     .2._dp*za(j2,j3)*za(j2,j5)*zb(j3,j4)*
      .(-(za(j1,j4)*zb(j1,j6)*zb(j2,j4))-
      .zb(j2,j6)*(s(j1,j2)+t(j1,j2,j4))))/
      .(2._dp*(-(za(j1,j4)*zb(j1,j3))-za(j2,j4)*zb(j2,j3))*
@@ -201,19 +201,19 @@
      .za(j2,j3)*zb(j1,j3)*zb(j2,j6))-
      .za(j2,j3)*(za(j2,j4)*zb(j1,j2)+za(j3,j4)*zb(j1,j3))*
      .(za(j1,j5)*zb(j1,j6)*zb(j2,j4)+
-     .2_dp*zb(j2,j6)*(-(za(j2,j5)*zb(j2,j4))+za(j3,j5)*zb(j3,j4)))-
+     .2._dp*zb(j2,j6)*(-(za(j2,j5)*zb(j2,j4))+za(j3,j5)*zb(j3,j4)))-
      .za(j3,j5)*(s(j1,j3)*za(j2,j3)*zb(j1,j2)-
      .s(j1,j2)*za(j3,j4)*zb(j1,j4))*zb(j3,j6)+
      .s(j3,j4)*za(j2,j3)*za(j4,j5)*zb(j1,j2)*zb(j4,j6)+
-     .4_dp*za(j1,j5)*za(j2,j3)*za(j3,j4)*zb(j1,j2)*zb(j1,j3)*zb(j4,j6)+
+     .4._dp*za(j1,j5)*za(j2,j3)*za(j3,j4)*zb(j1,j2)*zb(j1,j3)*zb(j4,j6)+
      .s(j2,j3)*za(j3,j4)*(za(j3,j5)*zb(j1,j3)+za(j4,j5)*zb(j1,j4))*
      .zb(j4,j6)-za(j3,j5)*zb(j1,j3)*
      .(za(j2,j3)*zb(j1,j2)+za(j3,j4)*zb(j1,j4))*
      .(za(j1,j3)*zb(j3,j6)+za(j1,j4)*zb(j4,j6))-
      .(za(j1,j4)*za(j2,j3)*zb(j1,j2)*zb(j3,j4)*
      .(zb(j1,j6)*(-(za(j1,j5)*zb(j1,j2))-za(j4,j5)*zb(j2,j4))+
-     .2_dp*za(j4,j5)*zb(j1,j2)*zb(j4,j6)))/zb(j2,j3)-
-     .2_dp*za(j3,j4)*zb(j1,j4)*zb(j1,j6)*
+     .2._dp*za(j4,j5)*zb(j1,j2)*zb(j4,j6)))/zb(j2,j3)-
+     .2._dp*za(j3,j4)*zb(j1,j4)*zb(j1,j6)*
      .(-(za(j1,j3)*za(j2,j5)*zb(j2,j3))-
      .za(j1,j5)*(s(j1,j2)+t(j1,j2,j3))))/
      .(2._dp*(za(j2,j4)*zb(j1,j2)+za(j3,j4)*zb(j1,j3))*
@@ -243,7 +243,7 @@
      .(-(za(j2,j5)*zb(j2,j4))-za(j3,j5)*zb(j3,j4)))/
      .(za(j5,j6)*zb(j2,j3)*zb(j3,j4))+
      .za(j3,j5)*zb(j1,j4)*(-(za(j2,j3)*zb(j2,j6))+
-     .2_dp*za(j3,j4)*zb(j4,j6))+
+     .2._dp*za(j3,j4)*zb(j4,j6))+
      .(2._dp*za(j3,j5)*zb(j1,j2)*
      .(-(za(j2,j5)*zb(j2,j4))-za(j3,j5)*zb(j3,j4))*zb(j5,j6))/
      .zb(j2,j3)-(za(j2,j3)*zb(j1,j6)*

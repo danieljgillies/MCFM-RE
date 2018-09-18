@@ -89,6 +89,8 @@ c
       common/eks987r/nm(5)
       common/eks988r/ v1, v2
       data readFRr/0/
+!$omp threadprivate(/eks983r/,/eks984r/,/eks985r/,/eks981r/,/eks982r/)
+!$omp threadprivate(/eks986r/,/eks987r/,/eks988r/)
       if (readFRr.ne.1) then
          call eksrinit
          readFRr=1
@@ -145,6 +147,7 @@ c
       common/eks986r/indx,indpi,kpt
       common/eks982r/pk0(3,180,8)
       common/eks988r/ v1, v2
+!$omp threadprivate(/eks986r/,/eks982r/,/eks988r/)
       z=v1
       eksrar0=pk0(1,indx,kpt)+pk0(2,indx,kpt)*z
      #        +pk0(3,indx,kpt)*z*z
@@ -155,6 +158,7 @@ c
       implicit double precision (a-h,o-z)
       common/eks985r/yy1,p1,p2
       common/eks988r/ v1, v2
+!$omp threadprivate(/eks985r/,/eks988r/)
       z=v1
       eksrara=yy1+p1*z+p2*z*z
       return
@@ -166,6 +170,7 @@ c
       common/eks983r/qq0(3),x1,x116,aa1,aa8
       common/eks984r/yy1,p1,p2,p3,p4,p5,p6,p7,p8,p9
       common/eks988r/ v1, v2
+!$omp threadprivate(/eks986r/,/eks983r/,/eks984r/,/eks988r/)
       z=v2
       xx=x-x1
       if (x.le.x116) then
@@ -190,8 +195,10 @@ c
       common/eks982r/pk0(3,180,8)
       common/eks987r/nm(5)
       data readFR2r/0/
+!$omp threadprivate(/eks981r/,/eks982r/,/eks987r/)
       if (readFR2r.ne.1) then
          filename=checkpath('Pdfdata/parxQA.all')
+!$omp critical(eks98read)
          open(11,file=filename,status='UNKNOWN')
          do 30 i=1,8
             do 40 j=1,3
@@ -207,6 +214,7 @@ c
 20             read(11,137) pk0(1,j,i),pk0(2,j,i),pk0(3,j,i)
 10       continue
          close(11)
+!$omp end critical(eks98read)
          readFR2r=1
       endif
       return

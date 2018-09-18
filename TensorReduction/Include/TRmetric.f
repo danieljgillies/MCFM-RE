@@ -1,5 +1,5 @@
-      double precision,parameter:: g(4,4)=reshape((
-     & /-1d0,0d0 ,0d0 , 0d0,
-     &  0d0 ,-1d0,0d0 , 0d0,
-     &  0d0 , 0d0,-1d0, 0d0,
-     &  0d0,  0d0, 0d0,+1d0/),(/4,4/))
+      real(dp),parameter:: g(4,4)=reshape((
+     & /-1._dp,0._dp ,0._dp , 0._dp,
+     &  0._dp ,-1._dp,0._dp , 0._dp,
+     &  0._dp , 0._dp,-1._dp, 0._dp,
+     &  0._dp,  0._dp, 0._dp,+1._dp/),(/4,4/))

@@ -28,6 +28,8 @@ c--- Nucl.\ Phys.\ B {\bf 297}, 221 (1988).
       s34=(p(3,4)+p(4,4))**2
      & -(p(3,1)+p(4,1))**2-(p(3,2)+p(4,2))**2-(p(3,3)+p(4,3))**2
 
+      msq(:,:)=zip
+      
 C   Deal with Higgs decay
       if (hdecaymode == 'tlta') then
           call htautaudecay(p,3,4,hdecay)
@@ -36,8 +38,8 @@ C   Deal with Higgs decay
       elseif (hdecaymode == 'gaga') then
           hdecay=msqgamgam(hmass)
       else
-      write(6,*) 'Unimplemented process in qqb_higgs'
-      stop
+          write(6,*) 'Unimplemented process in qqb_higgs'
+          stop
       endif
       hdecay=hdecay/((s34-hmass**2)**2+(hmass*hwidth)**2)
       origmbsq=mbsq
@@ -48,9 +50,8 @@ C   Deal with Higgs decay
       gq=-aveqg*ehsvm4(s(2,5),s(1,5),s(1,2))*hdecay
       mbsq=origmbsq
 
-      do j=-nf,nf    
+      do j=-nf,nf
       do k=-nf,nf
-      msq(j,k)=0._dp
 
       if ((j== 0) .or. (k==0)) then
            if ((j== 0) .and. (k==0)) then
@@ -85,20 +86,20 @@ C   Deal with Higgs decay
       include 'qcdcouple.f'
 c---Matrix element squared Eqn 2.2 of EHSV
       complex(dp):: ehsva2,ehsva4
-      real(dp):: s,t,u
+      real(dp):: hmass2,s,t,u
       logical:: approx
       parameter(approx=.false.)
 c--- approx TRUE uses the heavy fermion approximation to Msq
 
-
+      hmass2=s+t+u
       if (approx) then
       ehsvm3=gwsq/pi*as**3*xn*V/9._dp*(
-     &        hmass**8+s**4+t**4+u**4)/s/t/u/wmass**2
+     &        hmass2**4+s**4+t**4+u**4)/s/t/u/wmass**2
       else
       ehsvm3=
      & abs(ehsva2(s,t,u))**2+abs(ehsva2(u,s,t))**2+abs(ehsva2(t,u,s))**2
      & +abs(ehsva4(s,t,u))**2 
-      ehsvm3=gwsq/pi*as**3*xn*V*hmass**8/(s*t*u*wmass**2)*ehsvm3
+      ehsvm3=gwsq/pi*as**3*xn*V*hmass2**4/(s*t*u*wmass**2)*ehsvm3
       endif
       
       return
@@ -119,18 +120,18 @@ c--- approx TRUE uses the heavy fermion approximation to Msq
       include 'qcdcouple.f'
 c---Matrix element squared Eqn 2.6 of EHSV
       complex(dp):: ehsva5
-      real(dp):: s,t,u
+      real(dp):: hmass2,s,t,u
       logical:: approx
       parameter(approx=.false.)
 c--- approx TRUE uses the heavy fermion approximation to Msq
 
-
+      hmass2=s+t+u
       if (approx) then
       ehsvm4=gwsq/pi*as**3*V/18._dp*(u**2+t**2)/s/wmass**2
       else
       ehsvm4=abs(ehsva5(s,t,u))**2
       ehsvm4=gwsq/(4._dp*pi)*as**3*V/2._dp*(u**2+t**2)/(s*wmass**2)
-     & *hmass**4/(u+t)**2*ehsvm4
+     & *hmass2**2/(u+t)**2*ehsvm4
       endif
       
       return

@@ -5,14 +5,15 @@ C---  Expression for extension of Eq. 5.60c
 C---  Calculates C00li1i2i3i4, requires C00lli1i2i3
 C---  Small terms of order Xtwiddle(0,k)*Ciiiiii,Xtwiddle(0,0)*Ciiiiiii
 C---  Denominator Gtwiddle(k,l)
+      include 'types.f'
       include 'pvCnames.f' 
       include 'pvCv.f' 
       include 'Carraydef.f' 
       include 'Carrays.f' 
       integer ep,N0,k,l,i1,i2,i3,i4,np
       parameter(np=2)
-      double precision Xtwiddle(0:np,0:np),Gtwiddle(np,np)
-      double complex Shat7(np,z6max,-2:0)
+      real(dp):: Xtwiddle(0:np,0:np),Gtwiddle(np,np)
+      complex(dp):: Shat7(np,z6max,-2:0)
 
       if (  (i1.eq.l) .or. (i2.eq.l) .or. (i3.eq.l) .or. (i4.eq.l)
      . .or. (i1.eq.0) .or. (i2.eq.0) .or. (i3.eq.0) .or. (i4.eq.0)) then

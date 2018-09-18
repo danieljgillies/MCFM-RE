@@ -214,19 +214,19 @@ c--- calculate PDF's
       do k=-nflav,nflav
 
       if (ggonly) then
-      if ((j.ne.0) .or. (k.ne.0)) goto 20
+      if ((j.ne.0) .or. (k.ne.0)) cycle
       endif
 
       if (gqonly) then
-      if (((j==0).and.(k==0)) .or. ((j.ne.0).and.(k.ne.0))) goto 20
+      if (((j==0).and.(k==0)) .or. ((j.ne.0).and.(k.ne.0))) cycle
       endif
       
       if (noglue) then 
-      if ((j==0) .or. (k==0)) goto 20
+      if ((j==0) .or. (k==0)) cycle
       endif
 
       if (omitgg) then 
-      if ((j==0) .and. (k==0)) goto 20
+      if ((j==0) .and. (k==0)) cycle
       endif
 
 c--- sum of fragmentation contribution and integrated fragmentation dipoles
@@ -253,7 +253,6 @@ c--- sum of fragmentation contribution and integrated fragmentation dipoles
         xmsq_bypart(sgnj,sgnk)=xmsq_bypart(sgnj,sgnk)+xmsqjk
       endif
       
- 20   continue
       enddo
       enddo
 

@@ -73,8 +73,8 @@ c--- Number of active flavours in the initial state: this parameter
 c--- may be changed in the program for some processes
       data nflav/5/
 c--- Masses below here are currently unused      
-      data md,mu,ms/5.e-3_dp,5.e-3_dp,1.e-1_dp/
-      data mel,mmu/0.510997e-3_dp,0.105658389_dp/
+      data md,mu,ms/66.e-3_dp,66.e-3_dp,0.15_dp/
+      data mel,mmu/0.51099892e-3_dp,0.105658369_dp/
 
 ************************************************************************
 

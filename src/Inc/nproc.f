@@ -1,2 +1,2 @@
-      integer:: nproc
-      common/nproc/nproc
+      integer :: nproc,nprocbelow
+      common/nproc/nproc,nprocbelow

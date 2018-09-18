@@ -1,9 +1,10 @@
       subroutine pvBackSubst(A,n,p,b)
       implicit none
-      integer n, j, p(n),nmax
-      parameter(nmax=4)
-      double complex A(n,n),b(n,-2:0)
-      double complex xm2(nmax),xm1(nmax),xm0(nmax)
+      include 'types.f'
+      integer n,j,p(n)
+      integer,parameter::nmax=4
+      complex(dp):: A(n,n),b(n,-2:0)
+      complex(dp)::xm2(nmax),xm1(nmax),xm0(nmax)
       if (n .gt. nmax) then
       write(6,*) 'Error in BackSubst, n .gt. nmax'
       stop

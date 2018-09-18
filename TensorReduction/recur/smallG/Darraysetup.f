@@ -1,5 +1,6 @@
       subroutine Darraysetup
       implicit none
+      include 'types.f'
       include 'pvDnames.f'
       include 'Darraydef.f'
       include 'Darrays.f'  

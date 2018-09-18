@@ -1,4 +1,27 @@
+      
       subroutine gg_hg_z(p,z)
+        implicit none
+        include 'types.f'
+        include 'mxpart.f'
+
+        real(dp), intent(in) :: p(mxpart,4), z
+        integer, parameter :: iglue = 5
+
+        call gg_hg_z_internal(p,z,iglue)
+      end subroutine
+
+      subroutine gg_hg_zgam_z(p,z)
+        implicit none
+        include 'types.f'
+        include 'mxpart.f'
+
+        real(dp), intent(in) :: p(mxpart,4), z
+        integer, parameter :: iglue = 6
+
+        call gg_hg_z_internal(p,z,iglue)
+      end subroutine
+      
+      subroutine gg_hg_z_internal(p,z,iglue)
       implicit none
       include 'types.f'
 ************************************************************************
@@ -14,15 +37,19 @@
       include 'scale.f'
       include 'PR_new.f'
       include 'agq.f'
+
+      real(dp), intent(in) :: p(mxpart,4), z
+      integer, intent(in) :: iglue
+
       integer:: is
-      real(dp):: z,xl12,xl15,xl25,p(mxpart,4),dot
+      real(dp):: xl12,xl15,xl25,dot
       real(dp):: ii_qq,ii_qg,ii_gq,ii_gg,
      &                 if_qq,if_gg,
      &                 fi_qq,fi_gg
 
       xl12=log(+two*dot(p,1,2)/musq)
-      xl15=log(-two*dot(p,1,5)/musq)
-      xl25=log(-two*dot(p,2,5)/musq)
+      xl15=log(-two*dot(p,1,iglue)/musq)
+      xl25=log(-two*dot(p,2,iglue)/musq)
 
 c--- sum over regular and plus terms
       do is=1,3

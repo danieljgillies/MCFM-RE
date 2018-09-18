@@ -16,14 +16,20 @@
       complex(dp):: a6g,a6vQLslc,a6virtLL
       complex(dp):: a6vh(4,16)
       character*9 st1,st2,st3
-      character*14 st4,st5 
+      integer:: st4,st5 
       integer:: i,j,k
 c-----helicity stamp
       st1='q+qb-g+g+'
       st2='q+qb-g+g-'
       st3='q+qb-g-g+'
-      st4='q+qb-g+g+lb-l+'
-      st5='q+qb-g+g-lb-l+'
+
+c-----helicity stamp
+c      'q+qb-g+g+lb-l+'=4
+c      'q+qb-g+g-lb-l+'=5
+
+      st4=4
+      st5=5
+
 c-----initialize a60h
       do i=1,4
       do j=1,8

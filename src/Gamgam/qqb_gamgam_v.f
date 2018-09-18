@@ -103,7 +103,7 @@ C--gg
 
       T0=s13/s23+s23/s13
 !==== divergent parts
-      qagamgam_cw=(-2_dp*epinv**2-(3_dp+2_dp*l12)*epinv)*T0
+      qagamgam_cw=(-2._dp*epinv**2-(3._dp+2._dp*l12)*epinv)*T0
 
 !======= finite part 
       qagamgam_cw=qagamgam_cw+ 

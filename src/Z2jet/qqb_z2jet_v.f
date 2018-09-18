@@ -44,6 +44,7 @@
       include 'lc.f'
       include 'first.f'
       include 'ppmax.f'
+      include 'toploops.f'
       include 'mpicommon.f'
       real(dp):: msq(-nf:nf,-nf:nf),msqv(-nf:nf,-nf:nf),
      & mmsq_qqb(2,2),mmsq_qbq(2,2),mmsq_gq(2,2),mmsq_qg(2,2),
@@ -52,12 +53,15 @@
       complex(dp):: mmsq_qqb_ax(2,2),mmsq_qbq_ax(2,2),
      & mmsq_gq_ax(2,2),mmsq_qg_ax(2,2),mmsq_qbg_ax(2,2),
      & mmsq_gqb_ax(2,2),mmsq_gg_ax(2,2),
-     & mmsq_qqb_vec(2,2),mmsq_qbq_vec(2,2),
-     & mmsq_gq_vec(2,2),mmsq_qg_vec(2,2),mmsq_qbg_vec(2,2),
-     & mmsq_gqb_vec(2,2),mmsq_gg_vec(2,2)
-      complex(dp):: atreez,a61z,a62z,a63z,prop,vcouple(2),
+     & mmsq_qqb_vec0(2,2),mmsq_qbq_vec0(2,2),
+     & mmsq_gq_vec0(2,2),mmsq_qg_vec0(2,2),mmsq_qbg_vec0(2,2),
+     & mmsq_gqb_vec0(2,2),mmsq_gg_vec0(2,2),
+     & mmsq_qqb_vect(2,2),mmsq_qbq_vect(2,2),
+     & mmsq_gq_vect(2,2),mmsq_qg_vect(2,2),mmsq_qbg_vect(2,2),
+     & mmsq_gqb_vect(2,2),mmsq_gg_vect(2,2)
+      complex(dp):: atreez,a61z,a62z,a63z,prop,vcouple(2),tcouple(2),
      & tamp,lamp,tampup,lampup,tampdo,lampdo,tamps,lamps,lampx,lampsx
-      integer:: nu,j,k,cs,polq,polb,polz
+      integer:: nu,j,k,cs,polq,polb,polz,maxnf
       integer:: nup,ndo,rvcolourchoice
       integer, parameter :: jj(-nf:nf)=(/-1,-2,-1,-2,-1,0,1,2,1,2,1/)
       real(dp):: subuv(0:2)
@@ -105,7 +109,7 @@ c--- both be set to .false.
       parameter(checkvector=.false.,checkaxial=.false.)
 ! discardvecax: if true, discard diagrams where Z couples directly
 ! to a closed quark loop, through vector and axial-vector couplings
-      logical, parameter:: discardvecax=.true.
+      logical, parameter:: discardvecax=.false.
 !$omp threadprivate(/mqq/,/rvcolourchoice/)
       include 'cplx.h'
 
@@ -118,6 +122,7 @@ c--- both be set to .false.
 
       if (first) then
         first=.false.
+!$omp master
         if (rank == 0) then
         if (discardvecax) then
           write(6,*) 'No vector or axial-vector closed quark-loop Z+2 jet diagrams'
@@ -147,6 +152,7 @@ c--- both be set to .false.
           stop
         endif
         endif
+!$omp end master
       endif
 
 c--- get special phase space point for MadLoop comparison
@@ -165,11 +171,7 @@ c--- write out ug Born amplitude when checking
         write(6,*) 'Madloop check: ug Born',msq(2,0)
       endif
       
-      do j=-nf,nf
-      do k=-nf,nf
-      msqv(j,k)=0._dp
-      enddo
-      enddo
+      msqv(:,:)=0._dp
 
       prop=s(3,4)/cplx2(s(3,4)-zmass**2,zmass*zwidth)
       
@@ -208,7 +210,7 @@ c--- all zero already
 
 c--- transfer lowest order matrix elements
 c--- NB: this breaks the routine if Qflag = Gflag = .true.
-
+!      msq_cs(:,:,:)=msqx_cs(:,:,:)
       do cs=0,2
         do j=-nf,nf
         do k=-nf,nf
@@ -232,13 +234,14 @@ CALL    0--> q(p2)+g(p6)+g(p5)+qb(p1)+lbar(p4)+l(p3)
       pswap(6,nu)=p(3,nu)
       enddo
       call spinoru(6,pswap,za,zb)
-      call xzqqgg_v(mmsq_qqb,mmsq_qqb_vec,mmsq_qqb_ax)
+      call xzqqgg_v(pswap,mmsq_qqb,mmsq_qqb_vec0,mmsq_qqb_vect,mmsq_qqb_ax)
 
 c--- obtain qbq from qqb by symmetry
       do polq=1,2
       do polz=1,2
         mmsq_qbq(polq,polz)=mmsq_qqb(3-polq,polz)
-        mmsq_qbq_vec(polq,polz)=mmsq_qqb_vec(3-polq,polz)
+        mmsq_qbq_vec0(polq,polz)=mmsq_qqb_vec0(3-polq,polz)
+        mmsq_qbq_vect(polq,polz)=mmsq_qqb_vect(3-polq,polz)
         mmsq_qbq_ax(polq,polz)=-mmsq_qqb_ax(3-polq,polz)
       enddo
       enddo     
@@ -276,13 +279,14 @@ CALL    0--> q(p5)+g(p6)+g(p1)+qb(p2)+lbar(p4)+l(p3)
       pswap(6,nu)=p(3,nu)
       enddo
       call spinoru(6,pswap,za,zb)
-      call xzqqgg_v(mmsq_gq,mmsq_gq_vec,mmsq_gq_ax)
+      call xzqqgg_v(pswap,mmsq_gq,mmsq_gq_vec0,mmsq_gq_vect,mmsq_gq_ax)
 
 c--- obtain gqb from gq by symmetry
       do polq=1,2
       do polz=1,2
         mmsq_gqb(polq,polz)=mmsq_gq(3-polq,polz)
-        mmsq_gqb_vec(polq,polz)=mmsq_gq_vec(3-polq,polz)
+        mmsq_gqb_vec0(polq,polz)=mmsq_gq_vec0(3-polq,polz)
+        mmsq_gqb_vect(polq,polz)=mmsq_gq_vect(3-polq,polz)
         mmsq_gqb_ax(polq,polz)=-mmsq_gq_ax(3-polq,polz)
       enddo
       enddo
@@ -312,13 +316,14 @@ CALL    0--> q(p5)+g(p6)+g(p2)+qb(p1)+lbar(p4)+l(p3)
       pswap(6,nu)=p(3,nu)
       enddo
       call spinoru(6,pswap,za,zb)
-      call xzqqgg_v(mmsq_qg,mmsq_qg_vec,mmsq_qg_ax)
+      call xzqqgg_v(pswap,mmsq_qg,mmsq_qg_vec0,mmsq_qg_vect,mmsq_qg_ax)
 
 c--- obtain qbg from qg by symmetry
       do polq=1,2
       do polz=1,2
         mmsq_qbg(polq,polz)=mmsq_qg(3-polq,polz)
-        mmsq_qbg_vec(polq,polz)=mmsq_qg_vec(3-polq,polz)
+        mmsq_qbg_vec0(polq,polz)=mmsq_qg_vec0(3-polq,polz)
+        mmsq_qbg_vect(polq,polz)=mmsq_qg_vect(3-polq,polz)
         mmsq_qbg_ax(polq,polz)=-mmsq_qg_ax(3-polq,polz)
       enddo
       enddo
@@ -348,7 +353,7 @@ CALL    0--> q(p6)+g(p1)+g(p2)+qb(p5)+lbar(p4)+l(p3)
       pswap(6,nu)=p(3,nu)
       enddo
       call spinoru(6,pswap,za,zb)
-      call xzqqgg_v(mmsq_gg,mmsq_gg_vec,mmsq_gg_ax)     
+      call xzqqgg_v(pswap,mmsq_gg,mmsq_gg_vec0,mmsq_gg_vect,mmsq_gg_ax)
       endif      
       
 ************************************************************************
@@ -362,7 +367,7 @@ c--- UV counter-term is already included in a6routine.f
       
 c--- transfer lowest order matrix elements
 c--- NB: this breaks the routine if Qflag = Gflag = .true.
-
+!      msq_cs(:,:,:)=mqq(:,:,:)
       do cs=0,2
         do j=-nf,nf
         do k=-nf,nf
@@ -374,22 +379,29 @@ c--- NB: this breaks the routine if Qflag = Gflag = .true.
       endif
 
       if (discardvecax) then
-        mmsq_qqb_ax(:,:)=zip
-        mmsq_qbq_ax(:,:)=zip
-        mmsq_gq_ax(:,:)=zip
-        mmsq_qg_ax(:,:)=zip
-        mmsq_qbg_ax(:,:)=zip
-        mmsq_gqb_ax(:,:)=zip
-        mmsq_gg_ax(:,:)=zip
-        mmsq_qqb_vec(:,:)=zip
-        mmsq_qbq_vec(:,:)=zip
-        mmsq_gq_vec(:,:)=zip
-        mmsq_qg_vec(:,:)=zip
-        mmsq_qbg_vec(:,:)=zip
-        mmsq_gqb_vec(:,:)=zip
-        mmsq_gg_vec(:,:)=zip
+        mmsq_qqb_ax(:,:)=czip
+        mmsq_qbq_ax(:,:)=czip
+        mmsq_gq_ax(:,:)=czip
+        mmsq_qg_ax(:,:)=czip
+        mmsq_qbg_ax(:,:)=czip
+        mmsq_gqb_ax(:,:)=czip
+        mmsq_gg_ax(:,:)=czip
+        mmsq_qqb_vec0(:,:)=czip
+        mmsq_qbq_vec0(:,:)=czip
+        mmsq_gq_vec0(:,:)=czip
+        mmsq_qg_vec0(:,:)=czip
+        mmsq_qbg_vec0(:,:)=czip
+        mmsq_gqb_vec0(:,:)=czip
+        mmsq_gg_vec0(:,:)=czip
+        mmsq_qqb_vect(:,:)=czip
+        mmsq_qbq_vect(:,:)=czip
+        mmsq_gq_vect(:,:)=czip
+        mmsq_qg_vect(:,:)=czip
+        mmsq_qbg_vect(:,:)=czip
+        mmsq_gqb_vect(:,:)=czip
+        mmsq_gg_vect(:,:)=czip
       endif
-
+      
 c--- Add VIRTUAL terms
 
 ************************************************************************
@@ -400,11 +412,18 @@ c--- Add VIRTUAL terms
 c--- compute correct vector-like coupling for diagrams with Z coupled to a loop
       vcouple(1)=czip
       vcouple(2)=czip
-      do j=1,nf
+!      if (toploops == tnone) then
+!        maxnf=4 ! remove complete (t,b) doublet from loop
+!      else
+!        maxnf=nf
+!      endif
+      maxnf=nf ! keep bottom quark in vector-coupling loop
       do polz=1,2
+      do j=1,maxnf
       vcouple(polz)=vcouple(polz)
      & +Q(j)*q1+0.5_dp*(vQ(j,1)+vQ(j,2))*v2(polz)*prop
       enddo
+      tcouple(polz)=Q(2)*q1+0.5_dp*(vQ(2,1)+vQ(2,2))*v2(polz)*prop
       enddo
       
       do j=-nf,nf
@@ -417,8 +436,10 @@ c--- quark-antiquark
         if (j == -k) 
      &  msqv(j,k)=msqv(j,k)+half*(aveqq/avegg)*(mmsq_qqb(polq,polz)*(
      &          abs(Q(j)*q1+vQ(j,polq)*v2(polz)*prop)**2)
-     &                     +real(mmsq_qqb_vec(polq,polz)
+     &                 +real(mmsq_qqb_vec0(polq,polz)
      &        *conjg(Q(j)*q1+vQ(j,polq)*v2(polz)*prop)*vcouple(polz))
+     &                 +real(mmsq_qqb_vect(polq,polz)
+     &        *conjg(Q(j)*q1+vQ(j,polq)*v2(polz)*prop)*tcouple(polz))
      &                 +real(mmsq_qqb_ax(polq,polz)
      &        *conjg(Q(j)*q1+vQ(j,polq)*v2(polz)*prop)
      &          *(v2(polz)*prop)/sin2w))
@@ -428,8 +449,10 @@ c--- antiquark-quark
         if (j == -k)
      &  msqv(j,k)=msqv(j,k)+half*(aveqq/avegg)*(mmsq_qbq(polq,polz)*(
      &          abs(Q(k)*q1+vQ(k,polq)*v2(polz)*prop)**2)
-     &                     +real(mmsq_qbq_vec(polq,polz)
+     &                 +real(mmsq_qbq_vec0(polq,polz)
      &        *conjg(Q(k)*q1+vQ(k,polq)*v2(polz)*prop)*vcouple(polz))
+     &                 +real(mmsq_qbq_vect(polq,polz)
+     &        *conjg(Q(k)*q1+vQ(k,polq)*v2(polz)*prop)*tcouple(polz))
      &                 +real(mmsq_qbq_ax(polq,polz)
      &        *conjg(Q(k)*q1+vQ(k,polq)*v2(polz)*prop)
      &          *(v2(polz)*prop)/sin2w))
@@ -442,7 +465,7 @@ c--- quark-gluon
         if (checkvector) then
 c--- MadLoop check: vector couplings only - no Z coupling to leptons and quarks
         msqv(j,k)=msqv(j,k)+(aveqg/avegg)*(
-     &                   +real(mmsq_qg_vec(polq,polz)
+     &                   +real(mmsq_qg_vec0(polq,polz)
      &          *conjg(Q(j)*q1+vQ(j,polq)*v2(polz)*prop)*vcouple(polz))
      &                   )
         endif
@@ -468,8 +491,10 @@ c     &         *((v2(polz)-v2(3-polz))*prop)/sin2w))/8._dp
 c--- normal case
       msqv(j,k)=msqv(j,k)+(aveqg/avegg)*(mmsq_qg(polq,polz)*(
      &        abs(Q(j)*q1+vQ(j,polq)*v2(polz)*prop)**2)
-     &                     +real(mmsq_qg_vec(polq,polz)
+     &                 +real(mmsq_qg_vec0(polq,polz)
      &        *conjg(Q(j)*q1+vQ(j,polq)*v2(polz)*prop)*vcouple(polz))
+     &                 +real(mmsq_qg_vect(polq,polz)
+     &        *conjg(Q(j)*q1+vQ(j,polq)*v2(polz)*prop)*tcouple(polz))
      &                 +real(mmsq_qg_ax(polq,polz)
      &        *conjg(Q(j)*q1+vQ(j,polq)*v2(polz)*prop)
      &          *(v2(polz)*prop)/sin2w))
@@ -482,8 +507,10 @@ c--- antiquark-gluon
 
         msqv(j,k)=msqv(j,k)+(aveqg/avegg)*(mmsq_qbg(polq,polz)*(
      &          abs(Q(-j)*q1+vQ(-j,polq)*v2(polz)*prop)**2)
-     &                     +real(mmsq_qbg_vec(polq,polz)
+     &                 +real(mmsq_qbg_vec0(polq,polz)
      &        *conjg(Q(-j)*q1+vQ(-j,polq)*v2(polz)*prop)*vcouple(polz))
+     &                 +real(mmsq_qbg_vect(polq,polz)
+     &        *conjg(Q(-j)*q1+vQ(-j,polq)*v2(polz)*prop)*tcouple(polz))
      &                 +real(mmsq_qbg_ax(polq,polz)
      &        *conjg(Q(-j)*q1+vQ(-j,polq)*v2(polz)*prop)
      &          *(v2(polz)*prop)/sin2w))
@@ -492,8 +519,10 @@ c--- gluon-quark
       elseif ((j == 0) .and. (k > 0)) then
         msqv(j,k)=msqv(j,k)+(aveqg/avegg)*(mmsq_gq(polq,polz)*(
      &          abs(Q(k)*q1+vQ(k,polq)*v2(polz)*prop)**2)
-     &                     +real(mmsq_gq_vec(polq,polz)
+     &                 +real(mmsq_gq_vec0(polq,polz)
      &        *conjg(Q(k)*q1+vQ(k,polq)*v2(polz)*prop)*vcouple(polz))
+     &                 +real(mmsq_gq_vect(polq,polz)
+     &        *conjg(Q(k)*q1+vQ(k,polq)*v2(polz)*prop)*tcouple(polz))
      &                 +real(mmsq_gq_ax(polq,polz)
      &        *conjg(Q(k)*q1+vQ(k,polq)*v2(polz)*prop)
      &          *(v2(polz)*prop)/sin2w))
@@ -502,8 +531,10 @@ c--- gluon-antiquark
       elseif ((j == 0) .and. (k < 0)) then
         msqv(j,k)=msqv(j,k)+(aveqg/avegg)*(mmsq_gqb(polq,polz)*(
      &          abs(Q(-k)*q1+vQ(-k,polq)*v2(polz)*prop)**2)
-     &                     +real(mmsq_gqb_vec(polq,polz)
+     &                 +real(mmsq_gqb_vec0(polq,polz)
      &        *conjg(Q(-k)*q1+vQ(-k,polq)*v2(polz)*prop)*vcouple(polz))
+     &                 +real(mmsq_gqb_vect(polq,polz)
+     &        *conjg(Q(-k)*q1+vQ(-k,polq)*v2(polz)*prop)*tcouple(polz))
      &                 +real(mmsq_gqb_ax(polq,polz)
      &        *conjg(Q(-k)*q1+vQ(-k,polq)*v2(polz)*prop)
      &          *(v2(polz)*prop)/sin2w))
@@ -512,15 +543,19 @@ c--- gluon-gluon
       elseif ((j == 0) .and. (k == 0)) then
         msqv(j,k)=msqv(j,k)+real(ndo,dp)*(mmsq_gg(polq,polz)*(
      &             abs(Q(1)*q1+vQ(1,polq)*v2(polz)*prop)**2)
-     &                     +real(mmsq_gg_vec(polq,polz)
+     &                 +real(mmsq_gg_vec0(polq,polz)
      &        *conjg(Q(1)*q1+vQ(1,polq)*v2(polz)*prop)*vcouple(polz))
+     &                 +real(mmsq_gg_vect(polq,polz)
+     &        *conjg(Q(1)*q1+vQ(1,polq)*v2(polz)*prop)*tcouple(polz))
      &                 +real(mmsq_gg_ax(polq,polz)
      &        *conjg(Q(1)*q1+vQ(1,polq)*v2(polz)*prop)
      &          *(v2(polz)*prop)/sin2w))
         msqv(j,k)=msqv(j,k)+real(nup,dp)*(mmsq_gg(polq,polz)*(
      &          abs(Q(2)*q1+vQ(2,polq)*v2(polz)*prop)**2)
-     &                     +real(mmsq_gg_vec(polq,polz)
+     &                 +real(mmsq_gg_vec0(polq,polz)
      &        *conjg(Q(2)*q1+vQ(2,polq)*v2(polz)*prop)*vcouple(polz))
+     &                 +real(mmsq_gg_vect(polq,polz)
+     &        *conjg(Q(2)*q1+vQ(2,polq)*v2(polz)*prop)*tcouple(polz))
      &                 +real(mmsq_gg_ax(polq,polz)
      &        *conjg(Q(2)*q1+vQ(2,polq)*v2(polz)*prop)
      &          *(v2(polz)*prop)/sin2w))

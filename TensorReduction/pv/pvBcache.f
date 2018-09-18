@@ -1,12 +1,14 @@
       integer function pvBcache(p1sq,m1sq,m2sq)
       implicit none
 C---p1sq is the square of the momentum
+      include 'types.f'
       include 'pvBnames.f'
       include 'TRclear.f'
+      include 'TRconstants.f'
       include 'TRonshellcutoff.f'
-      double precision para(Pbb),p1sq,m1sq,m2sq
+      real(dp):: para(Pbb),p1sq,m1sq,m2sq
       integer jtable,j,Ntrue
-      double precision,save:: tableB(Pbb,Nbmax)      
+      real(dp),save:: tableB(Pbb,Nbmax)      
       integer,save:: Nstore=0
 !$omp threadprivate(tableB,Nstore)
 
@@ -44,7 +46,7 @@ C    if parameter set is not found we have to calculate
  20   pvBcache=Nstore*Nbb
       Nstore=Nstore+1
       do j=1,Pbb
-        if(abs(para(j)) .lt. onshellcutoff) para(j)=0d0
+        if(abs(para(j)) .lt. onshellcutoff) para(j)=zero
       enddo
       do j=1,Pbb
       tableB(j,Nstore)=para(j)

@@ -3,14 +3,15 @@
       implicit none
 C---Fixes Ciiiii according to extension of Denner-Dittmaier
 c---knowing C00iiii with a correction of order Delta*Diiiiii
+      include 'types.f'
       include 'pvCnames.f'
       include 'pvCv.f'
       include 'Carraydef.f'
       include 'Carrays.f'
       integer ep,N0,j,i1,i2,i3,i4,i5,n,np
       parameter(np=2)
-      double precision DetGr,Xtwiddle0(np),Gtwiddle(np,np)
-      double complex Shat6(np,z5max,-2:0),Shat6s(np,z5max,-2:0)
+      real(dp):: DetGr,Xtwiddle0(np),Gtwiddle(np,np)
+      complex(dp):: Shat6(np,z5max,-2:0),Shat6s(np,z5max,-2:0)
        
 
       do ep=-2,0

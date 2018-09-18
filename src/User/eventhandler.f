@@ -1,4 +1,5 @@
       subroutine decide_flavour(pflav,pbarflav)
+        use cxx11random
       implicit none
       include 'types.f'
 c     ------------------------------------------------------------------
@@ -20,8 +21,6 @@ c --- To use VEGAS random number sequence :
 c      integer:: idum
 c      COMMON/ranno/idum
       
-      real(dp):: ran2nr
-      
       integer:: j,k
       real(dp):: weight_sum,weight_int
       real(dp):: pointer
@@ -37,7 +36,7 @@ c --- First add up the weights :
       enddo
 
 c --- Now find a random number between zero and this integral :
-      pointer = ran2nr()*weight_sum
+      pointer = cxx11_random_number()*weight_sum
 
 c --- Find where this falls in the integral distribution to 
 c --- discover the combination :
@@ -100,6 +99,7 @@ c     ------------------------------------------------------------------
 c
 
       subroutine mcfm_getevent(p,wt,pflav,pbarflav)
+        use cxx11random
       implicit none
       include 'types.f'
 c     ------------------------------------------------------------------
@@ -128,8 +128,6 @@ c      COMMON/ranno/idum
 
       integer:: i,j,position
 
-      real(dp):: ran2nr
-
       real*4 rannum,randomList(buffersize)
 
 c     ------------------------------------------------------------------
@@ -145,7 +143,7 @@ c ---   Call integration loop again, this time unweighting :
         write(6,*) 'After event generation, numstored = ',numstored
         if (numstored==0) goto 10
         do i=1,numstored
-           rannum = sngl(real(ran2nr(),kind=8))
+           rannum = sngl(real(cxx11_random_number(),kind=8))
            randomList(i) = rannum
            indexList(i) = 0
         enddo

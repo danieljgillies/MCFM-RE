@@ -86,7 +86,8 @@ C     ehsv:EqnA.19
       include 'mxpart.f'
       include 'cplx.h'
       include 'masses.f'
-      real(dp):: rat,s,temp,acosh,asinh
+      real(dp):: rat,s,temp
+!      real(dp):: acosh,asinh
       rat=4._dp*mbsq/s
       temp=sqrt(abs(1._dp/rat))
       if (rat < 0._dp) then
@@ -111,7 +112,8 @@ C     ehsv:EqnA.20
       include 'mxpart.f'
       include 'cplx.h'
       include 'masses.f'
-      real(dp):: rat,s,tempr,tempi,acosh,asinh
+      real(dp):: rat,s,tempr,tempi
+      real(dp):: acosh,asinh
       rat=s/(4._dp*mbsq)
       tempr=sqrt(abs(rat))
       if (rat < 0._dp) then
@@ -207,23 +209,25 @@ C     ehsv:EqnA.21
       return
       end
 
-      function acosh(y)
-      implicit none
-      include 'types.f'
-      real(dp):: acosh
-      
-      real(dp):: y      
-      acosh=log(y+sqrt(y**2-1._dp))
-      return
-      end
+! This function is by now intrinsic
+!      function acosh(y)
+!      implicit none
+!      include 'types.f'
+!      real(dp):: acosh
+!      
+!      real(dp):: y      
+!      acosh=log(y+sqrt(y**2-1._dp))
+!      return
+!      end
 
-      function asinh(y)
-      implicit none
-      include 'types.f'
-      real(dp):: asinh
-      
-      real(dp):: y      
-      asinh=log(y+sqrt(y**2+1._dp))
-      return
-      end
+! This function is by now intrinsic
+!      function asinh(y)
+!      implicit none
+!      include 'types.f'
+!      real(dp):: asinh
+!      
+!      real(dp):: y      
+!      asinh=log(y+sqrt(y**2+1._dp))
+!      return
+!      end
 

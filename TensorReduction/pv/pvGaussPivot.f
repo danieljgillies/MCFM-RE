@@ -36,13 +36,14 @@
 
       subroutine XLUDecomp(A, n, perm)
       implicit none
-      integer n, perm(n)
-      double complex A(n,n)
+      include 'types.f'
+      include 'TRconstants.f'
+      integer:: n, perm(n)
+      complex(dp):: A(n,n)
+      integer:: i, j, k, imax
+      complex(dp):: tmp
+      real(dp):: Amax
 
-      integer i, j, k, imax
-      double complex tmp,czip
-      double precision Amax
-      parameter(czip=(0d0,0d0))
       do j = 1, n
 * do U part (minus diagonal one)
         do i = 1, j - 1
@@ -52,7 +53,7 @@
         enddo
 
 * do L part (plus diagonal from U case)
-        Amax = 0d0
+        Amax = zero
         imax = j
         do i = j, n
           tmp = czip
@@ -79,7 +80,7 @@
 
 * division by the pivot element
         if( A(j,j) .eq. czip ) then
-          tmp = dcmplx(1D123)
+          tmp = cmplx(1.E123_dp,kind=dp)
         else
           tmp = 1/A(j,j)
         endif
@@ -101,12 +102,12 @@
 
       subroutine XLUBackSubst(A, n, p, b)
       implicit none
-      integer n, p(n)
-      double complex A(n,n)
-      double complex b(*)
-
-      integer i, j
-      double complex tmp
+      include 'types.f'
+      integer:: n, p(n)
+      complex(dp):: A(n,n)
+      complex(dp):: b(*)
+      integer:: i, j
+      complex(dp):: tmp
 
 * permute b 
       do i = 1, n

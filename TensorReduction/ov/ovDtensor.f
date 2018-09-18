@@ -6,6 +6,7 @@ C     m1s,m2s,m3s,m4s are the squares of the internal masses
 C     FD0...FD4 are the rank 0,...4 box functions
 C     Lorentz indices are stored as linear array, thus FD2(y2(n1,n2),ep)
 C     Author: R.K.Ellis (January 2013)
+      include 'types.f'
       include 'TRconstants.f'
       include 'TRydef.f'
       include 'TRscale.f'
@@ -14,13 +15,13 @@ C     Author: R.K.Ellis (January 2013)
       include 'TRclear.f'
       include 'ovDnames.f'
       include 'ovDsave.f'
-      double precision p1(4),p2(4),p3(4),p4(4),m1s,m2s,m3s,m4s,
+      real(dp):: p1(4),p2(4),p3(4),p4(4),m1s,m2s,m3s,m4s,
      & p12(4),p23(4),p123(4),
      & p1Dp1,p2Dp2,p3Dp3,p4Dp4,p1Dp2,p1Dp3,p2Dp3,
      & s1Ds1,s1Dp1,s2Dp2,s3Dp3,s2Dp3,s1Dp2,s1Dp3,
      & s12,s23,ovw3,w(4,4),inGram(3,3),Gram(3,3),d,Gram3,
      & vmat(3,3),wvec(3),wmax
-      double complex FD0(-2:0),FD1(y1max,-2:0),FD2(y2max,-2:0),
+      complex(dp):: FD0(-2:0),FD1(y1max,-2:0),FD2(y2max,-2:0),
      &FD3(y3max,-2:0),FD4(y4max,-2:0),
      &FC0_1(-2:0),FC1_1(y1max,-2:0),FC2_1(y2max,-2:0),FC3_1(y3max,-2:0),
      &FC0_2(-2:0),FC1_2(y1max,-2:0),FC2_2(y2max,-2:0),FC3_2(y3max,-2:0),
@@ -32,9 +33,9 @@ C     Author: R.K.Ellis (January 2013)
      &tmp(4,-2:0),RHS(3),inRHS(3),tmpRHS(3,y3max)
       integer n1,n2,n3,n4,ep,indx(3)
       logical failed,iterate,dosvd
-      double precision para(Pdd)
+      real(dp):: para(Pdd)
       logical,save:: first=.true.
-      double precision,save::tableD(Pdd,Ndmax)      
+      real(dp),save::tableD(Pdd,Ndmax)      
       integer jtable,j,Ntrue
       integer, save:: Nstore=0
 !$omp threadprivate(first,Nstore,tableD)

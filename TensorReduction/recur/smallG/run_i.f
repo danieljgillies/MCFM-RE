@@ -2,13 +2,14 @@
       implicit none
 C---Fixes Di according to 5.43 Denner-Dittmaier
 C---knowing D00 with corrections of order Delta_3 Dii
+      include 'types.f'
       include 'pvDnames.f'
       include 'pvDv.f'
       include 'Darraydef.f'
       include 'Darrays.f'
       integer ep,N0,j,i1,n
-      double precision DetGr,Xtwiddle0(3),Gtwiddle(3,3)
-      double complex Shat2(3,3,-2:0),Shat2s(3,3,-2:0)
+      real(dp):: DetGr,Xtwiddle0(3),Gtwiddle(3,3)
+      complex(dp):: Shat2(3,3,-2:0),Shat2s(3,3,-2:0)
        
 
       do ep=-2,0

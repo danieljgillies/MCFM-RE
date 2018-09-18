@@ -1,7 +1,7 @@
       subroutine pvArraysetup
       include 'TRydef.f'
-      integer n1,n2,n3,n4,n5,n6,n7,i
-      integer nn2(2),nn3(3),nn4(4),nn5(5),nn6(6),nn7(7)
+      integer:: n1,n2,n3,n4,n5,n6,n7,i
+      integer:: nn2(2),nn3(3),nn4(4),nn5(5),nn6(6),nn7(7)
       logical,save::first=.true.
 !$omp threadprivate(first)
       if (first) then

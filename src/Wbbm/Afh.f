@@ -1,5 +1,6 @@
       subroutine Afh(k1,k2,k3,k4,k5,k6,mq,Afmm,Afmp,Afpm,Afpp,
      & Ahmm,Ahmp,Ahpm,Ahpp,mhloopsq)
+        use mod_qcdloop_c
       implicit none
       include 'types.f'
       
@@ -12,7 +13,7 @@
       integer:: k1,k2,k3,k4,k5,k6
       complex(dp):: Afmm(-2:0),Afmp(-2:0),Afpm(-2:0),Afpp(-2:0),
      & Ahmm(-2:0),Ahmp(-2:0),Ahpm(-2:0),Ahpp(-2:0),
-     & LOmm,LOmp,LOpm,LOpp,B0f,B0fm,A0fm,qlI2,qlI1
+     & LOmm,LOmp,LOpm,LOpp,B0f,B0fm,A0fm
       real(dp):: s23,mhloopsq,mq
      
       s23=s(k2,k3)

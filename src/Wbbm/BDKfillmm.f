@@ -1,4 +1,5 @@
       subroutine BDKfillmm(k1,k2,k3,k4,k5,k6,mq,za,zb,ASLmm,Aslpp)
+        use mod_qcdloop_c
       implicit none
       include 'types.f'
 ************************************************************************
@@ -16,7 +17,7 @@
       integer:: k1,k2,k3,k4,k5,k6,e
       complex(dp):: Lnrat,xl14,ASLmm(-2:0),ASLpp(-2:0),
      & A(-1:0),C0(-1:0),B0p23(-1:0),B0p3(-1:0),VV(-2:0),zba2
-      complex(dp):: BDK1211mm,loreduced,lomm,lopp,qlI1,qlI2,qlI3,
+      complex(dp):: BDK1211mm,loreduced,lomm,lopp,
      & BDKfinite
       real(dp):: mq,mqsq,p2Dp3,s123,s234
       zba2(k1,k2,k3,k4)=zb(k1,k2)*za(k2,k4)+zb(k1,k3)*za(k3,k4)

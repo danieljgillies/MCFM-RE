@@ -60,6 +60,8 @@ c---if x's out of normal range alternative return
       elseif ((kcase==kWWqqdk) .or. (kcase==kWHbbdk)
      &       .or.(kcase==kZHbbdk))  then  
         call phase5h(r,p1,p2,p3,p4,p5,p6,p7,pswt)
+      elseif (kcase==kZga2jt)  then  
+        call phase5Vgam(r,p1,p2,p3,p4,p5,p6,p7,pswt)
       else
          call phase5(r,p1,p2,p3,p4,p5,p6,p7,pswt)
       endif

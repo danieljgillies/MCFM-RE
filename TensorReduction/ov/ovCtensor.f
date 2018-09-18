@@ -7,6 +7,7 @@ C     FC0...FC3 are the rank 0,...3 triangle functions
 C     Lorentz indices are stored as linear array, 
 C     thus FC2(y2(n1,n2),ep), etc
 C     Author: R.K.Ellis (January 2013)
+      include 'types.f'
       include 'TRconstants.f'
       include 'TRydef.f'
       include 'TRscale.f'
@@ -16,10 +17,10 @@ C     Author: R.K.Ellis (January 2013)
       include 'TRclear.f'
       include 'ovCnames.f'
       include 'ovCsave.f'
-      double precision p1(4),p2(4),p3(4),p12(4),xm1s,xm2s,xm3s,
+      real(dp):: p1(4),p2(4),p3(4),p12(4),xm1s,xm2s,xm3s,
      & m1s,m2s,m3s,Gram2,s1Dp1,s1Dp2,s2Dp2,p1Dp1,p2Dp2,p3Dp3,p1Dp2,
      & ovw2,d,Gram(2,2),inGram(2,2),vmat(2,2),wvec(2),wmax
-      double complex FC0(-2:0),FC1(y1max,-2:0),FC2(y2max,-2:0),
+      complex(dp):: FC0(-2:0),FC1(y1max,-2:0),FC2(y2max,-2:0),
      & FC3(y3max,-2:0),
      & FB0_1(-2:0),FB1_1(y1max,-2:0),FB2_1(y2max,-2:0),
      & FB0_2(-2:0),FB1_2(y1max,-2:0),FB2_2(y2max,-2:0),
@@ -28,10 +29,10 @@ C     Author: R.K.Ellis (January 2013)
      & tau3(4,-2:0),RHS(2),inRHS(2)
       integer n1,n2,n3,ep,indx(2)
       logical failed,iterate,dosvd
-      double precision para(Pcc)
+      real(dp):: para(Pcc)
       integer jtable,j,Ntrue
       logical,save:: first=.true.
-      double precision,save:: tableC(Pcc,Ncmax)      
+      real(dp),save:: tableC(Pcc,Ncmax)      
       integer,save :: Nstore=0
 !$omp threadprivate(first,tableC,Nstore)
 

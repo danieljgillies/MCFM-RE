@@ -1,13 +1,11 @@
-      double precision pi,pisq,pisqo6
-      parameter(pi=3.1415926535897932385d0,pisq=pi*pi,pisqo6=pisq/6d0)
-
-      double precision zip,half,one,two,three,four,eight
-      parameter(zip=0d0,half=0.5d0,one=1d0,two=2d0)
-      parameter(three=3d0,four=4d0,eight=8d0)
-
-      double complex im,impi,czip,cone
-      parameter(im=(0d0,1d0),impi=(0d0,3.1415926535897932385d0),
-     . czip=(0d0,0d0),cone=(1d0,0d0))
+      real(dp),parameter::
+     & pi=3.1415926535897932385_dp,
+     & pisq=pi*pi,pisqo6=pisq/6._dp,
+     & zero=0._dp,zip=0._dp,half=0.5_dp,one=1._dp,
+     & two=2._dp,three=3._dp,four=4._dp,five=5._dp,
+     & six=6._dp,eight=8._dp
+      complex(dp),parameter:: im=(0._dp,1._dp),
+     & impi=(0._dp,pi),czip=(0._dp,0._dp),cone=(1._dp,0._dp)
 
 
 

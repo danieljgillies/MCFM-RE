@@ -55,16 +55,19 @@ c---  ('none') to perform no clustering at all
       stop
       endif
       write(6,*) '*                                                  *'
-      write(6,79) ' *     pt(jet)         > ',ptjetmin
-      write(6,79) ' *   |pseudo-rap(jet)| > ',etajetmin   
-      write(6,79) ' *   |pseudo-rap(jet)| < ',etajetmax   
+      if (ptjetmax > 0.99e6_dp) then
+        write(6,79) ' *           pt(jet)   > ',ptjetmin
+      else
+        write(6,77) ptjetmin, '     pt(jet)     ',ptjetmax
+      endif
+      write(6,77) etajetmin,'|pseudo-rap(jet)|',etajetmax
       endif
 !$omp end master
       if (bbproc) then
         ptbjetmin=max(ptjetmin,ptbjetmin)
         etabjetmax=min(etajetmax,etabjetmax)
-      write(6,79) ' *   pt(b-jet)         > ',ptbjetmin
-      write(6,79) ' * |pseudo-rap(b-jet)| < ',etabjetmax   
+        write(6,79) ' *   pt(b-jet)         > ',ptbjetmin
+        write(6,79) ' * |pseudo-rap(b-jet)| < ',etabjetmax   
       endif
       if (jetalgorithm == hqrk) then
       write(6,79) ' *   b-bbar separation : ',Rbbmin
@@ -106,6 +109,7 @@ c---  ('none') to perform no clustering at all
       endif
 !$omp end master
       endif
+   77 format(' *    ',f10.3,' < ',a17,' < ',f10.3,'   *')
    78 format(' *    Cross-section defined by:  ',i2,' <= jets <=',
      &        i2,'    *')
    79 format(a25,f8.4,'                   *')

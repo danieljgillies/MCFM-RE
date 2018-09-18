@@ -1,13 +1,14 @@
       subroutine runCP_iiiii(k,i1,i2,i3,i4,i5,f,Gr,Shat6,N0)
       implicit none
+      include 'types.f'
       include 'pvCnames.f'
       include 'pvCv.f'
       include 'Carraydef.f'
       include 'Carrays.f'
       integer ep,N0,k,i1,i2,i3,i4,i5,np
       parameter(np=2)
-      double precision f(np),Gr(np,np)
-      double complex Shat6(np,z5max,-2:0)
+      real(dp):: f(np),Gr(np,np)
+      complex(dp):: Shat6(np,z5max,-2:0)
        
       do ep=-2,0
       Cv(ciiiii(z5(i1,i2,i3,i4,i5))+N0,ep)=

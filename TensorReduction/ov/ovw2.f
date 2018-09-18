@@ -1,7 +1,8 @@
-      double precision function ovw2(n1,n2,p1,p2,del2in)
+      function ovw2(n1,n2,p1,p2,del2in)
       implicit none
+      include 'types.f'
       include 'ovupdown.f'
-      double precision p1(4),p2(4),n1up(4),n2up(4),del2in,del3
+      real(dp):: ovw2,p1(4),p2(4),n1up(4),n2up(4),del2in,del3
       integer n1,n2
       n1up(1:4)=up(1:4,n1)
       n2up(1:4)=up(1:4,n2)

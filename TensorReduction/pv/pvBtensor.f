@@ -2,17 +2,18 @@
       implicit none
 C     q1 is the momentum in the loop = p1 the external momenta
 C     m1s,m2s are the squares of the internal masses
+      include 'types.f'
       include 'pvBnames.f'
       include 'pvBv.f'
       include 'TRydef.f'
-      double complex FB0(-2:0),FB1(y1max,-2:0),
+      include 'TRmetric.f'
+      complex(dp):: FB0(-2:0),FB1(y1max,-2:0),
      . FB2(y2max,-2:0),FB3(y3max,-2:0),FB4(y4max,-2:0),FB5(y5max,-2:0)
      . ,FB6(y6max,-2:0)
-      double precision q1(4),q1Dq1,m1s,m2s
-      double precision pvSDDP,pvSDDDD,pvSDDPP,pvSDDDDP,pvSDDPPP,
+      real(dp)::q1(4),q1Dq1,m1s,m2s
+      real(dp)::pvSDDP,pvSDDDD,pvSDDPP,pvSDDDDP,pvSDDPPP,
      . pvSDDDDPP,pvSDDPPPP,pvSDDDDDD
-      integer n1,n2,n3,n4,n5,n6,ep,B0i,pvBcache
-      include 'TRmetric.f'
+      integer::n1,n2,n3,n4,n5,n6,ep,B0i,pvBcache
       logical,save:: first=.true.
 !$omp threadprivate(first)
 

@@ -35,7 +35,7 @@
       do i=1,iplot
          hbin(i,:)=0._dp
          herr(i,:)=0._dp
-         hnum(i,:)=0._dp
+         hnum(i,:)=0
       enddo
 
       return

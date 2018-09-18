@@ -4,6 +4,7 @@
       include 'kpart.f'
       include 'kprocess.f'
       include 'nproc.f'
+      include 'ewcorr.f'
       logical writerefs
       common/writerefs/writerefs
       
@@ -26,24 +27,21 @@
         write(6,58) '*                                                  *'
 
       if (kpart == knnlo) then
-!        write(6,58) '*  NNLO implementation in MCFM                     *'
-!        write(6,58) '*   and H, W, Z processes:                         *'
-!        write(6,58) '*                                                  *'
         write(6,58) '*  Color singlet production at NNLO in MCFM        *'
         write(6,58) '*   R. Boughezal, J. Campbell, R.K. Ellis,         *'
         write(6,58) '*    C. Focke, W. Giele, X. Liu, F. Petriello,     *'
-        write(6,58) '*    C. Williams,  to appear                       *'
+        write(6,58) '*    C. Williams,  arXiv: 1605.08011               *'
         write(6,58) '*                                                  *'
         if     (nproc == 285) then
         write(6,58) '*  Predictions for diphoton production at the      *'
         write(6,58) '*    LHC through NNLO in QCD                       *'
         write(6,58) '*   J.M. Campbell, R.K. Ellis, Ye Li, C. Williams  *'
-        write(6,58) '*    arXiv:1603.02663                              *'
+        write(6,58) '*    JHEP 1607 (2016) 148                          *'
         write(6,58) '*                                                  *'
         elseif ((nproc >= 91) .and. (nproc <= 110)) then
         write(6,58) '*  Associated production of a Higgs boson at NNLO  *'
         write(6,58) '*   J.M. Campbell, R.K. Ellis, C. Williams,        *'
-        write(6,58) '*    arXiv:1601.00658                              *'
+        write(6,58) '*    JHEP 1606 (2016) 179                          *'
         write(6,58) '*                                                  *'
         endif
       endif
@@ -157,6 +155,15 @@
         write(6,58) '*                                                  *'
         endif
       
+        if (kewcorr /= knone) then
+        write(6,58) '*  A study of weak corrections to Drell-Yan,       *'
+        write(6,58) '*    top-quark pair and di-jet production at       *'
+        write(6,58) '*    high energies with MCFM                       *'
+        write(6,58) '*   J.M. Campbell, D. Wackeroth, J. Zhou,          *'
+        write(6,58) '*    arXiv:1608.03356                              *'
+        write(6,58) '*                                                  *'
+        endif
+        
         write(6,58) '****************************************************'
 
    58 format(a53) 

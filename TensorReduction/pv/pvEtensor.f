@@ -3,13 +3,14 @@
 C****NB The arguments of this routine are the momentum offsets "q",
 C       in the loop not the external momenta ******
 C****   m1s,m2s,m3s,m4s,m5s are the internal masses squared.
-
       implicit none
+      include 'types.f'
+      include 'TRconstants.f'
       include 'TRydef.f'
-      double precision q1(4),q2(4),q3(4),q4(4)
-      double precision q1Dq1,q2Dq2,q3Dq3,q4Dq4,f1,f2,f3,f4
-      double precision p1(4),p2(4),p3(4),p4(4),p5(4),p234(4)
-      double complex FE0(-2:0),FE1(y1max,-2:0),FE2(y2max,-2:0),
+      real(dp):: q1(4),q2(4),q3(4),q4(4)
+      real(dp):: q1Dq1,q2Dq2,q3Dq3,q4Dq4,f1,f2,f3,f4
+      real(dp):: p1(4),p2(4),p3(4),p4(4),p5(4),p234(4)
+      complex(dp):: FE0(-2:0),FE1(y1max,-2:0),FE2(y2max,-2:0),
      & FE3(y3max,-2:0),FE4(y4max,-2:0),FE5(y5max,-2:0),
      & FD01(-2:0),FD11(y1max,-2:0),FD21(y2max,-2:0),
      & FD31(y3max,-2:0),FD41(y4max,-2:0),FD51(y5max,-2:0),
@@ -29,36 +30,32 @@ C****   m1s,m2s,m3s,m4s,m5s are the internal masses squared.
      & FD15a(y1max,-2:0),FD25a(y2max,-2:0),
      & FD35a(y3max,-2:0),FD45a(y4max,-2:0),
      & Gram(4,4)
-      double precision p1Dp1,p2Dp2,p3Dp3,p4Dp4,p5Dp5,
+      real(dp):: p1Dp1,p2Dp2,p3Dp3,p4Dp4,p5Dp5,
      & m1s,m2s,m3s,m4s,m5s,s12,s23,s34,s45,s51,
      & p12(4),p23(4),p34(4),p45(4),p51(4),pvdot,v1(4),v2(4),v3(4),v4(4)
-      integer nu,n1,n2,n3,n4,n5,nn,ep
-      logical pvGramsing,singmat
-      common/singmat/singmat      
+      integer:: n1,n2,n3,n4,n5,nn,ep
+      logical:: pvGramsing,singmat
+      common/singmat/singmat
       logical,save:: first=.true.
 !$omp threadprivate(first,/singmat/)
 
       if (first) then
-      first=.false.
-      call pvarraysetup
+        first=.false.
+        call pvarraysetup
       endif
 
-
-      do nu=1,4
-      p1(nu)=q1(nu)
-      p2(nu)=q2(nu)-q1(nu)
-      p3(nu)=q3(nu)-q2(nu)
-      p4(nu)=q4(nu)-q3(nu)
-      p5(nu)=-q4(nu)
+      p1(:)=q1(:)
+      p2(:)=q2(:)-q1(:)
+      p3(:)=q3(:)-q2(:)
+      p4(:)=q4(:)-q3(:)
+      p5(:)=-q4(:)
      
-      p12(nu)=p1(nu)+p2(nu)
-      p23(nu)=p2(nu)+p3(nu)
-      p34(nu)=p3(nu)+p4(nu)
-      p45(nu)=p4(nu)+p5(nu)
-      p51(nu)=p5(nu)+p1(nu)
-      p234(nu)=p2(nu)+p3(nu)+p4(nu)
-      enddo
-
+      p12(:)=p1(:)+p2(:)
+      p23(:)=p2(:)+p3(:)
+      p34(:)=p3(:)+p4(:)
+      p45(:)=p4(:)+p5(:)
+      p51(:)=p5(:)+p1(:)
+      p234(:)=p2(:)+p3(:)+p4(:)
 
       p1Dp1=p1(4)**2-p1(1)**2-p1(2)**2-p1(3)**2
       p2Dp2=p2(4)**2-p2(1)**2-p2(2)**2-p2(3)**2
@@ -73,16 +70,16 @@ C****   m1s,m2s,m3s,m4s,m5s are the internal masses squared.
       call pvE0scalar(FE0,p1Dp1,p2Dp2,p3Dp3,p4Dp4,p5Dp5,
      & s12,s23,s34,s45,s51,m1s,m2s,m3s,m4s,m5s)
 
-      Gram(1,1)=dcmplx(2d0*p1Dp1)
-      Gram(2,2)=dcmplx(2d0*p2Dp2)
-      Gram(3,3)=dcmplx(2d0*p3Dp3)
-      Gram(4,4)=dcmplx(2d0*p4Dp4)
-      Gram(1,2)=dcmplx(2d0*pvdot(p1,p2))
-      Gram(1,3)=dcmplx(2d0*pvdot(p1,p3))
-      Gram(1,4)=dcmplx(2d0*pvdot(p1,p4))
-      Gram(2,3)=dcmplx(2d0*pvdot(p2,p3))
-      Gram(2,4)=dcmplx(2d0*pvdot(p2,p4))
-      Gram(3,4)=dcmplx(2d0*pvdot(p3,p4))
+      Gram(1,1)=cmplx(two*p1Dp1,0._dp,kind=dp)
+      Gram(2,2)=cmplx(two*p2Dp2,0._dp,kind=dp)
+      Gram(3,3)=cmplx(two*p3Dp3,0._dp,kind=dp)
+      Gram(4,4)=cmplx(two*p4Dp4,0._dp,kind=dp)
+      Gram(1,2)=cmplx(two*pvdot(p1,p2),0._dp,kind=dp)
+      Gram(1,3)=cmplx(two*pvdot(p1,p3),0._dp,kind=dp)
+      Gram(1,4)=cmplx(two*pvdot(p1,p4),0._dp,kind=dp)
+      Gram(2,3)=cmplx(two*pvdot(p2,p3),0._dp,kind=dp)
+      Gram(2,4)=cmplx(two*pvdot(p2,p4),0._dp,kind=dp)
+      Gram(3,4)=cmplx(two*pvdot(p3,p4),0._dp,kind=dp)
       Gram(2,1)=Gram(1,2)
       Gram(3,1)=Gram(1,3)
       Gram(4,1)=Gram(1,4)
@@ -109,7 +106,7 @@ c      else
      & FD04,FD14,FD24,FD34,FD44,FD54,FD64)
       call pvDtensor(p2,p23,p234,m2s,m3s,m4s,m5s,
      & FD05,FD15,FD25,FD35,FD45,FD55,FD65)
-
+     
       q1Dq1=pvdot(q1,q1)
       q2Dq2=pvdot(q2,q2)
       q3Dq3=pvdot(q3,q3)
@@ -123,10 +120,10 @@ c      else
       do ep=-2,0
       do n1=1,4
       FE1(n1,ep)=
-     & +0.5d0*(FD01(ep)-FD05(ep)+f1*FE0(ep))*v1(n1)
-     & +0.5d0*(FD02(ep)-FD05(ep)+f2*FE0(ep))*v2(n1)
-     & +0.5d0*(FD03(ep)-FD05(ep)+f3*FE0(ep))*v3(n1)
-     & +0.5d0*(FD04(ep)-FD05(ep)+f4*FE0(ep))*v4(n1)
+     & +half*(FD01(ep)-FD05(ep)+f1*FE0(ep))*v1(n1)
+     & +half*(FD02(ep)-FD05(ep)+f2*FE0(ep))*v2(n1)
+     & +half*(FD03(ep)-FD05(ep)+f3*FE0(ep))*v3(n1)
+     & +half*(FD04(ep)-FD05(ep)+f4*FE0(ep))*v4(n1)
       enddo
       enddo
 
@@ -136,10 +133,10 @@ c      else
       do n1=1,4
       do n2=n1,4
       FE2(y2(n1,n2),ep)=
-     & +0.5d0*(FD11(n1,ep)-FD15a(n1,ep)+f1*FE1(n1,ep))*v1(n2)
-     & +0.5d0*(FD12(n1,ep)-FD15a(n1,ep)+f2*FE1(n1,ep))*v2(n2)
-     & +0.5d0*(FD13(n1,ep)-FD15a(n1,ep)+f3*FE1(n1,ep))*v3(n2)
-     & +0.5d0*(FD14(n1,ep)-FD15a(n1,ep)+f4*FE1(n1,ep))*v4(n2)
+     & +half*(FD11(n1,ep)-FD15a(n1,ep)+f1*FE1(n1,ep))*v1(n2)
+     & +half*(FD12(n1,ep)-FD15a(n1,ep)+f2*FE1(n1,ep))*v2(n2)
+     & +half*(FD13(n1,ep)-FD15a(n1,ep)+f3*FE1(n1,ep))*v3(n2)
+     & +half*(FD14(n1,ep)-FD15a(n1,ep)+f4*FE1(n1,ep))*v4(n2)
       enddo
       enddo
       enddo
@@ -151,10 +148,10 @@ c      else
       do n3=n2,4
       nn=y2(n1,n2)
       FE3(y3(n1,n2,n3),ep)=
-     & +0.5d0*(FD21(nn,ep)-FD25a(nn,ep)+f1*FE2(nn,ep))*v1(n3)
-     & +0.5d0*(FD22(nn,ep)-FD25a(nn,ep)+f2*FE2(nn,ep))*v2(n3)
-     & +0.5d0*(FD23(nn,ep)-FD25a(nn,ep)+f3*FE2(nn,ep))*v3(n3)
-     & +0.5d0*(FD24(nn,ep)-FD25a(nn,ep)+f4*FE2(nn,ep))*v4(n3)
+     & +half*(FD21(nn,ep)-FD25a(nn,ep)+f1*FE2(nn,ep))*v1(n3)
+     & +half*(FD22(nn,ep)-FD25a(nn,ep)+f2*FE2(nn,ep))*v2(n3)
+     & +half*(FD23(nn,ep)-FD25a(nn,ep)+f3*FE2(nn,ep))*v3(n3)
+     & +half*(FD24(nn,ep)-FD25a(nn,ep)+f4*FE2(nn,ep))*v4(n3)
       enddo
       enddo
       enddo
@@ -169,10 +166,10 @@ c      else
       do n4=n3,4
       nn=y3(n1,n2,n3)
       FE4(y4(n1,n2,n3,n4),ep)=
-     & +0.5d0*(FD31(nn,ep)-FD35a(nn,ep)+f1*FE3(nn,ep))*v1(n4)
-     & +0.5d0*(FD32(nn,ep)-FD35a(nn,ep)+f2*FE3(nn,ep))*v2(n4)
-     & +0.5d0*(FD33(nn,ep)-FD35a(nn,ep)+f3*FE3(nn,ep))*v3(n4)
-     & +0.5d0*(FD34(nn,ep)-FD35a(nn,ep)+f4*FE3(nn,ep))*v4(n4)
+     & +half*(FD31(nn,ep)-FD35a(nn,ep)+f1*FE3(nn,ep))*v1(n4)
+     & +half*(FD32(nn,ep)-FD35a(nn,ep)+f2*FE3(nn,ep))*v2(n4)
+     & +half*(FD33(nn,ep)-FD35a(nn,ep)+f3*FE3(nn,ep))*v3(n4)
+     & +half*(FD34(nn,ep)-FD35a(nn,ep)+f4*FE3(nn,ep))*v4(n4)
       enddo
       enddo
       enddo
@@ -190,10 +187,10 @@ c      else
       do n5=n4,4
       nn=y4(n1,n2,n3,n4)
       FE5(y5(n1,n2,n3,n4,n5),ep)=
-     & +0.5d0*(FD41(nn,ep)-FD45a(nn,ep)+f1*FE4(nn,ep))*v1(n5)
-     & +0.5d0*(FD42(nn,ep)-FD45a(nn,ep)+f2*FE4(nn,ep))*v2(n5)
-     & +0.5d0*(FD43(nn,ep)-FD45a(nn,ep)+f3*FE4(nn,ep))*v3(n5)
-     & +0.5d0*(FD44(nn,ep)-FD45a(nn,ep)+f4*FE4(nn,ep))*v4(n5)
+     & +half*(FD41(nn,ep)-FD45a(nn,ep)+f1*FE4(nn,ep))*v1(n5)
+     & +half*(FD42(nn,ep)-FD45a(nn,ep)+f2*FE4(nn,ep))*v2(n5)
+     & +half*(FD43(nn,ep)-FD45a(nn,ep)+f3*FE4(nn,ep))*v3(n5)
+     & +half*(FD44(nn,ep)-FD45a(nn,ep)+f4*FE4(nn,ep))*v4(n5)
       enddo
       enddo
       enddo
@@ -212,10 +209,10 @@ c      do n5=n4,4
 c      do n6=n5,4
 c      nn=y5(n1,n2,n3,n4,n5)
 c      FE6(y6(n1,n2,n3,n4,n5,n6),ep)=
-c     & +0.5d0*(FD51(nn,ep)-FD55a(nn,ep)+f1*FE5(nn,ep))*v1(n6)
-c     & +0.5d0*(FD52(nn,ep)-FD55a(nn,ep)+f2*FE5(nn,ep))*v2(n6)
-c     & +0.5d0*(FD53(nn,ep)-FD55a(nn,ep)+f3*FE5(nn,ep))*v3(n6)
-c     & +0.5d0*(FD54(nn,ep)-FD55a(nn,ep)+f4*FE5(nn,ep))*v4(n6)
+c     & +half*(FD51(nn,ep)-FD55a(nn,ep)+f1*FE5(nn,ep))*v1(n6)
+c     & +half*(FD52(nn,ep)-FD55a(nn,ep)+f2*FE5(nn,ep))*v2(n6)
+c     & +half*(FD53(nn,ep)-FD55a(nn,ep)+f3*FE5(nn,ep))*v3(n6)
+c     & +half*(FD54(nn,ep)-FD55a(nn,ep)+f4*FE5(nn,ep))*v4(n6)
 c      enddo
 c      enddo
 c      enddo

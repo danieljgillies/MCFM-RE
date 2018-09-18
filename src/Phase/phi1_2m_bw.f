@@ -27,7 +27,7 @@ c     delta(p2^2-m2) delta(p3^2-s3)
 
       wt=0._dp
       s1=p1(4)**2-p1(1)**2-p1(2)**2-p1(3)**2  
-      if (s1 < 0._dp) return 1
+      if (s1 <= 0._dp) return 1
       m1=sqrt(s1)
       s2=m2**2
       s3max=(m2-m1)**2
@@ -36,11 +36,12 @@ c     delta(p2^2-m2) delta(p3^2-s3)
       xx=1._dp
       call breitw(x3,s3min,s3max,bwmass,bwwidth,s3,w3) 
 
+      if (s3 < 0._dp) return 1
       m3=sqrt(s3)
 
       costh=two*xth-one
       phi=twopi*xphi
-      sinth=sqrt(one-costh**2)
+      sinth=sqrt(max(one-costh**2,zip))
       cphi=cos(phi)
       sphi=sin(phi)
       lambda=((s1-s2-s3)**2-4._dp*s2*s3)

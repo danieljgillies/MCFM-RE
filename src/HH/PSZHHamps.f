@@ -1,4 +1,5 @@
       subroutine PSZHHamps(pa,pb,pc,pd,amp)
+        use mod_qcdloop_c
       implicit none
       include 'types.f'
 C--    Formula taken from Plehn, Spira and Zerwas                        
@@ -10,19 +11,11 @@ C--    Nucl. Phys. B479 (1996) 46
       include 'cplx.h'
       include 'masses.f'
       include 'scale.f'
-      include 'first.f'
       real(dp):: pa(4),pb(4),pc(4),pd(4),pcsq,pdsq,
      & ss,tt,uu,S,T,U,T1,T2,U1,U2,rhoc,rhod,tauQ,mQsq,lambdaHHH
       complex(dp):: Ftriangle,Fbox,Gbox,
-     & Dabc,Dbac,Dacb,Cab,Cbc,Cac,Ccd,Cbd,Cad,qlI4,qlI3,
+     & Dabc,Dbac,Dacb,Cab,Cbc,Cac,Ccd,Cbd,Cad,
      & Cdelta,Cbox,amp(2)
-
-c--- initialize QCDLoop, if necessary
-      if (first) then
-        call qlinit
-        first=.false.
-      endif
-
 
       mQsq=mt**2
       ss=(pa(4)+pb(4))**2

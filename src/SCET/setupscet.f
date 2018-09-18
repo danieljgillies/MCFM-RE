@@ -55,6 +55,9 @@ c---- additional jet;  stops with error message if appropriate.
       elseif (nproc == 119) then
         nprocabove=210
         ntau=0
+      elseif (nproc == 120) then
+        nprocabove=205
+        ntau=0
       elseif (nproc == 203) then
         nprocabove=272
         ntau=1
@@ -66,7 +69,19 @@ c---- additional jet;  stops with error message if appropriate.
         ntau=1
       elseif ((nproc == 285)) then
         nprocabove=nproc+1
-        ntau=0     
+        ntau=0
+      elseif (nproc == 300) then
+        nprocabove=302
+        ntau=0 
+      elseif (nproc == 305) then
+        nprocabove=307
+        ntau=0
+      elseif (nproc ==290 ) then
+        nprocabove=292
+        ntau=0
+      elseif (nproc ==295 ) then
+        nprocabove=297
+        ntau=0
       else
         write(6,*) 'This process cannot be computed at NNLO'
         write(6,*) 'or at NLO using SCET.'

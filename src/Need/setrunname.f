@@ -12,13 +12,13 @@
       include 'runstring.f'
       include 'dynamicscale.f'
       include 'taucut.f'
-      include 'jetvheto.f'
+      include 'ewcorr.f'
       real(dp):: scalestart,fscalestart
       integer:: nlength,lenocc
       character*255 outlabel1,runname,outlabeltmp
       character*3 strmh,getstr,strpt
-      character*5 strtaucut
-      character*14 strscale
+      character*6 strtaucut
+      character*9 strscale
       character*15 part,kpartstring
       character*6 case,kcasestring
       common/runname/runname
@@ -63,36 +63,40 @@ c--- convert kpart and kcase to strings
      &    .or. (kcase==kggZZ4l)
      &    .or. (kcase==kggfus0)
      &    .or. (kcase==kggfus1)
+     &    .or. (kcase==khjetma)
+     &    .or. (kcase==kh2jmas)
      &    .or. (kcase==kggfus2)
      &    .or. (kcase==kggfus3) ) then
         strmh=getstr(int(hmass))
-        outlabel1=case//'_'//trim(part)//'_'//pdlabel//'_'//
-     &       trim(strscale)//'_'//strmh
+        outlabel1=case//'_'//trim(part)//'_'//pdlabel//'_'//strscale//
+     &   '_'//strmh
       elseif (  (kcase==kH_1jet) ) then
         strmh=getstr(int(hmass))
         strpt=getstr(int(ptjetmin))
-        outlabel1=case//'_'//trim(part)//'_'//pdlabel//'_'//
-     &       trim(strscale)//'_'//strmh//'_pt'//strpt(1:2)      
+        outlabel1=case//'_'//trim(part)//'_'//pdlabel//'_'//strscale//
+     &   '_'//strmh//'_pt'//strpt(1:2)      
       elseif ( (kcase==kW_2jet)
      &    .or. (kcase==kZ_2jet) ) then
         if     (Gflag .eqv. .false.) then
-          outlabel1=case//'_'//trim(part)//'_'//pdlabel//'_'//
-     &       trim(strscale)//'_qrk'
+          outlabel1=case//'_'//trim(part)//'_'//pdlabel//'_'//strscale//'_qrk'
         elseif (Qflag .eqv. .false.) then
-          outlabel1=case//'_'//trim(part)//'_'//pdlabel//'_'//
-     &       trim(strscale)//'_glu'
+          outlabel1=case//'_'//trim(part)//'_'//pdlabel//'_'//strscale//'_glu'
         else
-          outlabel1=case//'_'//trim(part)//'_'//pdlabel//'_'//
-     &       trim(strscale)
+          outlabel1=case//'_'//trim(part)//'_'//pdlabel//'_'//strscale
         endif
       else
-        outlabel1=case//'_'//trim(part)//'_'//pdlabel//'_'//
-     &       trim(strscale)
+        if     (kewcorr == kexact) then
+          outlabel1=case//'_'//trim(part)//'_exact_'//pdlabel//'_'//strscale
+        elseif (kewcorr == ksudakov) then
+          outlabel1=case//'_'//trim(part)//'_sudakov_'//pdlabel//'_'//strscale
+        else
+          outlabel1=case//'_'//trim(part)//'_'//pdlabel//'_'//strscale
+        endif
       endif
       
       nlength=lenocc(outlabel1)
       if (usescet) then
-        write(strtaucut,'(ES5.0E1)') taucut
+        write(strtaucut,'(ES6.1E1)') taucut
         runname=outlabel1(1:nlength)//'_'//strtaucut//'_'//runstring
       else
         if (vdecayid) then

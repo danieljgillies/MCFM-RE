@@ -1,15 +1,17 @@
       integer function pvCcache(p1sq,p2sq,p3sq,m1s,m2s,m3s)
       implicit none
+      include 'types.f'
+      include 'TRconstants.f'
       include 'pvCnames.f'
       include 'TRclear.f'
       include 'TRonshellcutoff.f'
       include 'pvRespectmaxcindex.f'
       include 'pvforcerecalc.f'
       include 'pvCitry.f'
-      double precision para(Pcc),p1sq,p2sq,p3sq,m1s,m2s,m3s
-      integer j,jtable,Ntrue
+      real(dp):: para(Pcc),p1sq,p2sq,p3sq,m1s,m2s,m3s
+      integer::j,jtable,Ntrue
       logical,save::maxcindexrespected(Ncmax)
-      double precision,save:: tableC(Pcc,Ncmax)
+      real(dp),save:: tableC(Pcc,Ncmax)
       integer,save:: Nstore=0
 !$omp threadprivate(tableC,Nstore,maxcindexrespected)
       
@@ -61,7 +63,7 @@ C    and put them in the cache starting at pvCcache
       pvCitry(pvCcache)=-1 ! label tensor as unchecked
       Nstore=Nstore+1
       do j=1,Pcc
-        if(abs(para(j)) .lt. onshellcutoff) para(j)=0d0
+        if(abs(para(j)) .lt. onshellcutoff) para(j)=zero
       enddo
       do j=1,Pcc
       tableC(j,Nstore)=para(j)

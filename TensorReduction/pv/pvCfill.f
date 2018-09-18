@@ -3,6 +3,7 @@
 C     Calculate the form factors for massless triangle diagrams
 C     p1=p1sq,p2=p2sq,p1p2=(p1+p2)^2
 C     N is the offset in the common block
+      include 'types.f'
       include 'TRconstants.f'
       include 'TRscale.f'
       include 'pvCnames.f'
@@ -11,47 +12,46 @@ C     N is the offset in the common block
       include 'pvCv.f'
       include 'pvverbose.f'
       include 'pvrecurflags.f'
-      integer B12,B23,B13,np,ep,epmj,N,j,perm(2),pvBcache
-      parameter(np=2)
-      double complex G(np,np),in(2,-2:0),trI3,
-     . bsum(-2:0),b0sum(-2:0),b1sum(-2:0),b11sum(-2:0),b111sum(-2:0),
-     . b1111sum(-2:0),b11111sum(-2:0),
-     . b00sum(-2:0),b001sum(-2:0),b0011sum(-2:0),b0000sum(-2:0)
-      double precision p1,p2,p1p2,m1s,m2s,m3s,f1,f2
-      logical exceptional
+      integer:: B12,B23,B13,ep,epmj,N,j,perm(2),pvBcache
+      integer,parameter:: np=2
+      complex(dp):: G(np,np),in(2,-2:0),trI3,
+     & bsum(-2:0),b0sum(-2:0),b1sum(-2:0),b11sum(-2:0),b111sum(-2:0),
+     & b1111sum(-2:0),b11111sum(-2:0),
+     & b00sum(-2:0),b001sum(-2:0),b0011sum(-2:0),b0000sum(-2:0)
+      real(dp)::p1,p2,p1p2,m1s,m2s,m3s,f1,f2
+      logical::exceptional
       integer,save:: icall,irecur,irecur2,irecur3,irecur4
-      double precision,save::idp3(0:2),idp2(0:2),idp1(0:2),id(0:2),
-     . idm1(0:2),idm2(0:2)
-
+      real(dp),save::idp3(0:2),idp2(0:2),idp1(0:2),id(0:2),
+     & idm1(0:2),idm2(0:2)
       logical,save:: first=.true.
       logical,save:: scaleset=.false.
 !$omp threadprivate(first,idp3,idp2,idp1,id,idm1,idm2)
 !$omp threadprivate(icall,irecur,irecur2,irecur3,irecur4)
-
+      include 'cplx.h'
       if (first) then
       first=.false.
 C--idp3=1/[D+3]
-      idp3(0)=1d0/7d0
-      idp3(1)=idp3(0)*2d0/7d0
-      idp3(2)=idp3(1)*2d0/7d0
+      idp3(0)=one/7._dp
+      idp3(1)=idp3(0)*two/7._dp
+      idp3(2)=idp3(1)*two/7._dp
 C--idp2=1/[D+2]
-      idp2(0)=1d0/6d0
-      idp2(1)=idp2(0)/3d0
-      idp2(2)=idp2(1)/3d0
+      idp2(0)=one/6._dp
+      idp2(1)=idp2(0)/three
+      idp2(2)=idp2(1)/three
 C--idp1=1/[D+1]
-      idp1(0)=0.2d0
-      idp1(1)=idp1(0)*0.4d0
-      idp1(2)=idp1(1)*0.4d0
+      idp1(0)=0.2_dp
+      idp1(1)=idp1(0)*0.4_dp
+      idp1(2)=idp1(1)*0.4_dp
 C--id=1/D
-      id(0)=0.25d0
-      id(1)=id(0)*0.5d0
-      id(2)=id(1)*0.5d0
+      id(0)=0.25_dp
+      id(1)=id(0)*0.5_dp
+      id(2)=id(1)*0.5_dp
 C--idm1=1/[D-1]
-      idm1(0)=1d0/3d0
-      idm1(1)=idm1(0)*2d0/3d0
-      idm1(2)=idm1(1)*2d0/3d0
+      idm1(0)=one/three
+      idm1(1)=idm1(0)*two/three
+      idm1(2)=idm1(1)*two/three
 C--idm2=1/[D-2]
-      idm2(0)=0.5d0
+      idm2(0)=half
       idm2(1)=idm2(0)
       idm2(2)=idm2(1)
 c--- variables for statistics reporting
@@ -89,26 +89,24 @@ c--- statistics accounting and reporting
       f1=m2s-m1s-p1
       f2=m3s-m1s-p1p2
 
-      G(1,1)=dcmplx(2d0*p1)
-      G(2,2)=dcmplx(2d0*p1p2)
-      G(1,2)=dcmplx(p1+p1p2-p2)
+!---double up the Gram matrix to remove factors of 1/2 in Eqs.
+      G(1,1)=cplx1(two*p1)
+      G(2,2)=cplx1(two*p1p2)
+      G(1,2)=cplx1(p1+p1p2-p2)
       G(2,1)=G(1,2)
-
-c      if (pvverbose) write(6,*) 'Check triangle Gsing'
-c      Gsing=pvGramsing(G,2)
 
 C     Y(i,j)=mi^2+mj^2-(q_i-q_j)^2
 C     where q_1=0,  q_2=p1,  q_3=p_1+p_2;
 
-c      Y(1,1) = dcmplx(2d0*m1s)
-c      Y(1,2) = dcmplx(m1s + m2s - p1)
+c      Y(1,1) = cplx1(two*m1s)
+c      Y(1,2) = cplx1(m1s + m2s - p1)
 c      Y(2,1) = Y(1,2)
-c      Y(1,3) = dcmplx(m1s + m3s - p1p2)
+c      Y(1,3) = cplx1(m1s + m3s - p1p2)
 c      Y(3,1) = Y(1,3)
-c      Y(2,2) = dcmplx(2d0*m2s)
-c      Y(2,3) = dcmplx(m2s + m3s - p2)
+c      Y(2,2) = cplx1(two*m2s)
+c      Y(2,3) = cplx1(m2s + m3s - p2)
 c      Y(3,2) = Y(2,3)
-c      Y(3,3) = dcmplx(2d0*m3s)
+c      Y(3,3) = cplx1(two*m3s)
       
 c      if (pvverbose) write(6,*) 'Check triangle Ysing'
 c      Ysing=pvGramsing(Y,3)
@@ -145,11 +143,6 @@ c--- for small momenta and small f(k)
       endif
         call Cfill_recur4(p1,p2,p1p2,m1s,m2s,m3s,N)
       irecur4=irecur4+1
-c        write(98,'(4(l2),11(f21.15))') Gsing,Ysing,Psing,Fsing,
-c     &   q1save(1),q1save(2),q1save(3),q1save(4),
-c     &   q2save(1),q2save(2),q2save(3),q2save(4),
-c     &   m1s,m2s,m3s
-c        write(98,'(6(f21.15))') p1,p2,p1p2,m1s,m2s,m3s
       return
       elseif (doPsing) then
         if (pvverbose) then
@@ -157,11 +150,6 @@ c        write(98,'(6(f21.15))') p1,p2,p1p2,m1s,m2s,m3s
       endif
         call Cfill_recur3(p1,p2,p1p2,m1s,m2s,m3s,N)
       irecur3=irecur3+1
-c        write(98,'(4(l2),11(f21.15))') Gsing,Ysing,Psing,Fsing,
-c     &   q1save(1),q1save(2),q1save(3),q1save(4),
-c     &   q2save(1),q2save(2),q2save(3),q2save(4),
-c     &   m1s,m2s,m3s
-c        write(98,'(6(f21.15))') p1,p2,p1p2,m1s,m2s,m3s
       return
       elseif (doGYsing) then
 c--- for small Gram and small Y
@@ -170,11 +158,6 @@ c--- for small Gram and small Y
       endif
         call Cfill_recur2(p1,p2,p1p2,m1s,m2s,m3s,N,exceptional)
       irecur2=irecur2+1
-c        write(98,'(4(l2),11(f21.15))') Gsing,Ysing,Psing,Fsing,
-c     &   q1save(1),q1save(2),q1save(3),q1save(4),
-c     &   q2save(1),q2save(2),q2save(3),q2save(4),
-c     &   m1s,m2s,m3s
-c        write(98,'(6(f21.15))') p1,p2,p1p2,m1s,m2s,m3s
         if (exceptional) then
 c------ for exceptional configurations, fall through to normal PV
         continue
@@ -189,27 +172,15 @@ c--- for small Gram only
       endif
         call Cfill_recur (p1,p2,p1p2,m1s,m2s,m3s,N)
       irecur=irecur+1
-c        write(98,'(4(l2),11(f21.15))') Gsing,Ysing,Psing,Fsing,
-c     &   q1save(1),q1save(2),q1save(3),q1save(4),
-c     &   q2save(1),q2save(2),q2save(3),q2save(4),
-c     &   m1s,m2s,m3s
-c        write(98,'(6(f21.15))') p1,p2,p1p2,m1s,m2s,m3s
       return
       endif
 c--- otherwise, usual PV is fine
 
-c      if (exceptional) write(6,*) 'WARNING: EXCEPTIONAL POINT'
-
-c        write(98,'(4(l2),11(f21.15))') Gsing,Ysing,Psing,Fsing,
-c     &   q1save(1),q1save(2),q1save(3),q1save(4),
-c     &   q2save(1),q2save(2),q2save(3),q2save(4),
-c     &   m1s,m2s,m3s
-c        write(98,'(6(f21.15))') p1,p2,p1p2,m1s,m2s,m3s
 
 c--- initialize integrals      
       do ep=-2,0
       do j=1,Ncc
-      Cv(N+j,ep)=dcmplx(1d5,-1d5)
+      Cv(N+j,ep)=cplx2(1d5,-1d5)
       enddo
       enddo
 
@@ -225,32 +196,28 @@ c'B'Id,Bsum0(P?,K?,m1?,m2?)=MM(B0,P,K,m1,m2)+MM(B1,P,K,m1,m2);
 
       do ep=-2,0
       Cv(N+cc0,ep)=trI3(p1,p2,p1p2,m1s,m2s,m3s,musq,ep)
-      bsum(ep)=Bv(bb0+B23,ep)+Bv(bb1+B23,ep)
-
-      b0sum(ep)=Bv(bb0+B23,ep)+Bv(bb1+B23,ep)
-      b00sum(ep)=Bv(bb00+B23,ep)+Bv(bb001+B23,ep)
-      b001sum(ep)=Bv(bb001+B23,ep)+Bv(bb0011+B23,ep)
-      b0011sum(ep)=Bv(bb0011+B23,ep)+Bv(bb00111+B23,ep)
-
-      b0000sum(ep)=Bv(bb0000+B23,ep)+Bv(bb00001+B23,ep)
-
-      b1sum(ep)=Bv(bb1+B23,ep)+Bv(bb11+B23,ep)
-      b11sum(ep)=Bv(bb11+B23,ep)+Bv(bb111+B23,ep)
-      b111sum(ep)=Bv(bb111+B23,ep)+Bv(bb1111+B23,ep)
-      b1111sum(ep)=Bv(bb1111+B23,ep)+Bv(bb11111+B23,ep)
-      b11111sum(ep)=Bv(bb11111+B23,ep)+Bv(bb111111+B23,ep)
-
-      in(1,ep)=f1*Cv(N+cc0,ep)-Bv(bb0+B23,ep)+Bv(bb0+B13,ep)
-      in(2,ep)=f2*Cv(N+cc0,ep)-Bv(bb0+B23,ep)+Bv(bb0+B12,ep)
       enddo
+
+      bsum(:)=Bv(bb0+B23,:)+Bv(bb1+B23,:)
+
+      b0sum(:)=Bv(bb0+B23,:)+Bv(bb1+B23,:)
+      b00sum(:)=Bv(bb00+B23,:)+Bv(bb001+B23,:)
+      b001sum(:)=Bv(bb001+B23,:)+Bv(bb0011+B23,:)
+      b0011sum(:)=Bv(bb0011+B23,:)+Bv(bb00111+B23,:)
+
+      b0000sum(:)=Bv(bb0000+B23,:)+Bv(bb00001+B23,:)
+
+      b1sum(:)=Bv(bb1+B23,:)+Bv(bb11+B23,:)
+      b11sum(:)=Bv(bb11+B23,:)+Bv(bb111+B23,:)
+      b111sum(:)=Bv(bb111+B23,:)+Bv(bb1111+B23,:)
+      b1111sum(:)=Bv(bb1111+B23,:)+Bv(bb11111+B23,:)
+      b11111sum(:)=Bv(bb11111+B23,:)+Bv(bb111111+B23,:)
+
+      in(1,:)=f1*Cv(N+cc0,:)-Bv(bb0+B23,:)+Bv(bb0+B13,:)
+      in(2,:)=f2*Cv(N+cc0,:)-Bv(bb0+B23,:)+Bv(bb0+B12,:)
       call pvBackSubst(G,2,perm,in)
-
-      do ep=-2,0
-      Cv(N+cc1,ep)=in(1,ep)
-      Cv(N+cc2,ep)=in(2,ep)
-c      write(66,*) 'ox',cc1,ep,Cv(N+cc1,ep)
-c      write(66,*) 'ox',cc2,ep,Cv(N+cc2,ep)
-      enddo
+      Cv(N+cc1,:)=in(1,:)
+      Cv(N+cc2,:)=in(2,:)
       
 C---two index form factors
       do ep=-2,0
@@ -262,27 +229,19 @@ C---two index form factors
      & -half*(f1*Cv(N+cc1,epmj)+f2*Cv(N+cc2,epmj)-Bv(bb0+B23,epmj)))
       enddo
  20   continue
+      enddo
 
-      in(1,ep)=f1*Cv(N+cc1,ep)+bsum(ep)-2d0*Cv(N+cc00,ep)
-      in(2,ep)=f2*Cv(N+cc1,ep)+bsum(ep)+Bv(bb1+B12,ep)
-      enddo
+      in(1,:)=f1*Cv(N+cc1,:)+bsum(:)-two*Cv(N+cc00,:)
+      in(2,:)=f2*Cv(N+cc1,:)+bsum(:)+Bv(bb1+B12,:)
       call pvBackSubst(G,2,perm,in)
-      do ep=-2,0
-      Cv(N+cc11,ep)=in(1,ep)
-      Cv(N+cc12,ep)=in(2,ep)
-c      write(66,*) 'ox',cc11,ep,Cv(N+cc11,ep)
-c      write(66,*) 'ox',cc12,ep,Cv(N+cc12,ep)
+      Cv(N+cc11,:)=in(1,:)
+      Cv(N+cc12,:)=in(2,:)
       
-      in(1,ep)=f1*Cv(N+cc2,ep)-Bv(bb1+B23,ep)+Bv(bb1+B13,ep)
-      in(2,ep)=f2*Cv(N+cc2,ep)-Bv(bb1+B23,ep)-2d0*Cv(N+cc00,ep)
-      enddo
+      in(1,:)=f1*Cv(N+cc2,:)-Bv(bb1+B23,:)+Bv(bb1+B13,:)
+      in(2,:)=f2*Cv(N+cc2,:)-Bv(bb1+B23,:)-two*Cv(N+cc00,:)
       call pvBackSubst(G,2,perm,in)
-      do ep=-2,0
-      Cv(N+cc12,ep)=0.5D0*(Cv(N+cc12,ep)+in(1,ep))
-      Cv(N+cc22,ep)=in(2,ep)
-c      write(66,*) 'ox',cc12,ep,Cv(N+cc12,ep)
-c      write(66,*) 'ox',cc22,ep,Cv(N+cc22,ep)
-      enddo
+!      Cv(N+cc12,:)=half*(Cv(N+cc12,:)+in(1,:))
+      Cv(N+cc22,:)=in(2,:)
        
 c      if ((maxcindex .eq. 2) .and. (pvRespectmaxcindex)) return
 
@@ -301,41 +260,28 @@ C---three index form factors
  30   continue
       enddo
 
-      do ep=-2,0
-      bsum(ep)=bsum(ep)+b1sum(ep)
+      bsum(:)=bsum(:)+b1sum(:)
 C--- bsum is now equal to 
 c--- Bv(bb1+B23,ep)+2*Bv(bb1+B23,ep)+Bv(bb11+B23,ep)
-      in(1,ep)=f1*Cv(N+cc11,ep)-bsum(ep)-4d0*Cv(N+cc001,ep)
-      in(2,ep)=f2*Cv(N+cc11,ep)-bsum(ep)+Bv(bb11+B12,ep)
-      enddo
+      in(1,:)=f1*Cv(N+cc11,:)-bsum(:)-four*Cv(N+cc001,:)
+      in(2,:)=f2*Cv(N+cc11,:)-bsum(:)+Bv(bb11+B12,:)
       call pvBackSubst(G,2,perm,in)
-      do ep=-2,0
-      Cv(N+cc111,ep)=in(1,ep)
-      Cv(N+cc112,ep)=in(2,ep)
-c      write(66,*) 'ox',cc111,ep,Cv(N+cc111,ep)
-c      write(66,*) 'ox',cc112,ep,Cv(N+cc112,ep)
+      Cv(N+cc111,:)=in(1,:)
+      Cv(N+cc112,:)=in(2,:)
 
-      in(1,ep)=f1*Cv(N+cc22,ep)-Bv(bb11+B23,ep)+Bv(bb11+B13,ep)
-      in(2,ep)=f2*Cv(N+cc22,ep)-Bv(bb11+B23,ep)-4d0*Cv(N+cc002,ep)
-      enddo
+      in(1,:)=f1*Cv(N+cc22,:)-Bv(bb11+B23,:)+Bv(bb11+B13,:)
+      in(2,:)=f2*Cv(N+cc22,:)-Bv(bb11+B23,:)-four*Cv(N+cc002,:)
       call pvBackSubst(G,2,perm,in)
-      do ep=-2,0
-      Cv(N+cc122,ep)=in(1,ep)
-      Cv(N+cc222,ep)=in(2,ep)
-c      write(66,*) 'ox',cc122,ep,Cv(N+cc122,ep)
-c      write(66,*) 'ox',cc222,ep,Cv(N+cc222,ep)
+      Cv(N+cc122,:)=in(1,:)
+      Cv(N+cc222,:)=in(2,:)
 
 c      b1sum(ep)=Bv(bb1+B23,ep)+Bv(bb11+B23,ep)
-      in(1,ep)=f1*Cv(N+cc12,ep)+b1sum(ep)-2d0*Cv(N+cc002,ep)
-      in(2,ep)=f2*Cv(N+cc12,ep)+b1sum(ep)-2d0*Cv(N+cc001,ep)
-      enddo
+      in(1,:)=f1*Cv(N+cc12,:)+b1sum(:)-two*Cv(N+cc002,:)
+      in(2,:)=f2*Cv(N+cc12,:)+b1sum(:)-two*Cv(N+cc001,:)
       call pvBackSubst(G,2,perm,in)
-      do ep=-2,0
-      Cv(N+cc112,ep)=in(1,ep)
-      Cv(N+cc122,ep)=in(2,ep)
-c      write(66,*) 'ox',cc112,ep,Cv(N+cc112,ep)
-c      write(66,*) 'ox',cc122,ep,Cv(N+cc122,ep)
-      enddo
+      Cv(N+cc112,:)=in(1,:)
+      Cv(N+cc122,:)=in(2,:)
+
 
 c      if ((maxcindex .eq. 3) .and. (pvRespectmaxcindex)) return
 
@@ -370,51 +316,35 @@ c      write(66,*) 'ox',cc0012,ep,Cv(N+cc0012,ep)
 c      write(66,*) 'ox',cc0022,ep,Cv(N+cc0022,ep)
       enddo
 
-      do ep=-2,0
-      bsum(ep)=bsum(ep)+b1sum(ep)+b11sum(ep)
+      bsum(:)=bsum(:)+b1sum(:)+b11sum(:)
 C--- bsum is now equal to 
 c--- Bv(bb1+B23,ep)+3*Bv(bb1+B23,ep)+3*Bv(bb11+B23,ep)+Bv(bb111+B23,ep)
 
-      in(1,ep)=f1*Cv(N+cc111,ep)+bsum(ep)-6d0*Cv(N+cc0011,ep)
-      in(2,ep)=f2*Cv(N+cc111,ep)+bsum(ep)+Bv(bb111+B12,ep)
-      enddo
+      in(1,:)=f1*Cv(N+cc111,:)+bsum(:)-six*Cv(N+cc0011,:)
+      in(2,:)=f2*Cv(N+cc111,:)+bsum(:)+Bv(bb111+B12,:)
       call pvBackSubst(G,2,perm,in)
-      do ep=-2,0
-      Cv(N+cc1111,ep)=in(1,ep)
-      Cv(N+cc1112,ep)=in(2,ep)
-c      write(66,*) 'ox',cc1111,ep,Cv(N+cc1111,ep)
-c      write(66,*) 'ox',cc1112,ep,Cv(N+cc1112,ep)
+      Cv(N+cc1111,:)=in(1,:)
+      Cv(N+cc1112,:)=in(2,:)
 
-      in(1,ep)=f1*Cv(N+cc112,ep)-b1sum(ep)-b11sum(ep)
-     . -4d0*Cv(N+cc0012,ep)
-      in(2,ep)=f2*Cv(N+cc112,ep)-b1sum(ep)-b11sum(ep)
-     . -2d0*Cv(N+cc0011,ep)
-      enddo
+      in(1,:)=f1*Cv(N+cc112,:)-b1sum(:)-b11sum(:)
+     & -four*Cv(N+cc0012,:)
+      in(2,:)=f2*Cv(N+cc112,:)-b1sum(:)-b11sum(:)
+     & -two*Cv(N+cc0011,:)
       call pvBackSubst(G,2,perm,in)
-      do ep=-2,0
-      Cv(N+cc1112,ep)=in(1,ep)
-      Cv(N+cc1122,ep)=in(2,ep)
-c      write(66,*) 'ox',cc1112,ep,Cv(N+cc1112,ep)
-c      write(66,*) 'ox',cc1122,ep,Cv(N+cc1122,ep)
+      Cv(N+cc1112,:)=in(1,:)
+      Cv(N+cc1122,:)=in(2,:)
 
-      in(1,ep)=f1*Cv(N+cc222,ep)-Bv(bb111+B23,ep)+Bv(bb111+B13,ep)
-      in(2,ep)=f2*Cv(N+cc222,ep)-Bv(bb111+B23,ep)-6d0*Cv(N+cc0022,ep)
-      enddo
+      in(1,:)=f1*Cv(N+cc222,:)-Bv(bb111+B23,:)+Bv(bb111+B13,:)
+      in(2,:)=f2*Cv(N+cc222,:)-Bv(bb111+B23,:)-six*Cv(N+cc0022,:)
       call pvBackSubst(G,2,perm,in)
-      do ep=-2,0
-      Cv(N+cc1222,ep)=in(1,ep)
-      Cv(N+cc2222,ep)=in(2,ep)
-c      write(66,*) 'ox',cc1222,ep,Cv(N+cc1222,ep)
-c      write(66,*) 'ox',cc2222,ep,Cv(N+cc2222,ep)
+      Cv(N+cc1222,:)=in(1,:)
+      Cv(N+cc2222,:)=in(2,:)
 
-      in(1,ep)=f1*Cv(N+cc122,ep)+b11sum(ep)-2d0*Cv(N+cc0022,ep)
-      in(2,ep)=f2*Cv(N+cc122,ep)+b11sum(ep)-4d0*Cv(N+cc0012,ep)
-      enddo
+      in(1,:)=f1*Cv(N+cc122,:)+b11sum(:)-two*Cv(N+cc0022,:)
+      in(2,:)=f2*Cv(N+cc122,:)+b11sum(:)-four*Cv(N+cc0012,:)
       call pvBackSubst(G,2,perm,in)
-      do ep=-2,0
-      Cv(N+cc1122,ep)=in(1,ep)
-      Cv(N+cc1222,ep)=half*(Cv(N+cc1222,ep)+in(2,ep))
-      enddo 
+      Cv(N+cc1122,:)=in(1,:)
+      Cv(N+cc1222,:)=half*(Cv(N+cc1222,:)+in(2,:))
 
 c      if ((maxcindex .eq. 4) .and. (pvRespectmaxcindex)) return
 
@@ -436,7 +366,7 @@ C---five index form factors
       Cv(N+cc00111,ep)=Cv(N+cc00111,ep)+idp1(j)*(
      & +m1s*Cv(N+cc111,epmj)
      & -half*(f1*Cv(N+cc1111,epmj)+f2*Cv(N+cc1112,epmj)
-     & +b0sum(epmj)+2D0*b1sum(epmj)+b11sum(epmj)))
+     & +b0sum(epmj)+two*b1sum(epmj)+b11sum(epmj)))
       Cv(N+cc00112,ep)=Cv(N+cc00112,ep)+idp1(j)*(
      & +m1s*Cv(N+cc112,epmj)
      & -half*(f1*Cv(N+cc1112,epmj)+f2*Cv(N+cc1122,epmj)
@@ -450,346 +380,244 @@ C---five index form factors
      & -half*(f1*Cv(N+cc1222,epmj)+f2*Cv(N+cc2222,epmj)
      & -Bv(bb111+B23,epmj)))
       enddo
-
-c      write(66,*) 'ox',cc00001,ep,Cv(N+cc00001,ep)
-c      write(66,*) 'ox',cc00002,ep,Cv(N+cc00002,ep)
-c      write(66,*) 'ox',cc00111,ep,Cv(N+cc00111,ep)
-c      write(66,*) 'ox',cc00112,ep,Cv(N+cc00112,ep)
-c      write(66,*) 'ox',cc00122,ep,Cv(N+cc00122,ep)
-c      write(66,*) 'ox',cc00222,ep,Cv(N+cc00222,ep)
       enddo
 
-      do ep=-2,0
 C Cv(pppp
-      in(1,ep) = f1*Cv(N+cc1111,ep)-8.D0*Cv(N+cc00111,ep)- Bv(bb0+B23,
-     & ep)-4.D0*Bv(bb1+B23,ep)-6.D0*Bv(bb11+B23,ep)-4.D0*Bv(
-     & bb111+B23,ep)-Bv(bb1111+B23,ep)
-      in(2,ep) = f2*Cv(N+cc1111,ep)-Bv(bb0+B23,ep)-4.D0*Bv(bb1+
-     & B23,ep)-6.D0*Bv(bb11+B23,ep)-4.D0*Bv(bb111+B23,ep)+Bv(
-     & bb1111+B12,ep)-Bv(bb1111+B23,ep)
-      enddo
+      in(1,:) = f1*Cv(N+cc1111,:)-8.D0*Cv(N+cc00111,:)- Bv(bb0+B23,
+     & :)-4.D0*Bv(bb1+B23,:)-6.D0*Bv(bb11+B23,:)-4.D0*Bv(
+     & bb111+B23,:)-Bv(bb1111+B23,:)
+      in(2,:) = f2*Cv(N+cc1111,:)-Bv(bb0+B23,:)-4.D0*Bv(bb1+
+     & B23,:)-6.D0*Bv(bb11+B23,:)-4.D0*Bv(bb111+B23,:)+Bv(
+     & bb1111+B12,:)-Bv(bb1111+B23,:)
       call pvBackSubst(G,2,perm, in)
-      do ep=-2,0
-      Cv(N+cc11111,ep)=in(1,ep)
-      Cv(N+cc11112,ep)=in(2,ep)
-c      write(66,*) 'ox',cc11111,ep,Cv(N+cc11111,ep)
-c      write(66,*) 'ox',cc11112,ep,Cv(N+cc11112,ep)
+      Cv(N+cc11111,:)=in(1,:)
+      Cv(N+cc11112,:)=in(2,:)
      
 C Cv(pppk
-      in(1,ep) = f1*Cv(N+cc1112,ep)-6.D0*Cv(N+cc00112,ep)+ Bv(bb1+B23,
-     & ep)+3.D0*Bv(bb11+B23,ep)+3.D0*Bv(bb111+B23,ep)+Bv(
-     & bb1111+B23,ep)
-      in(2,ep) = f2*Cv(N+cc1112,ep)-2.D0*Cv(N+cc00111,ep) +Bv(bb1+B23,
-     & ep)+3.D0*Bv(bb11+B23,ep)+3.D0*Bv(bb111+B23,ep)+Bv(
-     & bb1111+B23,ep)
-      enddo
+      in(1,:) = f1*Cv(N+cc1112,:)-6.D0*Cv(N+cc00112,:)+ Bv(bb1+B23,
+     & :)+3.D0*Bv(bb11+B23,:)+3.D0*Bv(bb111+B23,:)+Bv(
+     & bb1111+B23,:)
+      in(2,:) = f2*Cv(N+cc1112,:)-2.D0*Cv(N+cc00111,:) +Bv(bb1+B23,
+     & :)+3.D0*Bv(bb11+B23,:)+3.D0*Bv(bb111+B23,:)+Bv(
+     & bb1111+B23,:)
       call pvBackSubst(G,2,perm, in)
-      do ep=-2,0
-      Cv(N+cc11112,ep)=in(1,ep)
-      Cv(N+cc11122,ep)=in(2,ep)
-c      write(66,*) 'ox',cc11112,ep,Cv(N+cc11112,ep)
-c      write(66,*) 'ox',cc11122,ep,Cv(N+cc11122,ep)
+      Cv(N+cc11112,:)=in(1,:)
+      Cv(N+cc11122,:)=in(2,:)
      
 C Cv(pkkk
-      in(1,ep) = f1*Cv(N+cc1222,ep)-2.D0*Cv(N+cc00222,ep)+Bv(bb111+
-     & B23,ep)+Bv(bb1111+B23,ep)
-
-      in(2,ep) = f2*Cv(N+cc1222,ep)-6.D0*Cv(N+cc00122,ep)+Bv(bb111+
-     & B23,ep)+Bv(bb1111+B23,ep)
-
-      enddo
+      in(1,:) = f1*Cv(N+cc1222,:)-2.D0*Cv(N+cc00222,:)+Bv(bb111+
+     & B23,:)+Bv(bb1111+B23,:)
+      in(2,:) = f2*Cv(N+cc1222,:)-6.D0*Cv(N+cc00122,:)+Bv(bb111+
+     & B23,:)+Bv(bb1111+B23,:)
       call pvBackSubst(G,2,perm, in)
-      do ep=-2,0
-      Cv(N+cc11222,ep)=in(1,ep)
-      Cv(N+cc12222,ep)=in(2,ep)
-c      write(66,*) 'ox',cc11222,ep,Cv(N+cc11222,ep)
-c      write(66,*) 'ox',cc12222,ep,Cv(N+cc12222,ep)
+      Cv(N+cc11222,:)=in(1,:)
+      Cv(N+cc12222,:)=in(2,:)
      
 C Cv(kkkk
-      in(1,ep) = f1*Cv(N+cc2222,ep)+Bv(bb1111+B13,ep)-Bv(bb1111+B23,ep)
-      in(2,ep) = f2*Cv(N+cc2222,ep)-8.D0*Cv(N+cc00222,ep)
-     & -Bv(bb1111+B23,ep)
-      enddo
+      in(1,:) = f1*Cv(N+cc2222,:)+Bv(bb1111+B13,:)-Bv(bb1111+B23,:)
+      in(2,:) = f2*Cv(N+cc2222,:)-8.D0*Cv(N+cc00222,:)
+     & -Bv(bb1111+B23,:)
       call pvBackSubst(G,2,perm, in)
-      do ep=-2,0
-      Cv(N+cc12222,ep)=in(1,ep)
-      Cv(N+cc22222,ep)=in(2,ep)
-c      write(66,*) 'ox',cc12222,ep,Cv(N+cc12222,ep)
-c      write(66,*) 'ox',cc22222,ep,Cv(N+cc22222,ep)
-      enddo
+      Cv(N+cc12222,:)=in(1,:)
+      Cv(N+cc22222,:)=in(2,:)
 
 c      if ((maxcindex .eq. 5) .and. (pvRespectmaxcindex)) return
 
 C---six index form factors
       do ep=-2,0
       do j=cc000000,cc002222
-      Cv(N+j,ep)=czip
+      Cv(N+j,:)=czip
       enddo
       if (ep .eq. -2) goto 60
       do j=0,ep+2
       epmj=ep-j
       Cv(N+cc000000,ep)=Cv(N+cc000000,ep)+idp2(j)*(
-     &  +m1s*Cv(N+cc0000,epmj)
-     &  -half*(f1*Cv(N+cc00001,epmj)+f2*Cv(N+cc00002,epmj)
-     &  -Bv(bb0000+B23,epmj)))
+     & +m1s*Cv(N+cc0000,epmj)
+     & -half*(f1*Cv(N+cc00001,epmj)+f2*Cv(N+cc00002,epmj)
+     & -Bv(bb0000+B23,epmj)))
 
       Cv(N+cc000011,ep)=Cv(N+cc000011,ep)+idp2(j)*(
-     &  +m1s*Cv(N+cc0011,epmj)
-     &  -half*(f1*Cv(N+cc00111,epmj)+f2*Cv(N+cc00112,epmj)
-     &  -B00sum(epmj)-B001sum(epmj)))
+     & +m1s*Cv(N+cc0011,epmj)
+     & -half*(f1*Cv(N+cc00111,epmj)+f2*Cv(N+cc00112,epmj)
+     & -B00sum(epmj)-B001sum(epmj)))
 
       Cv(N+cc000012,ep)=Cv(N+cc000012,ep)+idp2(j)*(
-     &  +m1s*Cv(N+cc0012,epmj)
-     &  -half*(f1*Cv(N+cc00112,epmj)+f2*Cv(N+cc00122,epmj)
-     &  +B001sum(epmj)))
+     & +m1s*Cv(N+cc0012,epmj)
+     & -half*(f1*Cv(N+cc00112,epmj)+f2*Cv(N+cc00122,epmj)
+     & +B001sum(epmj)))
 
       Cv(N+cc000022,ep)=Cv(N+cc000022,ep)+idp2(j)*(
-     &  +m1s*Cv(N+cc0022,epmj)
-     &  -half*(f1*Cv(N+cc00122,epmj)+ f2*Cv(N+cc00222,epmj)
-     &  -Bv(bb0011+B23,epmj)))
+     & +m1s*Cv(N+cc0022,epmj)
+     & -half*(f1*Cv(N+cc00122,epmj)+ f2*Cv(N+cc00222,epmj)
+     & -Bv(bb0011+B23,epmj)))
 
       Cv(N+cc001111,ep)=Cv(N+cc001111,ep)+idp2(j)*(
-     &  +m1s*Cv(N+cc1111,epmj)
-     &  -half*(f1*Cv(N+cc11111,epmj)+f2*Cv(N+cc11112,epmj)
-     &  -B111sum(epmj)-B0sum(epmj)-3d0*B1sum(epmj)-3d0*B11sum(epmj)))
+     & +m1s*Cv(N+cc1111,epmj)
+     & -half*(f1*Cv(N+cc11111,epmj)+f2*Cv(N+cc11112,epmj)
+     & -B111sum(epmj)-B0sum(epmj)-three*B1sum(epmj)-three*B11sum(epmj)))
 
       Cv(N+cc001112,ep)=Cv(N+cc001112,ep)+idp2(j)*(
-     &  +m1s*Cv(N+cc1112,epmj)
-     &  -half*(f1*Cv(N+cc11112,epmj)+f2*Cv(N+cc11122,epmj)
-     &  +B1sum(epmj)+2d0*B11sum(epmj)+B111sum(epmj)))
+     & +m1s*Cv(N+cc1112,epmj)
+     & -half*(f1*Cv(N+cc11112,epmj)+f2*Cv(N+cc11122,epmj)
+     & +B1sum(epmj)+two*B11sum(epmj)+B111sum(epmj)))
       Cv(N+cc001122,ep)=Cv(N+cc001122,ep)+idp2(j)*(
-     &  +m1s*Cv(N+cc1122,epmj)
-     &  -half*(f1*Cv(N+cc11122,epmj)+f2*Cv(N+cc11222,epmj)
-     &  -B11sum(epmj)-B111sum(epmj))) 
+     & +m1s*Cv(N+cc1122,epmj)
+     & -half*(f1*Cv(N+cc11122,epmj)+f2*Cv(N+cc11222,epmj)
+     & -B11sum(epmj)-B111sum(epmj))) 
       Cv(N+cc001222,ep)=Cv(N+cc001222,ep)+idp2(j)*(
-     &  +m1s*Cv(N+cc1222,epmj)
-     &  -half*(f1*Cv(N+cc11222,epmj)+f2*Cv(N+cc12222,epmj)
-     &  +B111sum(epmj)))
+     & +m1s*Cv(N+cc1222,epmj)
+     & -half*(f1*Cv(N+cc11222,epmj)+f2*Cv(N+cc12222,epmj)
+     & +B111sum(epmj)))
 
       Cv(N+cc002222,ep)=Cv(N+cc002222,ep)+idp2(j)*(
-     &  +m1s*Cv(N+cc2222,epmj)
-     &  -half*(f1*Cv(N+cc12222,epmj)+f2*Cv(N+cc22222,epmj)
-     &  -Bv(bb1111+B23,epmj)))
-
+     & +m1s*Cv(N+cc2222,epmj)
+     & -half*(f1*Cv(N+cc12222,epmj)+f2*Cv(N+cc22222,epmj)
+     & -Bv(bb1111+B23,epmj)))
       enddo
  60   continue
-
-c      write(66,*) 'ox',cc000000,ep,Cv(N+cc000000,ep)
-c      write(66,*) 'ox',cc000011,ep,Cv(N+cc000011,ep)
-c      write(66,*) 'ox',cc000012,ep,Cv(N+cc000012,ep)
-c      write(66,*) 'ox',cc000022,ep,Cv(N+cc000022,ep)
-
-c      write(66,*) 'ox',cc001111,ep,Cv(N+cc001111,ep)
-c      write(66,*) 'ox',cc001112,ep,Cv(N+cc001112,ep)
-c      write(66,*) 'ox',cc001122,ep,Cv(N+cc001122,ep)
-c      write(66,*) 'ox',cc001222,ep,Cv(N+cc001222,ep)
-c      write(66,*) 'ox',cc002222,ep,Cv(N+cc002222,ep)
-
       enddo
+
       
 C    (Cv(N+cc000011,Cv(N+cc000012,zzzzp)
-      do ep=-2,0
-      in(1,ep)=
-     .   + f1*Cv(N+cc00001,ep)
-     .   -2*Cv(N+cc000000,ep)
-     .   + B0000sum(ep)
-      in(2,ep)=
-     .   + f2*Cv(N+cc00001,ep)
-     .   + Bv(bb00001+B12,ep)
-     .   + B0000sum(ep)
-
-      enddo
+      in(1,:)=
+     &  + f1*Cv(N+cc00001,:)
+     &  -2*Cv(N+cc000000,:)
+     &  + B0000sum(:)
+      in(2,:)=
+     &  + f2*Cv(N+cc00001,:)
+     &  + Bv(bb00001+B12,:)
+     &  + B0000sum(:)
       call pvBackSubst(G,2,perm, in)
-      do ep=-2,0
-      Cv(N+cc000011,ep)=in(1,ep)
-      Cv(N+cc000012,ep)=in(2,ep)
-c      write(66,*) 'ox',cc000011,ep,Cv(N+cc000011,ep)
-c      write(66,*) 'ox',cc000012,ep,Cv(N+cc000012,ep)
+      Cv(N+cc000011,:)=in(1,:)
+      Cv(N+cc000012,:)=in(2,:)
      
 C    (Cv(N+cc000012,Cv(N+cc000022,zzzzk)
-      in(1,ep)=
-     .   + f1*Cv(N+cc00002,ep)
-     .   + Bv(bb00001+B13,ep)
-     .   - Bv(bb00001+B23,ep)
-      in(2,ep)=
-     .   + f2*Cv(N+cc00002,ep)
-     .   -2*Cv(N+cc000000,ep)
-     .   - Bv(bb00001+B23,ep)
-      enddo
+      in(1,:)=
+     &  + f1*Cv(N+cc00002,:)
+     &  + Bv(bb00001+B13,:)
+     &  - Bv(bb00001+B23,:)
+      in(2,:)=
+     &  + f2*Cv(N+cc00002,:)
+     &  -2*Cv(N+cc000000,:)
+     &  - Bv(bb00001+B23,:)
       call pvBackSubst(G,2,perm, in)
-      do ep=-2,0
-      Cv(N+cc000012,ep)=in(1,ep)
-      Cv(N+cc000022,ep)=in(2,ep)
-
-c      write(66,*) 'ox',cc000012,ep,Cv(N+cc000012,ep)
-c      write(66,*) 'ox',cc000022,ep,Cv(N+cc000022,ep)
+      Cv(N+cc000012,:)=in(1,:)
+      Cv(N+cc000022,:)=in(2,:)
 
 C    (Cv(N+cc001111,Cv(N+cc001112,zzppp)
-      in(1,ep)=
-     .   + f1*Cv(N+cc00111,ep)-6*Cv(N+cc000011,ep)
-     .   + B0011sum(ep)+ 2d0*B001sum(ep)+ B00sum(ep)
-      in(2,ep)=
-     .  + f2*Cv(N+cc00111,ep)+ Bv(bb00111+B12,ep)
-     .   + B0011sum(ep)+ 2d0*B001sum(ep)+ B00sum(ep)
-      enddo
+      in(1,:)=
+     &  + f1*Cv(N+cc00111,:)-6*Cv(N+cc000011,:)
+     &  + B0011sum(:)+ two*B001sum(:)+ B00sum(:)
+      in(2,:)=
+     & + f2*Cv(N+cc00111,:)+ Bv(bb00111+B12,:)
+     &  + B0011sum(:)+ two*B001sum(:)+ B00sum(:)
       call pvBackSubst(G,2,perm, in)
-      do ep=-2,0
-      Cv(N+cc001111,ep)=in(1,ep)
-      Cv(N+cc001112,ep)=in(2,ep)
-c      write(66,*) 'ox',cc001111,ep,Cv(N+cc001111,ep)
-c      write(66,*) 'ox',cc001112,ep,Cv(N+cc001112,ep)
+      Cv(N+cc001111,:)=in(1,:)
+      Cv(N+cc001112,:)=in(2,:)
      
 C    (Cv(N+cc001112,Cv(N+cc001122,zzppk)
-      in(1,ep)=
-     .   + f1*Cv(N+cc00112,ep)-4*Cv(N+cc000012,ep)
-     .    -B001sum(ep)-B0011sum(ep)
-      in(2,ep)=
-     .   + f2*Cv(N+cc00112,ep)
-     .   -2*Cv(N+cc000011,ep)
-     .    -B001sum(ep)-B0011sum(ep)
-
-      enddo
+      in(1,:)=
+     &  + f1*Cv(N+cc00112,:)-4*Cv(N+cc000012,:)
+     &   -B001sum(:)-B0011sum(:)
+      in(2,:)=
+     &  + f2*Cv(N+cc00112,:)
+     &  -2*Cv(N+cc000011,:)
+     &   -B001sum(:)-B0011sum(:)
       call pvBackSubst(G,2,perm, in)
-      do ep=-2,0
-      Cv(N+cc001112,ep)=in(1,ep)
-      Cv(N+cc001122,ep)=in(2,ep)
-c      write(66,*) 'ox',cc001112,ep,Cv(N+cc001112,ep)
-c      write(66,*) 'ox',cc001122,ep,Cv(N+cc001122,ep)
+      Cv(N+cc001112,:)=in(1,:)
+      Cv(N+cc001122,:)=in(2,:)
      
 C    (Cv(N+cc001122,Cv(N+cc001222,zzpkk)
-      in(1,ep)=
-     .   + f1*Cv(N+cc00122,ep)-2*Cv(N+cc000022,ep)
-     .   + B0011sum(ep)
-
-      in(2,ep)=
-     .   + f2*Cv(N+cc00122,ep)-4*Cv(N+cc000012,ep)
-     .   + B0011sum(ep)
-
-      enddo
+      in(1,:)=
+     &  + f1*Cv(N+cc00122,:)-2*Cv(N+cc000022,:)
+     &  + B0011sum(:)
+      in(2,:)=
+     &  + f2*Cv(N+cc00122,:)-4*Cv(N+cc000012,:)
+     &  + B0011sum(:)
       call pvBackSubst(G,2,perm, in)
-      do ep=-2,0
-      Cv(N+cc001122,ep)=in(1,ep)
-      Cv(N+cc001222,ep)=in(2,ep)
-c      write(66,*) 'ox',cc001122,ep,Cv(N+cc001122,ep)
-c      write(66,*) 'ox',cc001222,ep,Cv(N+cc001222,ep)
+      Cv(N+cc001122,:)=in(1,:)
+      Cv(N+cc001222,:)=in(2,:)
      
 C    (Cv(N+cc001222,Cv(N+cc002222,zzkkk)
-      in(1,ep)=
-     .   + f1*Cv(N+cc00222,ep)
-     .   + Bv(bb00111+B13,ep)- Bv(bb00111+B23,ep)
-      in(2,ep)=
-     .   + f2*Cv(N+cc00222,ep)-6*Cv(N+cc000022,ep)
-     .   - Bv(bb00111+B23,ep)
-
-
-      enddo
+      in(1,:)=
+     &  + f1*Cv(N+cc00222,:)
+     &  + Bv(bb00111+B13,:)- Bv(bb00111+B23,:)
+      in(2,:)=
+     &  + f2*Cv(N+cc00222,:)-6*Cv(N+cc000022,:)
+     &  - Bv(bb00111+B23,:)
       call pvBackSubst(G,2,perm, in)
-      do ep=-2,0
-      Cv(N+cc001222,ep)=in(1,ep)
-      Cv(N+cc002222,ep)=in(2,ep)
-c      write(66,*) 'ox',cc001222,ep,Cv(N+cc001222,ep)
-c      write(66,*) 'ox',cc002222,ep,Cv(N+cc002222,ep)
+      Cv(N+cc001222,:)=in(1,:)
+      Cv(N+cc002222,:)=in(2,:)
      
 
 
 C    (Cv(N+cc111111,Cv(N+cc111112,ppppp)
-      in(1,ep)=
-     .   +f1*Cv(N+cc11111,ep)-10*Cv(N+cc001111,ep)
-     .   +B0sum(ep)+4*B1sum(ep)+4*B111sum(ep)
-     .   +6*B11sum(ep)+B1111sum(ep)
-      in(2,ep)=
-     .   +f2*Cv(N+cc11111,ep)+Bv(bb11111+B12,ep)
-     .   +B0sum(ep)+4*B1sum(ep)
-     .   +4*B111sum(ep)+6*B11sum(ep)+B1111sum(ep)
-      enddo
+      in(1,:)=
+     &  +f1*Cv(N+cc11111,:)-10*Cv(N+cc001111,:)
+     &  +B0sum(:)+4*B1sum(:)+4*B111sum(:)
+     &  +6*B11sum(:)+B1111sum(:)
+      in(2,:)=
+     &  +f2*Cv(N+cc11111,:)+Bv(bb11111+B12,:)
+     &  +B0sum(:)+4*B1sum(:)
+     &  +4*B111sum(:)+6*B11sum(:)+B1111sum(:)
       call pvBackSubst(G,2,perm, in)
-      do ep=-2,0
-      Cv(N+cc111111,ep)=in(1,ep)
-      Cv(N+cc111112,ep)=in(2,ep)
-c      write(66,*) 'ox',cc111111,ep,Cv(N+cc111111,ep)
-c      write(66,*) 'ox',cc111112,ep,Cv(N+cc111112,ep)
+      Cv(N+cc111111,:)=in(1,:)
+      Cv(N+cc111112,:)=in(2,:)
      
 C    (Cv(N+cc111112,Cv(N+cc111122,ppppk)
-      in(1,ep)=
-     .    +f1*Cv(N+cc11112,ep)-8*Cv(N+cc001112,ep)
-     .   -B1sum(ep)-3*B11sum(ep)-3*B111sum(ep)-B1111sum(ep)
-
-      in(2,ep)=
-     .   + f2*Cv(N+cc11112,ep)-2*Cv(N+cc001111,ep)
-     .   -B1sum(ep)-3*B11sum(ep)-3*B111sum(ep)-B1111sum(ep)
-
-      enddo
+      in(1,:)=
+     &   +f1*Cv(N+cc11112,:)-8*Cv(N+cc001112,:)
+     &  -B1sum(:)-3*B11sum(:)-3*B111sum(:)-B1111sum(:)
+      in(2,:)=
+     &  + f2*Cv(N+cc11112,:)-2*Cv(N+cc001111,:)
+     &  -B1sum(:)-3*B11sum(:)-3*B111sum(:)-B1111sum(:)
       call pvBackSubst(G,2,perm, in)
-      do ep=-2,0
-      Cv(N+cc111112,ep)=in(1,ep)
-      Cv(N+cc111122,ep)=in(2,ep)
-c      write(66,*) 'ox',cc111112,ep,Cv(N+cc111112,ep)
-c      write(66,*) 'ox',cc111122,ep,Cv(N+cc111122,ep)
+      Cv(N+cc111112,:)=in(1,:)
+      Cv(N+cc111122,:)=in(2,:)
      
 C    (Cv(N+cc111122,Cv(N+cc111222,pppkk)
-      in(1,ep)=
-     .   + f1*Cv(N+cc11122,ep)-6*Cv(N+cc001122,ep)
-     .   +B11sum(ep)+2*B111sum(ep)+B1111sum(ep)
-      in(2,ep)=
-     .   + f2*Cv(N+cc11122,ep)-4*Cv(N+cc001112,ep)
-     .   +B11sum(ep)+2*B111sum(ep)+B1111sum(ep)
-
-      enddo
+      in(1,:)=
+     &  + f1*Cv(N+cc11122,:)-6*Cv(N+cc001122,:)
+     &  +B11sum(:)+2*B111sum(:)+B1111sum(:)
+      in(2,:)=
+     &  + f2*Cv(N+cc11122,:)-4*Cv(N+cc001112,:)
+     &  +B11sum(:)+2*B111sum(:)+B1111sum(:)
       call pvBackSubst(G,2,perm, in)
-      do ep=-2,0
-      Cv(N+cc111122,ep)=in(1,ep)
-      Cv(N+cc111222,ep)=in(2,ep)
-c      write(66,*) 'ox',cc111122,ep,Cv(N+cc111122,ep)
-c      write(66,*) 'ox',cc111222,ep,Cv(N+cc111222,ep)
+      Cv(N+cc111122,:)=in(1,:)
+      Cv(N+cc111222,:)=in(2,:)
      
 C    (Cv(N+cc111222,Cv(N+cc112222,ppkkk)
-      in(1,ep)=
-     .   + f1*Cv(N+cc11222,ep)-4*Cv(N+cc001222,ep)
-     .   -B111sum(ep)-B1111sum(ep)
-      in(2,ep)=
-     .   + f2*Cv(N+cc11222,ep)-6*Cv(N+cc001122,ep)
-     .   -B111sum(ep)-B1111sum(ep)
-
-      enddo
+      in(1,:)=
+     &  + f1*Cv(N+cc11222,:)-4*Cv(N+cc001222,:)
+     &  -B111sum(:)-B1111sum(:)
+      in(2,:)=
+     &  + f2*Cv(N+cc11222,:)-6*Cv(N+cc001122,:)
+     &  -B111sum(:)-B1111sum(:)
       call pvBackSubst(G,2,perm, in)
-      do ep=-2,0
-      Cv(N+cc111222,ep)=in(1,ep)
-      Cv(N+cc112222,ep)=in(2,ep)
-c      write(66,*) 'ox',cc111222,ep,Cv(N+cc111222,ep)
-c      write(66,*) 'ox',cc112222,ep,Cv(N+cc112222,ep)
+      Cv(N+cc111222,:)=in(1,:)
+      Cv(N+cc112222,:)=in(2,:)
 
 C    (Cv(N+cc112222,Cv(N+cc122222,pkkkk)
-      in(1,ep)=f1*Cv(N+cc12222,ep)-2*Cv(N+cc002222,ep)
-     .   + B1111sum(ep)
+      in(1,:)=f1*Cv(N+cc12222,:)-2*Cv(N+cc002222,:)
+     &  + B1111sum(:)
 
-      in(2,ep)=f2*Cv(N+cc12222,ep)-8*Cv(N+cc001222,ep)
-     .   + B1111sum(ep)
-
-      enddo
+      in(2,:)=f2*Cv(N+cc12222,:)-8*Cv(N+cc001222,:)
+     &  + B1111sum(:)
       call pvBackSubst(G,2,perm, in)
-      do ep=-2,0
-      Cv(N+cc112222,ep)=in(1,ep)
-      Cv(N+cc122222,ep)=in(2,ep)
-c      write(66,*) 'ox',cc112222,ep,Cv(N+cc112222,ep)
-c      write(66,*) 'ox',cc122222,ep,Cv(N+cc122222,ep)
+      Cv(N+cc112222,:)=in(1,:)
+      Cv(N+cc122222,:)=in(2,:)
+
      
 C    (Cv(N+cc122222,Cv(N+cc222222,kkkkk)
-      in(1,ep)=
-     .   + f1*Cv(N+cc22222,ep)
-     .   + Bv(bb11111+B13,ep)-Bv(bb11111+B23,ep)
- 
-      in(2,ep)=
-     .   + f2*Cv(N+cc22222,ep)-10* Cv(N+cc002222,ep)
-     .   - Bv(bb11111+B23,ep)
-      enddo
+      in(1,:)=
+     &  + f1*Cv(N+cc22222,:)
+     &  + Bv(bb11111+B13,:)-Bv(bb11111+B23,:)
+      in(2,:)=
+     &  + f2*Cv(N+cc22222,:)-10* Cv(N+cc002222,:)
+     &  - Bv(bb11111+B23,:)
       call pvBackSubst(G,2,perm, in)
-      do ep=-2,0
-      Cv(N+cc122222,ep)=in(1,ep)
-      Cv(N+cc222222,ep)=in(2,ep)
-c      write(66,*) 'ox',cc122222,ep,Cv(N+cc122222,ep)
-c      write(66,*) 'ox',cc222222,ep,Cv(N+cc222222,ep)
-
-      enddo    
+      Cv(N+cc122222,:)=in(1,:)
+      Cv(N+cc222222,:)=in(2,:)
 
 c      if ((maxcindex .eq. 6) .and. (pvRespectmaxcindex)) return
 
@@ -814,480 +642,367 @@ C---seven index form factors
 
 
       Cv(N+cc0011112,ep)=Cv(N+cc0011112,ep)-idp3(j)*(
-     &  -half*b1sum(epmj)
-     &  -3d0*half*b11sum(epmj)
-     &  -3d0*half*b111sum(epmj)
-     &  -half*b1111sum(epmj)
-     &  +half*f1*Cv(N+cc111112,epmj)
-     &  +half*f2*Cv(N+cc111122,epmj)
-     &  -Cv(N+cc11112,epmj)*m1s)
+     & -half*b1sum(epmj)
+     & -three*half*b11sum(epmj)
+     & -three*half*b111sum(epmj)
+     & -half*b1111sum(epmj)
+     & +half*f1*Cv(N+cc111112,epmj)
+     & +half*f2*Cv(N+cc111122,epmj)
+     & -Cv(N+cc11112,epmj)*m1s)
 
 
       Cv(N+cc0012222,ep)=Cv(N+cc0012222,ep)-idp3(j)*(
-     &  + half*Bv(bb1111+B23,epmj)
-     &  + half*Bv(bb11111+B23,epmj)
-     &  + half*f1*Cv(N+cc112222,epmj)
-     &  + half*f2*Cv(N+cc122222,epmj)
-     &  - Cv(N+cc12222,epmj)*m1s)
+     & + half*Bv(bb1111+B23,epmj)
+     & + half*Bv(bb11111+B23,epmj)
+     & + half*f1*Cv(N+cc112222,epmj)
+     & + half*f2*Cv(N+cc122222,epmj)
+     & - Cv(N+cc12222,epmj)*m1s)
 
 
       Cv(N+cc0022222,ep)=Cv(N+cc0022222,ep)-idp3(j)*(
      & - half*Bv(bb11111+B23,epmj)
-     &  + half*f1*Cv(N+cc122222,epmj)
-     &  + half*f2*Cv(N+cc222222,epmj)
-     &  - Cv(N+cc22222,epmj)*m1s)
+     & + half*f1*Cv(N+cc122222,epmj)
+     & + half*f2*Cv(N+cc222222,epmj)
+     & - Cv(N+cc22222,epmj)*m1s)
 
 
       Cv(N+cc0011222,ep)=Cv(N+cc0011222,ep)-idp3(j)*(
      & - half*Bv(bb111+B23,epmj)
-     &  - Bv(bb1111+B23,epmj)
-     &  - half*Bv(bb11111+B23,epmj)
-     &  + half*f1*Cv(N+cc111222,epmj)
-     &  + half*f2*Cv(N+cc112222,epmj)
-     &  - Cv(N+cc11222,epmj)*m1s)
+     & - Bv(bb1111+B23,epmj)
+     & - half*Bv(bb11111+B23,epmj)
+     & + half*f1*Cv(N+cc111222,epmj)
+     & + half*f2*Cv(N+cc112222,epmj)
+     & - Cv(N+cc11222,epmj)*m1s)
 
 
       Cv(N+cc0011122,ep)=Cv(N+cc0011122,ep)-idp3(j)*(
-     &  + half*Bv(bb11+B23,epmj)
-     &  + 3d0*half*Bv(bb111+B23,epmj)
-     &  + 3d0*half*Bv(bb1111+B23,epmj)
-     &  + half*Bv(bb11111+B23,epmj)
-     &  + half*f1*Cv(N+cc111122,epmj)
-     &  + half*f2*Cv(N+cc111222,epmj)
-     &  - Cv(N+cc11122,epmj)*m1s)
+     & + half*Bv(bb11+B23,epmj)
+     & + three*half*Bv(bb111+B23,epmj)
+     & + three*half*Bv(bb1111+B23,epmj)
+     & + half*Bv(bb11111+B23,epmj)
+     & + half*f1*Cv(N+cc111122,epmj)
+     & + half*f2*Cv(N+cc111222,epmj)
+     & - Cv(N+cc11122,epmj)*m1s)
 
 
       Cv(N+cc0000001,ep)=Cv(N+cc0000001,ep)-idp3(j)*(
-     &  + half*Bv(bb0000+B23,epmj)
-     &  + half*Bv(bb00001+B23,epmj)
-     &  + half*f1*Cv(N+cc000011,epmj)
-     &  + half*f2*Cv(N+cc000012,epmj)
-     &  - Cv(N+cc00001,epmj)*m1s)
+     & + half*Bv(bb0000+B23,epmj)
+     & + half*Bv(bb00001+B23,epmj)
+     & + half*f1*Cv(N+cc000011,epmj)
+     & + half*f2*Cv(N+cc000012,epmj)
+     & - Cv(N+cc00001,epmj)*m1s)
 
       Cv(N+cc0000002,ep)=Cv(N+cc0000002,ep)-idp3(j)*(
-     &  - half*Bv(bb00001+B23,epmj)
-     &  + half*f1*Cv(N+cc000012,epmj)
-     &  + half*f2*Cv(N+cc000022,epmj)
-     &  - Cv(N+cc00002,epmj)*m1s)
+     & - half*Bv(bb00001+B23,epmj)
+     & + half*f1*Cv(N+cc000012,epmj)
+     & + half*f2*Cv(N+cc000022,epmj)
+     & - Cv(N+cc00002,epmj)*m1s)
 
       Cv(N+cc0000111,ep)=Cv(N+cc0000111,ep)-idp3(j)*(
-     &  + half*Bv(bb00+B23,epmj)
-     &  + 3d0*half*Bv(bb001+B23,epmj)
-     &  + 3d0*half*Bv(bb0011+B23,epmj)
-     &  + half*Bv(bb00111+B23,epmj)
-     &  + half*f1*Cv(N+cc001111,epmj)
-     &  + half*f2*Cv(N+cc001112,epmj)
-     &  - Cv(N+cc00111,epmj)*m1s)
+     & + half*Bv(bb00+B23,epmj)
+     & + three*half*Bv(bb001+B23,epmj)
+     & + three*half*Bv(bb0011+B23,epmj)
+     & + half*Bv(bb00111+B23,epmj)
+     & + half*f1*Cv(N+cc001111,epmj)
+     & + half*f2*Cv(N+cc001112,epmj)
+     & - Cv(N+cc00111,epmj)*m1s)
 
       Cv(N+cc0000112,ep)=Cv(N+cc0000112,ep)-idp3(j)*(
-     &  - half*Bv(bb001+B23,epmj)
-     &  - Bv(bb0011+B23,epmj)
-     &  - half*Bv(bb00111+B23,epmj)
-     &  + half*f1*Cv(N+cc001112,epmj)
-     &  + half*f2*Cv(N+cc001122,epmj)
-     &  - Cv(N+cc00112,epmj)*m1s)
+     & - half*Bv(bb001+B23,epmj)
+     & - Bv(bb0011+B23,epmj)
+     & - half*Bv(bb00111+B23,epmj)
+     & + half*f1*Cv(N+cc001112,epmj)
+     & + half*f2*Cv(N+cc001122,epmj)
+     & - Cv(N+cc00112,epmj)*m1s)
 
       Cv(N+cc0000122,ep)=Cv(N+cc0000122,ep)-idp3(j)*(
      & + half*Bv(bb0011+B23,epmj)
-     &  + half*Bv(bb00111+B23,epmj)
-     &  + half*f1*Cv(N+cc001122,epmj)
-     &  + half*f2*Cv(N+cc001222,epmj)
-     &  - Cv(N+cc00122,epmj)*m1s)
-
+     & + half*Bv(bb00111+B23,epmj)
+     & + half*f1*Cv(N+cc001122,epmj)
+     & + half*f2*Cv(N+cc001222,epmj)
+     & - Cv(N+cc00122,epmj)*m1s)
 
       Cv(N+cc0000222,ep)=Cv(N+cc0000222,ep)-idp3(j)*(
-     &  - half*Bv(bb00111+B23,epmj)
-     &  + half*f1*Cv(N+cc001222,epmj)
-     &  + half*f2*Cv(N+cc002222,epmj)
-     &  - Cv(N+cc00222,epmj)*m1s
-     &  )
-
+     & - half*Bv(bb00111+B23,epmj)
+     & + half*f1*Cv(N+cc001222,epmj)
+     & + half*f2*Cv(N+cc002222,epmj)
+     & - Cv(N+cc00222,epmj)*m1s)
       enddo
  61   continue
-
-c      write(66,*) 'zx',cc0000001,ep,Cv(N+cc0000001,ep)
-c      write(66,*) 'zx',cc0000002,ep,Cv(N+cc0000002,ep)
-c      write(66,*) 'zx',cc0000111,ep,Cv(N+cc0000111,ep)
-c      write(66,*) 'zx',cc0000112,ep,Cv(N+cc0000112,ep)
-c      write(66,*) 'zx',cc0000122,ep,Cv(N+cc0000122,ep)
-c      write(66,*) 'zx',cc0000222,ep,Cv(N+cc0000222,ep)
-
-c      write(66,*) 'zx',cc0011111,ep,Cv(N+cc0011111,ep)
-c      write(66,*) 'zx',cc0011112,ep,Cv(N+cc0011112,ep)
-c      write(66,*) 'zx',cc0011122,ep,Cv(N+cc0011122,ep)
-c      write(66,*) 'zx',cc0011222,ep,Cv(N+cc0011222,ep)
-c      write(66,*) 'zx',cc0012222,ep,Cv(N+cc0012222,ep)
-c      write(66,*) 'zx',cc0022222,ep,Cv(N+cc0022222,ep)
-
       enddo
       
 
 C   Cv(N+cc0000001,Cv(N+cc0000002,zzzzzz)
-      do ep=-2,0
-      in(1,ep)=
-     &  + f1*Cv(N+cc000000,ep)
-     &  + Bv(bb000000+B13,ep)
-     &  - Bv(bb000000+B23,ep)
-      in(2,ep)=
-     &  + f2*Cv(N+cc000000,ep)
-     &  + Bv(bb000000+B12,ep)
-     &  - Bv(bb000000+B23,ep)
-      enddo
-
+      in(1,:)=
+     & + f1*Cv(N+cc000000,:)
+     & + Bv(bb000000+B13,:)
+     & - Bv(bb000000+B23,:)
+      in(2,:)=
+     & + f2*Cv(N+cc000000,:)
+     & + Bv(bb000000+B12,:)
+     & - Bv(bb000000+B23,:)
       call pvBackSubst(G,2,perm, in)
-
-      do ep=-2,0
-      Cv(N+cc0000001,ep)=in(1,ep)
-      Cv(N+cc0000002,ep)=in(2,ep)
-c      write(66,*) 'nx',cc0000001,ep,Cv(N+cc0000001,ep)
-c      write(66,*) 'nx',cc0000002,ep,Cv(N+cc0000002,ep)
+      Cv(N+cc0000001,:)=in(1,:)
+      Cv(N+cc0000002,:)=in(2,:)
 
 
 C   Cv(N+cc0000111,Cv(N+cc0000112,zzzzpp)
-      in(1,ep)=
-     &  - Bv(bb0000+B23,ep)
-     &  - 2*Bv(bb00001+B23,ep)
-     &  + f1*Cv(N+cc000011,ep)
-     &  - 4*Cv(N+cc0000001,ep)
-     &  - Bv(bb000011+B23,ep)
-      in(2,ep)=
-     &  - Bv(bb0000+B23,ep)
-     &  - 2*Bv(bb00001+B23,ep)
-     &  + f2*Cv(N+cc000011,ep)
-     &  + Bv(bb000011+B12,ep)
-     &  - Bv(bb000011+B23,ep)
-      enddo
-
-
+      in(1,:)=
+     & - Bv(bb0000+B23,:)
+     & - 2*Bv(bb00001+B23,:)
+     & + f1*Cv(N+cc000011,:)
+     & - 4*Cv(N+cc0000001,:)
+     & - Bv(bb000011+B23,:)
+      in(2,:)=
+     & - Bv(bb0000+B23,:)
+     & - 2*Bv(bb00001+B23,:)
+     & + f2*Cv(N+cc000011,:)
+     & + Bv(bb000011+B12,:)
+     & - Bv(bb000011+B23,:)
       call pvBackSubst(G,2,perm, in)
-
-      do ep=-2,0
-      Cv(N+cc0000111,ep)=in(1,ep)
-      Cv(N+cc0000112,ep)=in(2,ep)
-c      write(66,*) 'nx',cc0000111,ep,Cv(N+cc0000111,ep)
-c      write(66,*) 'nx',cc0000112,ep,Cv(N+cc0000112,ep)
+      Cv(N+cc0000111,:)=in(1,:)
+      Cv(N+cc0000112,:)=in(2,:)
 
 C   Cv(N+cc0000112,Cv(N+cc0000122,zzzzpk)
-      in(1,ep)=
-     &  + Bv(bb00001+B23,ep)
-     &  + f1*Cv(N+cc000012,ep)
-     &  - 2*Cv(N+cc0000002,ep)
-     &  + Bv(bb000011+B23,ep)
-      in(2,ep)=
-     &  + Bv(bb00001+B23,ep)
-     &  + f2*Cv(N+cc000012,ep)
-     &  - 2*Cv(N+cc0000001,ep)
-     &  + Bv(bb000011+B23,ep)
-      enddo
-
-
-
+      in(1,:)=
+     & + Bv(bb00001+B23,:)
+     & + f1*Cv(N+cc000012,:)
+     & - 2*Cv(N+cc0000002,:)
+     & + Bv(bb000011+B23,:)
+      in(2,:)=
+     & + Bv(bb00001+B23,:)
+     & + f2*Cv(N+cc000012,:)
+     & - 2*Cv(N+cc0000001,:)
+     & + Bv(bb000011+B23,:)
       call pvBackSubst(G,2,perm, in)
-
-      do ep=-2,0
-      Cv(N+cc0000112,ep)=in(1,ep)
-      Cv(N+cc0000122,ep)=in(2,ep)
-c      write(66,*) 'nx',cc0000112,ep,Cv(N+cc0000112,ep)
-c      write(66,*) 'nx',cc0000122,ep,Cv(N+cc0000122,ep)
+      Cv(N+cc0000112,:)=in(1,:)
+      Cv(N+cc0000122,:)=in(2,:)
 
 C   Cv(N+cc0000122,Cv(N+cc0000222,zzzzkk)
-      in(1,ep)=
-     &  + f1*Cv(N+cc000022,ep)
-     &  + Bv(bb000011+B13,ep)
-     &  - Bv(bb000011+B23,ep)
-      in(2,ep)=
-     &  + f2*Cv(N+cc000022,ep)
-     &  - 4*Cv(N+cc0000002,ep)
-     &  - Bv(bb000011+B23,ep)
-      enddo
-
+      in(1,:)=
+     & + f1*Cv(N+cc000022,:)
+     & + Bv(bb000011+B13,:)
+     & - Bv(bb000011+B23,:)
+      in(2,:)=
+     & + f2*Cv(N+cc000022,:)
+     & - 4*Cv(N+cc0000002,:)
+     & - Bv(bb000011+B23,:)
       call pvBackSubst(G,2,perm, in)
-
-      do ep=-2,0
-      Cv(N+cc0000122,ep)=in(1,ep)
-      Cv(N+cc0000222,ep)=in(2,ep)
-c      write(66,*) 'nx',cc0000122,ep,Cv(N+cc0000122,ep)
-c      write(66,*) 'nx',cc0000222,ep,Cv(N+cc0000222,ep)
+      Cv(N+cc0000122,:)=in(1,:)
+      Cv(N+cc0000222,:)=in(2,:)
 
 C   Cv(N+cc0011111,Cv(N+cc0011112,zzpppp)
-      in(1,ep)=
-     &  - Bv(bb00+B23,ep)
-     &  - 4*Bv(bb001+B23,ep)
-     &  - 6*Bv(bb0011+B23,ep)
-     &  - 4*Bv(bb00111+B23,ep)
-     &  + f1*Cv(N+cc001111,ep)
-     &  - 8*Cv(N+cc0000111,ep)
-     &  - Bv(bb001111+B23,ep)
-Cv(N+cc(zzpppp,2,P?,K?,m1?,m2?,m3?)=(
-      in(2,ep)=
-     &  - Bv(bb00+B23,ep)
-     &  - 4*Bv(bb001+B23,ep)
-     &  - 6*Bv(bb0011+B23,ep)
-     &  - 4*Bv(bb00111+B23,ep)
-     &  + f2*Cv(N+cc001111,ep)
-     &  + Bv(bb001111+B12,ep)
-     &  - Bv(bb001111+B23,ep)
-      enddo
-
+      in(1,:)=
+     & - Bv(bb00+B23,:)
+     & - 4*Bv(bb001+B23,:)
+     & - 6*Bv(bb0011+B23,:)
+     & - 4*Bv(bb00111+B23,:)
+     & + f1*Cv(N+cc001111,:)
+     & - 8*Cv(N+cc0000111,:)
+     & - Bv(bb001111+B23,:)
+      in(2,:)=
+     & - Bv(bb00+B23,:)
+     & - 4*Bv(bb001+B23,:)
+     & - 6*Bv(bb0011+B23,:)
+     & - 4*Bv(bb00111+B23,:)
+     & + f2*Cv(N+cc001111,:)
+     & + Bv(bb001111+B12,:)
+     & - Bv(bb001111+B23,:)
       call pvBackSubst(G,2,perm, in)
-
-      do ep=-2,0
-      Cv(N+cc0011111,ep)=in(1,ep)
-      Cv(N+cc0011112,ep)=in(2,ep)
-c      write(66,*) 'nx',cc0011111,ep,Cv(N+cc0011111,ep)
-c      write(66,*) 'nx',cc0011112,ep,Cv(N+cc0011112,ep)
+      Cv(N+cc0011111,:)=in(1,:)
+      Cv(N+cc0011112,:)=in(2,:)
 
 C   Cv(N+cc0011112,Cv(N+cc0011122,zzpppk)
-      in(1,ep)=
-     &  + Bv(bb001+B23,ep)
-     &  + 3*Bv(bb0011+B23,ep)
-     &  + 3*Bv(bb00111+B23,ep)
-     &  + f1*Cv(N+cc001112,ep)
-     &  - 6*Cv(N+cc0000112,ep)
-     &  + Bv(bb001111+B23,ep)
-      in(2,ep)=
-     &  + Bv(bb001+B23,ep)
-     &  + 3*Bv(bb0011+B23,ep)
-     &  + 3*Bv(bb00111+B23,ep)
-     &  + f2*Cv(N+cc001112,ep)
-     &  - 2*Cv(N+cc0000111,ep)
-     &  + Bv(bb001111+B23,ep)
-      enddo
-
-
+      in(1,:)=
+     & + Bv(bb001+B23,:)
+     & + 3*Bv(bb0011+B23,:)
+     & + 3*Bv(bb00111+B23,:)
+     & + f1*Cv(N+cc001112,:)
+     & - 6*Cv(N+cc0000112,:)
+     & + Bv(bb001111+B23,:)
+      in(2,:)=
+     & + Bv(bb001+B23,:)
+     & + 3*Bv(bb0011+B23,:)
+     & + 3*Bv(bb00111+B23,:)
+     & + f2*Cv(N+cc001112,:)
+     & - 2*Cv(N+cc0000111,:)
+     & + Bv(bb001111+B23,:)
       call pvBackSubst(G,2,perm, in)
-
-      do ep=-2,0
-      Cv(N+cc0011112,ep)=in(1,ep)
-      Cv(N+cc0011122,ep)=in(2,ep)
-c      write(66,*) 'nx',cc0011112,ep,Cv(N+cc0011112,ep)
-c      write(66,*) 'nx',cc0011122,ep,Cv(N+cc0011122,ep)
+      Cv(N+cc0011112,:)=in(1,:)
+      Cv(N+cc0011122,:)=in(2,:)
 
 C   Cv(N+cc0011122,Cv(N+cc0011222,zzppkk)
-      in(1,ep)=
-     &  - Bv(bb0011+B23,ep)
-     &  - 2*Bv(bb00111+B23,ep)
-     &  + f1*Cv(N+cc001122,ep)
-     &  - 4*Cv(N+cc0000122,ep)
-     &  - Bv(bb001111+B23,ep)
-      in(2,ep)=
-     &  - Bv(bb0011+B23,ep)
-     &  - 2*Bv(bb00111+B23,ep)
-     &  + f2*Cv(N+cc001122,ep)
-     &  - 4*Cv(N+cc0000112,ep)
-     &  - Bv(bb001111+B23,ep)
-      enddo
+      in(1,:)=
+     & - Bv(bb0011+B23,:)
+     & - 2*Bv(bb00111+B23,:)
+     & + f1*Cv(N+cc001122,:)
+     & - 4*Cv(N+cc0000122,:)
+     & - Bv(bb001111+B23,:)
+      in(2,:)=
+     & - Bv(bb0011+B23,:)
+     & - 2*Bv(bb00111+B23,:)
+     & + f2*Cv(N+cc001122,:)
+     & - 4*Cv(N+cc0000112,:)
+     & - Bv(bb001111+B23,:)
 
 
       call pvBackSubst(G,2,perm, in)
 
-      do ep=-2,0
-      Cv(N+cc0011122,ep)=in(1,ep)
-      Cv(N+cc0011222,ep)=in(2,ep)
-c      write(66,*) 'nx',cc0011122,ep,Cv(N+cc0011122,ep)
-c      write(66,*) 'nx',cc0011222,ep,Cv(N+cc0011222,ep)
+      Cv(N+cc0011122,:)=in(1,:)
+      Cv(N+cc0011222,:)=in(2,:)
 
 C   Cv(N+cc0011222,Cv(N+cc0012222,zzpkkk)
-      in(1,ep)=
-     &  + Bv(bb00111+B23,ep)
-     &  + f1*Cv(N+cc001222,ep)
-     &  - 2*Cv(N+cc0000222,ep)
-     &  + Bv(bb001111+B23,ep)
-      in(2,ep)=
-     &  + Bv(bb00111+B23,ep)
-     &  + f2*Cv(N+cc001222,ep)
-     &  - 6*Cv(N+cc0000122,ep)
-     &  + Bv(bb001111+B23,ep)
-      enddo
-
-
+      in(1,:)=
+     & + Bv(bb00111+B23,:)
+     & + f1*Cv(N+cc001222,:)
+     & - 2*Cv(N+cc0000222,:)
+     & + Bv(bb001111+B23,:)
+      in(2,:)=
+     & + Bv(bb00111+B23,:)
+     & + f2*Cv(N+cc001222,:)
+     & - 6*Cv(N+cc0000122,:)
+     & + Bv(bb001111+B23,:)
       call pvBackSubst(G,2,perm, in)
-
-      do ep=-2,0
-      Cv(N+cc0011222,ep)=in(1,ep)
-      Cv(N+cc0012222,ep)=in(2,ep)
-c      write(66,*) 'nx',cc0011222,ep,Cv(N+cc0011222,ep)
-c      write(66,*) 'nx',cc0012222,ep,Cv(N+cc0012222,ep)
+      Cv(N+cc0011222,:)=in(1,:)
+      Cv(N+cc0012222,:)=in(2,:)
 
 C   Cv(N+cc0012222,Cv(N+cc0022222,zzkkkk)
-      in(1,ep)=
-     &  + f1*Cv(N+cc002222,ep)
-     &  + Bv(bb001111+B13,ep)
-     &  - Bv(bb001111+B23,ep)
-      in(2,ep)=
-     &  + f2*Cv(N+cc002222,ep)
-     &  - 8*Cv(N+cc0000222,ep)
-     &  - Bv(bb001111+B23,ep)
-      enddo
-
-
+      in(1,:)=
+     & + f1*Cv(N+cc002222,:)
+     & + Bv(bb001111+B13,:)
+     & - Bv(bb001111+B23,:)
+      in(2,:)=
+     & + f2*Cv(N+cc002222,:)
+     & - 8*Cv(N+cc0000222,:)
+     & - Bv(bb001111+B23,:)
       call pvBackSubst(G,2,perm, in)
-
-      do ep=-2,0
-      Cv(N+cc0012222,ep)=in(1,ep)
-      Cv(N+cc0022222,ep)=in(2,ep)
-c      write(66,*) 'nx',cc0012222,ep,Cv(N+cc0012222,ep)
-c      write(66,*) 'nx',cc0022222,ep,Cv(N+cc0022222,ep)
+      Cv(N+cc0012222,:)=in(1,:)
+      Cv(N+cc0022222,:)=in(2,:)
 
 
 C   Cv(N+cc1111111,Cv(N+cc1111112,pppppp)
-      in(1,ep)=
-     &  + f1*Cv(N+cc111111,ep)
-     &  - 12*Cv(N+cc0011111,ep)
-     &  - b11111sum(ep)
-     &  - 5*b1111sum(ep)
-     &  - 10*b111sum(ep)
-     &  - 10*b11sum(ep)
-     &  - 5*b1sum(ep)
-     &  - b0sum(ep)
-      in(2,ep)=
-     &  + f2*Cv(N+cc111111,ep)
-     &  - b11111sum(ep)
-     &  - 5*b1111sum(ep)
-     &  - 10*b111sum(ep)
-     &  - 10*b11sum(ep)
-     &  - 5*b1sum(ep)
-     &  - b0sum(ep)
-     &  + Bv(bb111111+B12,ep)
-      enddo
+      in(1,:)=
+     & + f1*Cv(N+cc111111,:)
+     & - 12*Cv(N+cc0011111,:)
+     & - b11111sum(:)
+     & - 5*b1111sum(:)
+     & - 10*b111sum(:)
+     & - 10*b11sum(:)
+     & - 5*b1sum(:)
+     & - b0sum(:)
+      in(2,:)=
+     & + f2*Cv(N+cc111111,:)
+     & - b11111sum(:)
+     & - 5*b1111sum(:)
+     & - 10*b111sum(:)
+     & - 10*b11sum(:)
+     & - 5*b1sum(:)
+     & - b0sum(:)
+     & + Bv(bb111111+B12,:)
       call pvBackSubst(G,2,perm, in)
-      do ep=-2,0
-      Cv(N+cc1111111,ep)=in(1,ep)
-      Cv(N+cc1111112,ep)=in(2,ep)
-c      write(66,*) 'nx',cc1111111,ep,Cv(N+cc1111111,ep)
-c      write(66,*) 'nx',cc1111112,ep,Cv(N+cc1111112,ep)
+      Cv(N+cc1111111,:)=in(1,:)
+      Cv(N+cc1111112,:)=in(2,:)
 
       
 C   Cv(N+cc1111112,Cv(N+cc1111122,pppppk)
-      in(1,ep)=
-     &  + b1sum(ep)
-     &  + 4*b11sum(ep)
-     &  + 6*b111sum(ep)
-     &  + 4*b1111sum(ep)
-     &  + b11111sum(ep)
-     &  + f1*Cv(N+cc111112,ep)
-     &  - 10*Cv(N+cc0011112,ep)
-      in(2,ep)=
-     &  + b1sum(ep)
-     &  + 4*b11sum(ep)
-     &  + 6*b111sum(ep)
-     &  + 4*b1111sum(ep)
-     &  + b11111sum(ep)
-     &  + f2*Cv(N+cc111112,ep)
-     &  - 2*Cv(N+cc0011111,ep)
-      enddo
+      in(1,:)=
+     & + b1sum(:)
+     & + 4*b11sum(:)
+     & + 6*b111sum(:)
+     & + 4*b1111sum(:)
+     & + b11111sum(:)
+     & + f1*Cv(N+cc111112,:)
+     & - 10*Cv(N+cc0011112,:)
+      in(2,:)=
+     & + b1sum(:)
+     & + 4*b11sum(:)
+     & + 6*b111sum(:)
+     & + 4*b1111sum(:)
+     & + b11111sum(:)
+     & + f2*Cv(N+cc111112,:)
+     & - 2*Cv(N+cc0011111,:)
       call pvBackSubst(G,2,perm, in)
-      do ep=-2,0
-      Cv(N+cc1111112,ep)=in(1,ep)
-      Cv(N+cc1111122,ep)=in(2,ep)
-c      write(66,*) 'nx',cc1111112,ep,Cv(N+cc1111112,ep)
-c      write(66,*) 'nx',cc1111122,ep,Cv(N+cc1111122,ep)
+      Cv(N+cc1111112,:)=in(1,:)
+      Cv(N+cc1111122,:)=in(2,:)
 
 C   Cv(N+cc1111122,Cv(N+cc1111222,ppppkk)
-      in(1,ep)=
-     &  - b11sum(ep)
-     &  - 3*b111sum(ep)
-     &  - 3*b1111sum(ep)
-     &  - b11111sum(ep)
-     &  + f1*Cv(N+cc111122,ep)
-     &  - 8*Cv(N+cc0011122,ep)
-      in(2,ep)=
-     &  - b11sum(ep)
-     &  - 3*b111sum(ep)
-     &  - 3*b1111sum(ep)
-     &  - b11111sum(ep)
-     &  + f2*Cv(N+cc111122,ep)
-     &  - 4*Cv(N+cc0011112,ep)
-      enddo
+      in(1,:)=
+     & - b11sum(:)
+     & - 3*b111sum(:)
+     & - 3*b1111sum(:)
+     & - b11111sum(:)
+     & + f1*Cv(N+cc111122,:)
+     & - 8*Cv(N+cc0011122,:)
+      in(2,:)=
+     & - b11sum(:)
+     & - 3*b111sum(:)
+     & - 3*b1111sum(:)
+     & - b11111sum(:)
+     & + f2*Cv(N+cc111122,:)
+     & - 4*Cv(N+cc0011112,:)
       call pvBackSubst(G,2,perm, in)
-      do ep=-2,0
-      Cv(N+cc1111122,ep)=in(1,ep)
-      Cv(N+cc1111222,ep)=in(2,ep)
-c      write(66,*) 'nx',cc1111122,ep,Cv(N+cc1111122,ep)
-c      write(66,*) 'nx',cc1111222,ep,Cv(N+cc1111222,ep)
+      Cv(N+cc1111122,:)=in(1,:)
+      Cv(N+cc1111222,:)=in(2,:)
 
 C   Cv(N+cc1111222,Cv(N+cc1112222,pppkkk)
-      in(1,ep)=
-     &  + b111sum(ep)
-     &  + 2*b1111sum(ep)
-     &  + b11111sum(ep)
-     &  + f1*Cv(N+cc111222,ep)
-     &  - 6*Cv(N+cc0011222,ep)
-      in(2,ep)=
-     &  + b111sum(ep)
-     &  + 2*b1111sum(ep)
-     &  + b11111sum(ep)
-     &  + f2*Cv(N+cc111222,ep)
-     &  - 6*Cv(N+cc0011122,ep)
-      enddo
-
- 
+      in(1,:)=
+     & + b111sum(:)
+     & + 2*b1111sum(:)
+     & + b11111sum(:)
+     & + f1*Cv(N+cc111222,:)
+     & - 6*Cv(N+cc0011222,:)
+      in(2,:)=
+     & + b111sum(:)
+     & + 2*b1111sum(:)
+     & + b11111sum(:)
+     & + f2*Cv(N+cc111222,:)
+     & - 6*Cv(N+cc0011122,:)
       call pvBackSubst(G,2,perm, in)
-
-      do ep=-2,0
-      Cv(N+cc1111222,ep)=in(1,ep)
-      Cv(N+cc1112222,ep)=in(2,ep)
-c      write(66,*) 'nx',cc1111222,ep,Cv(N+cc1111222,ep)
-c      write(66,*) 'nx',cc1112222,ep,Cv(N+cc1112222,ep)
+      Cv(N+cc1111222,:)=in(1,:)
+      Cv(N+cc1112222,:)=in(2,:)
 
 C   Cv(N+cc1112222,Cv(N+cc1122222,ppkkkk)
-      in(1,ep)=
-     &  - b1111sum(ep)
-     &  - b11111sum(ep)
-     &  + f1*Cv(N+cc112222,ep)
-     &  - 4*Cv(N+cc0012222,ep)
-      in(2,ep)=
-     &  - b1111sum(ep)
-     &  - b11111sum(ep)
-     &  + f2*Cv(N+cc112222,ep)
-     &  - 8*Cv(N+cc0011222,ep)
-      enddo
+      in(1,:)=
+     & - b1111sum(:)
+     & - b11111sum(:)
+     & + f1*Cv(N+cc112222,:)
+     & - 4*Cv(N+cc0012222,:)
+      in(2,:)=
+     & - b1111sum(:)
+     & - b11111sum(:)
+     & + f2*Cv(N+cc112222,:)
+     & - 8*Cv(N+cc0011222,:)
       call pvBackSubst(G,2,perm, in)
+      Cv(N+cc1112222,:)=in(1,:)
+      Cv(N+cc1122222,:)=in(2,:)
 
-      do ep=-2,0
-      Cv(N+cc1112222,ep)=in(1,ep)
-      Cv(N+cc1122222,ep)=in(2,ep)
-c      write(66,*) 'nx',cc1112222,ep,Cv(N+cc1112222,ep)
-c      write(66,*) 'nx',cc1122222,ep,Cv(N+cc1122222,ep)
 
 C   Cv(N+cc1122222,Cv(N+cc1222222,pkkkkk)
-      in(1,ep)=
-     &  + f1*Cv(N+cc122222,ep)
-     &  - 2*Cv(N+cc0022222,ep)
-     &  + b11111sum(ep)
-      in(2,ep)=
-     &  + f2*Cv(N+cc122222,ep)
-     &  - 10*Cv(N+cc0012222,ep)
-     &  + b11111sum(ep)
-      enddo
-
+      in(1,:)=
+     & + f1*Cv(N+cc122222,:)
+     & - 2*Cv(N+cc0022222,:)
+     & + b11111sum(:)
+      in(2,:)=
+     & + f2*Cv(N+cc122222,:)
+     & - 10*Cv(N+cc0012222,:)
+     & + b11111sum(:)
       call pvBackSubst(G,2,perm, in)
-
-      do ep=-2,0
-      Cv(N+cc1122222,ep)=in(1,ep)
-      Cv(N+cc1222222,ep)=in(2,ep)
-c      write(66,*) 'nx',cc1122222,ep,Cv(N+cc1122222,ep)
-c      write(66,*) 'nx',cc1222222,ep,Cv(N+cc1222222,ep)
+      Cv(N+cc1122222,:)=in(1,:)
+      Cv(N+cc1222222,:)=in(2,:)
 
 C   Cv(N+cc1222222,Cv(N+cc2222222,kkkkkk)
-      in(1,ep)=
-     &  + f1*Cv(N+cc222222,ep)
-     &  + Bv(bb111111+B13,ep)
-     &  - Bv(bb111111+B23,ep)
-      in(2,ep)=
-     &  + f2*Cv(N+cc222222,ep)
-     &  - 12*Cv(N+cc0022222,ep)
-     &  - Bv(bb111111+B23,ep)
-      enddo
-
+      in(1,:)=
+     & + f1*Cv(N+cc222222,:)
+     & + Bv(bb111111+B13,:)
+     & - Bv(bb111111+B23,:)
+      in(2,:)=
+     & + f2*Cv(N+cc222222,:)
+     & - 12*Cv(N+cc0022222,:)
+     & - Bv(bb111111+B23,:)
       call pvBackSubst(G,2,perm, in)
+      Cv(N+cc1222222,:)=in(1,:)
+      Cv(N+cc2222222,:)=in(2,:)
 
-      do ep=-2,0
-      Cv(N+cc1222222,ep)=in(1,ep)
-      Cv(N+cc2222222,ep)=in(2,ep)
-c      write(66,*) 'nx',cc1222222,ep,Cv(N+cc1222222,ep)
-c      write(66,*) 'nx',cc2222222,ep,Cv(N+cc2222222,ep)
-      enddo
 
 
 c--- to check recursion identities      

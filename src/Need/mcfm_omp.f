@@ -1,4 +1,5 @@
       program mcfm
+      implicit none
       
       include 'types.f'
       include "omp_lib.h"
@@ -13,7 +14,7 @@
       real(dp):: speedmin(mth),speedmax(mth),speedavg(mth)
 
       rank=0
-      size=1
+      world_size=1
      
       tone=1e0
       threadmax=omp_get_max_threads()

@@ -44,17 +44,22 @@ c--- should be included
       include 'notag.f'
       include 'taucut.f'
       include 'hdecaymode.f'
+      include 'ewcorr.f'
+      include 'energy.f'
+      include 'runstring.f'
+      include 'first.f'
 c---- SSbegin
       include 'reweight.f'
 c---- SSend  
 
-      real(dp) ptrans(mxpart,4),pjet(mxpart,4),rcut,pt,pttwo
+      real(dp) ptrans(mxpart,4),pjet(mxpart,4),rcut,pt,pttwo,dot
       integer j,nd,isub
       logical gencuts,failedgencuts,photoncuts,makecuts,filterWbbmas,
      &     photonfailed,filterW_bjet,is_photon
       logical gencuts_VHbb
       integer count_photo,nphotons
       logical passed_frix,iso, passed_taucut
+      logical, save :: doreweight
 c      integer ij
 c      real(dp) y32,y43,z3,z4,z5,z6
 c      real(dp) dphizj,pt5sq,pt6sq,pt7sq
@@ -63,10 +68,27 @@ c      character*30 runstring
 c      common/runstring/runstring
       common/rcut/rcut
       common/makecuts/makecuts
-c---- SSbegin
-c---- set default reweight to 1 (hence no reweighting)
-      reweight = 1.0_dp
-c---- SSend  
+!$omp threadprivate(doreweight)
+
+       if (first) then
+         if(index(runstring,'reweight') > 0) then
+           doreweight=.true.
+         else
+           doreweight=.false.
+         endif
+         first=.false.
+       endif
+
+c--- automatic reweighting for EW corrections
+c--- comment-out this block (the next 8 lines) to remove this reweighting
+      if ((kewcorr /= knone) .or. (doreweight)) then
+        if    ((kcase==ktwojet) .or. (kcase==ktwo_ew)
+     &    .or. (kcase==ktt_tot) .or. (kcase==ktt_mix) ) then
+          reweight=(two*dot(ptrans,1,2)/(sqrts*sqrts))**2
+        elseif (kcase==kZ_only) then
+          reweight=sqrt(two*dot(ptrans,1,2))/sqrts
+        endif
+      endif
 
 c--- default: include this contribution
       mcfmincdipole=.true.

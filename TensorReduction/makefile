@@ -6,6 +6,7 @@ LIBNAME = QCDLoop
 LIBDIR = $(HERE)/Lib
 INCDIR = $(HERE)/pv/Include
 PVDIR  = $(HERE)/pv
+PVEXTDIR  = $(HERE)/pvext
 OVDIR  = $(HERE)/ov
 QLDIR  = $(HERE)/../QCDLoop/ql
 FFDIR  = $(HERE)/../QCDLoop/ff
@@ -16,27 +17,21 @@ else
     FC = gfortran
 endif
 
-# -----------------------------------------------------------------------------
-# This makes the libraries that we need
-
 libs:
-	(cd $(RRDIR)/smallG; make) 
-	(cd $(RRDIR)/smallY; make) 
-	(cd $(RRDIR)/smallP; make) 
-	(cd $(RRDIR)/smallF; make) 
-	(cd $(PVDIR); make) 
-	(cd $(OVDIR); make) 
+	(cd $(RRDIR)/smallG; $(MAKE) -f makefile) 
+	(cd $(RRDIR)/smallY; $(MAKE) -f makefile) 
+	(cd $(RRDIR)/smallP; $(MAKE) -f makefile) 
+	(cd $(RRDIR)/smallF; $(MAKE) -f makefile) 
+	(cd $(PVDIR); $(MAKE) -f makefile) 
+	(cd $(PVEXTDIR); $(MAKE) -f makefile) 
+	(cd $(OVDIR); $(MAKE) -f makefile) 
 
 clean:
-	(cd $(RRDIR)/smallG; make clean) 
-	(cd $(RRDIR)/smallY; make clean) 
-	(cd $(RRDIR)/smallP; make clean) 
-	(cd $(RRDIR)/smallF; make clean) 
-	(cd $(PVDIR); make clean) 
-	(cd $(OVDIR); make clean) 
-
-# -----------------------------------------------------------------------------
-
-# DO NOT DELETE
-
+	(cd $(RRDIR)/smallG; $(MAKE) -f makefile clean) 
+	(cd $(RRDIR)/smallY; $(MAKE) -f makefile clean) 
+	(cd $(RRDIR)/smallP; $(MAKE) -f makefile clean) 
+	(cd $(RRDIR)/smallF; $(MAKE) -f makefile clean) 
+	(cd $(PVDIR); $(MAKE) -f makefile clean) 
+	(cd $(PVEXTDIR); $(MAKE) -f makefile clean) 
+	(cd $(OVDIR); $(MAKE) -f makefile clean) 
 

@@ -2,14 +2,16 @@
       implicit none
       include 'types.f'
       include 'pdlabel.f'
-      include 'vanillafiles.f'
+      include 'kprocess.f'
+      include 'mpicommon.f'
+      include 'noglue.f'
       real(dp),intent(in)::xx,xxmu
       integer,intent(in)::ih_call
       real(dp),intent(out)::ffx(-5:5)
       double precision fx(-5:5),xZ,xA,eks98r,xmu_safe,x,xmu
       double precision u_val,d_val,u_sea,d_sea,s_sea,c_sea,b_sea,gluon
       double precision Ctq3df,Ctq4Fn,Ctq5Pdf,Ctq6Pdf,Ctq5L,CT10Pdf,
-     & CT14Pdf
+     & CT14Pdf,CT14Pdfqed
       double precision fxnnpdf(-6:7)
       integer mode,Iprtn,ih,iZ,iA,Irt
       logical first,nucleon
@@ -36,15 +38,19 @@ c--- nucleon distribution functions
         ih=1
         nucleon=.true.
         iA=mod(ih_call,1000)
-        iZ=(ih_call-iZ)/1000
+        iZ=(ih_call-iA)/1000
         xA=real(iA,dp)
         xZ=real(iZ,dp)
         if (first) then
+!$omp master
+        if (rank == 0) then
         write(6,*)
         write(6,*)'******************* Nucleon beam *******************'
         write(6,*)'*                                                  *'
         write(6,76) iZ,iA
         write(6,*)'****************************************************'
+        endif
+!$omp end master
         first=.false.
         endif
       elseif (abs(ih_call) .ne. 1) then
@@ -131,6 +137,10 @@ c-----assign MSTW to standard grid
              mode=2
              call mrst2004f4(x,xmu,mode,u_val,d_val,u_sea,d_sea,
      &                          s_sea,c_sea,b_sea,gluon)
+             elseif (pdlabel .eq. 'mrstqed') then
+             mode=1
+             call mrstqed(x,xmu,mode,u_val,d_val,u_sea,d_sea,
+     &                          s_sea,c_sea,b_sea,gluon,photon)
              elseif (pdlabel .eq. 'mrs04nl') then
              mode=1
              call mrst2004(x,xmu,mode,u_val,d_val,u_sea,d_sea,
@@ -314,6 +324,7 @@ c-----assign mrs to standard grid
                fx(+1)=d_sea/x
                fx(+2)=u_sea/x
             endif
+            if (kcase==kgg2lep) fx(0)=photon/x
 
       elseif (pdlabel(1:5) .eq. 'cteq3') then
 C   1      CTEQ3M   Standard MSbar scheme   0.116
@@ -497,7 +508,7 @@ C   10     CTEQ4LQ  Low Q0                  0.114        0.7      cteq4lq.tbl
                fx(-2)=CT10Pdf(+1,x,xmu)
              endif
 
-      elseif (pdlabel(1:4) .eq. 'CT14') then
+      elseif (pdlabel(1:5) .eq. 'CT14.') then
 
              fx(-5)=CT14Pdf(-5,x,xmu)
              fx(-4)=CT14Pdf(-4,x,xmu)
@@ -520,6 +531,31 @@ C   10     CTEQ4LQ  Low Q0                  0.114        0.7      cteq4lq.tbl
                fx(-1)=CT14Pdf(+2,x,xmu)
                fx(-2)=CT14Pdf(+1,x,xmu)
              endif
+
+      elseif (pdlabel(1:7) .eq. 'CT14qed') then
+
+             fx(-5)=CT14Pdfqed(-5,x,xmu)
+             fx(-4)=CT14Pdfqed(-4,x,xmu)
+             fx(-3)=CT14Pdfqed(-3,x,xmu)
+
+             fx(0)=CT14Pdfqed(0,x,xmu)
+
+             fx(+3)=CT14Pdfqed(+3,x,xmu)
+             fx(+4)=CT14Pdfqed(+4,x,xmu)
+             fx(+5)=CT14Pdfqed(+5,x,xmu)
+
+             if (ih.eq.1) then      
+               fx(1)=CT14Pdfqed(+2,x,xmu)
+               fx(2)=CT14Pdfqed(+1,x,xmu)
+               fx(-1)=CT14Pdfqed(-2,x,xmu)
+               fx(-2)=CT14Pdfqed(-1,x,xmu)
+             elseif(ih.eq.-1) then      
+               fx(1)=CT14Pdfqed(-2,x,xmu)
+               fx(2)=CT14Pdfqed(-1,x,xmu)
+               fx(-1)=CT14Pdfqed(+2,x,xmu)
+               fx(-2)=CT14Pdfqed(+1,x,xmu)
+             endif
+             if (kcase==kgg2lep) fx(0)=CT14Pdfqed(10,x,xmu)
 
       elseif (pdlabel(1:2) .eq. 'NN') then
 
@@ -572,7 +608,7 @@ c-----assign to standard grid
           write(6,*) 'Unimplemented pdf distribution' 
           write(6,*) 'pdlabel= ',pdlabel
           write(6,*) 'Implemented are: ',
-     . 'mrs4nf3,mrs4lf3,mrs4nf4,mrs4lf4,',
+     . 'mrs4nf3,mrs4lf3,mrs4nf4,mrs4lf4,mrstqed,',
      . 'mrs04nl,mrs04nn,mrs02nl,mrs02nn,',
      . 'mrs0119,mrs0177,mrs0121,mrs01_j,',
      . 'mrs99_1,mrs99_2,mrs99_3,mrs99_4,mrs99_5,mrs99_6,',
@@ -612,6 +648,7 @@ c-----assign to standard grid
      . 'CT10.00,',
      . 'CT14.LL,',
      . 'CT14.NL,',
+     . 'CT14qed,',
      . 'NN2.3NL',
      . 'NN2.3NN,'
 
@@ -664,9 +701,14 @@ c--- write new nucleon distributions
           
         ffx(:)=real(fx(:))
         
-!        ffx(0)=0d0      ! DEBUG: remove gluon pdfs
-!        ffx(1:5)=0d0    ! DEBUG: remove quark pdfs
-!        ffx(-5:-1)=0d0  ! DEBUG: remove antiquark pdfs
+c--- explicitly set some pdfs to zero to ensure that flags work at NNLO
+      if (ggonly) then
+        ffx(1:5)=0d0    ! remove quark pdfs
+        ffx(-5:-1)=0d0  ! remove antiquark pdfs
+      endif
+      if (noglue) then
+        ffx(0)=0d0      ! remove gluon pdfs
+      endif
         
       return
       

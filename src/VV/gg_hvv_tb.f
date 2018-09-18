@@ -12,7 +12,6 @@ c--- with contributions from both ZZ and WW intermediate states
       include 'cplx.h'
       include 'ewcouple.f'
       include 'qcdcouple.f'
-      include 'qlfirst.f'
       include 'runstring.f'
       include 'nuflav.f'
 c      include 'interference.f'
@@ -22,11 +21,6 @@ c      include 'interference.f'
       complex(dp):: ggHZZ_bquark(2,2,2,2),ggHZZ_tquark(2,2,2,2),
      & ggHWW_bquark(2,2,2,2),ggHWW_tquark(2,2,2,2),Ahiggs,
      & faczz,facww
-
-      if (qlfirst) then
-        qlfirst=.false. 
-        call qlinit
-      endif
 
       ggHWW_bquark(:,:,:,:)=czip
       ggHWW_tquark(:,:,:,:)=czip

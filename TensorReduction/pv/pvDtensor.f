@@ -3,6 +3,7 @@
       implicit none
 C     q1,q2,q3 are the loop offset momenta
 C     m1s,m2s,m3s,m4s are the squares of the masses in the propagators
+      include 'types.f'
       include 'pvDnames.f'
       include 'pvDv.f'
       include 'TRydef.f'
@@ -13,20 +14,20 @@ C     m1s,m2s,m3s,m4s are the squares of the masses in the propagators
       include 'pvverbose.f'
       include 'pvDitry.f'
       include 'TRmetric.f'
-      double complex FD0(-2:0),FD1(y1max,-2:0),FD2(y2max,-2:0),
+      complex(dp):: FD0(-2:0),FD1(y1max,-2:0),FD2(y2max,-2:0),
      . FD3(y3max,-2:0),FD4(y4max,-2:0),FD5(y5max,-2:0),FD6(y6max,-2:0)
-      double precision p1(4),p2(4),p3(4),p4(4),p1Dp1,p2Dp2,p3Dp3,p4Dp4,
+      real(dp):: p1(4),p2(4),p3(4),p4(4),p1Dp1,p2Dp2,p3Dp3,p4Dp4,
      . s12,s23,q1(4),q2(4),q3(4),p12(4),p23(4),m1s,m2s,m3s,m4s
-      double precision pvSPK,pvSPKL,pvSPKK,pvSDDP,
+      real(dp):: pvSPK,pvSPKL,pvSPKK,pvSDDP,
      . pvSPKKK,pvSPPKK,pvSPPKL,pvSDDPP,pvSDDPK,pvSDDDD,
      . pvSDDDDP,pvSDDPPP,pvSDDPPK,pvSDDPKL,
      . pvSPPPKK,pvSPPPPK,pvSPPPKL,pvSPPKKL,
      . pvSDDDDDD,pvSDDDDPP,pvSDDDDPK,pvSDDPPPP,pvSDDPPPK,pvSDDPPKK,
      . pvSDDPPKL,pvSDDPKKK,pvSPPPPPK,pvSPPPPKK,pvSPPPKKK,pvSPPPPKL,
      . pvSPPPKKL,pvSPPKKLL
-      integer nu,n1,n2,n3,n4,n5,n6,ep,pvDcache,D01,itry
+      integer:: nu,n1,n2,n3,n4,n5,n6,ep,pvDcache,D01,itry
       logical failed
-      double precision q1save(4),q2save(4),q3save(4)
+      real(dp):: q1save(4),q2save(4),q3save(4)
       common/q123save/q1save,q2save,q3save  
       logical,save:: first=.true.
 !$omp threadprivate(first,/q123save/)

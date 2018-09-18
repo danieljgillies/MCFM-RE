@@ -1,4 +1,5 @@
       subroutine lower_parttri(p,ylower,first)
+        use mod_qcdloop_c
       implicit none
       include 'types.f'
       include 'constants.f'
@@ -14,7 +15,7 @@
       include 'decl_kininv.f'
       integer:: k1,k2,ep,eta,epmin
       complex(dp):: prW,prt,ylower(2,2,-2:0),
-     & qlI2,qlI3,iza,izb,
+     & iza,izb,
      & vert16x1,vert25x5,vert25x6,
      & vert25x7,vert25x8,vert25x9,vert25x10,vert25x11,vert25x12,
      & vert25x13,vert25x14,vert25x15,vert25x16,vert25x17,vert25x18,
@@ -373,6 +374,7 @@ c      write(*,*) 'epmin in lower_tri', epmin
       
       
       subroutine vertices_bt1(ep,facdLl,vert25x5,vert25x6,vert25x7)
+        use mod_qcdloop_c
       implicit none
       include 'types.f'
       include 'constants.f'
@@ -381,7 +383,7 @@ c      write(*,*) 'epmin in lower_tri', epmin
       include 'decl_kininv.f'
       
       integer:: ep
-      complex(dp):: qlI2diffs234s34(-2:0),qlI2,qlI3
+      complex(dp):: qlI2diffs234s34(-2:0)
       complex(dp):: facdLl
       complex(dp):: vert25x5,vert25x6,vert25x7
       qlI2diffs234s34(ep)=qlI2(s234,0d0,0d0,musq,ep)
@@ -406,6 +408,7 @@ c      write(*,*) 'epmin in lower_tri', epmin
       
       
       function epqlI3(t1,t2,t3,t4,t5,t6,t7,ep)
+        use mod_qcdloop_c
       implicit none
       include 'types.f'
       complex(dp):: epqlI3
@@ -415,7 +418,6 @@ c      write(*,*) 'epmin in lower_tri', epmin
       include 'mxpart.f'
       include 'cplx.h'
       real(dp):: t1,t2,t3,t4,t5,t6,t7
-      complex(dp):: qlI3
       integer:: ep
       
       if (ep == -2) then
@@ -434,6 +436,7 @@ c      write(*,*) 'epmin in lower_tri', epmin
       
       
       function ep2qlI3(t1,t2,t3,t4,t5,t6,t7,ep)
+        use mod_qcdloop_c
       implicit none
       include 'types.f'
       complex(dp):: ep2qlI3
@@ -443,7 +446,6 @@ c      write(*,*) 'epmin in lower_tri', epmin
       include 'mxpart.f'
       include 'cplx.h'
       real(dp):: t1,t2,t3,t4,t5,t6,t7
-      complex(dp):: qlI3
       integer:: ep
       
       if (ep == -2) then

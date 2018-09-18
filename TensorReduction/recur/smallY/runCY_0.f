@@ -4,6 +4,7 @@ C---  Expression for Eq. 5.55
 C---  Calculates C0, requires C00
 C---  Small terms of order Xtwiddle(0,j)*Ci
 C---  Denominator Xtwiddle(i,j)
+      include 'types.f'
       include 'TRconstants.f' 
       include 'pvCnames.f' 
       include 'pvCv.f' 
@@ -11,10 +12,9 @@ C---  Denominator Xtwiddle(i,j)
       include 'Carrays.f' 
       integer ep,N0,i,j,n,m,np
       parameter(np=2)
-      double precision Xtwiddle(0:np,0:np),Gtwiddle(np,np),f(np),
+      real(dp):: Xtwiddle(0:np,0:np),Gtwiddle(np,np),f(np),
      . Gtt(np,np,np,np)
-      double complex Shat1(np,-2:0),Bzero0(-2:0),
-     . bit,pole
+      complex(dp):: Shat1(np,-2:0),Bzero0(-2:0),bit,pole
 
       do ep=-2,0
       bit=czip

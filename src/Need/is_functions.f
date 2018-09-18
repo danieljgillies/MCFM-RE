@@ -10,8 +10,8 @@
       include 'plabel.f'
       integer:: j
 
-c--- hadrons      
-      do j=1,mxpart      
+c--- hadrons
+      do j=1,mxpart
       if ( (plabel(j) == 'pp') .or. (plabel(j) == 'pj')
      & .or.(plabel(j) == 'bq') .or. (plabel(j) == 'ba')
      & .or.(plabel(j) == 'qj') ) then
@@ -21,10 +21,17 @@ c--- hadrons
       endif
       enddo
 
+c--- heavy jets
+      do j=1,mxpart
+      if ( (plabel(j) == 'bq') .or. (plabel(j) == 'ba') ) then
+         ishjetarray(j) = .true. 
+      else
+         ishjetarray(j) = .false. 
+      endif
+      enddo
 
-
-c---  hadrons (b-quark sepical cases
-      do j=1,mxpart      
+c---  hadrons (b-quark special cases)
+      do j=1,mxpart
       if ( (plabel(j) == 'pp') .or. (plabel(j) == 'pj')
      & .or.(plabel(j) == 'bq') .or. (plabel(j) == 'ba')
      & .or.(plabel(j) == 'qb') .or. (plabel(j) == 'ab')
@@ -36,7 +43,7 @@ c---  hadrons (b-quark sepical cases
       enddo
 
 c--- photons
-      do j=1,mxpart      
+      do j=1,mxpart
       if (plabel(j) == 'ga') then
          isphotarray(j) = .true. 
       else
@@ -45,7 +52,7 @@ c--- photons
       enddo
 
 c--- charged leptons
-      do j=1,mxpart      
+      do j=1,mxpart
       if (     (plabel(j) == 'el') .or. (plabel(j) == 'ea')
      &    .or. (plabel(j) == 'ml') .or. (plabel(j) == 'ma')
      &    .or. (plabel(j) == 'tl') .or. (plabel(j) == 'ta')) then
@@ -56,7 +63,7 @@ c--- charged leptons
       enddo
 
 c--- electrons
-      do j=1,mxpart      
+      do j=1,mxpart
       if (     (plabel(j) == 'el') .or. (plabel(j) == 'ea')) then
          iselectronarray(j) = .true. 
       else
@@ -65,7 +72,7 @@ c--- electrons
       enddo
 
 c--- muons
-      do j=1,mxpart      
+      do j=1,mxpart
       if (     (plabel(j) == 'ml') .or. (plabel(j) == 'ma')) then
          ismuonarray(j) = .true. 
       else
@@ -74,7 +81,7 @@ c--- muons
       enddo
 
 c--- neutrinos
-      do j=1,mxpart      
+      do j=1,mxpart
       if (     (plabel(j) == 'nl') .or. (plabel(j) == 'na')
      &    .or. (plabel(j) == 'nm') .or. (plabel(j) == 'bm')
      &    .or. (plabel(j) == 'nt') .or. (plabel(j) == 'bt')) then
@@ -85,7 +92,7 @@ c--- neutrinos
       enddo
 
 c--- dark matter
-      do j=1,mxpart      
+      do j=1,mxpart
       if ((plabel(j) == 'xm') .or. (plabel(j) == 'xa')) then
          isdmarray(j) = .true. 
       else
@@ -99,7 +106,7 @@ c--- dark matter
 
 
       function is_hadronic(i)
-       implicit none
+      implicit none
       include 'types.f'
       logical:: is_hadronic
       
@@ -110,15 +117,34 @@ c--- dark matter
       include 'is_functions_com.f'
       integer:: i
 
-c--- return value from array      
+c--- return value from array
       is_hadronic=ishadarray(i)
       
       return 
       end
 
 
+      function is_heavy(i)
+      implicit none
+      include 'types.f'
+      logical:: is_heavy
+      
+      include 'constants.f'
+      include 'nf.f'
+      include 'mxpart.f'
+      include 'cplx.h'
+      include 'is_functions_com.f'
+      integer:: i
+
+c--- return value from array
+      is_heavy=ishjetarray(i)
+      
+      return 
+      end
+
+
       function is_spechadronic(i)
-       implicit none
+      implicit none
       include 'types.f'
       logical:: is_spechadronic
       
@@ -129,7 +155,7 @@ c--- return value from array
       include 'is_functions_com.f'
       integer:: i
 
-c--- return value from array      
+c--- return value from array
       is_spechadronic=ishadspecarray(i)
       
       return 
@@ -137,7 +163,7 @@ c--- return value from array
 
 
       function is_photon(i)
-       implicit none
+      implicit none
       include 'types.f'
       logical:: is_photon
       
@@ -148,7 +174,7 @@ c--- return value from array
       include 'is_functions_com.f'
       integer:: i
 
-c--- return value from array      
+c--- return value from array
       is_photon=isphotarray(i)
       
       return 
@@ -156,10 +182,10 @@ c--- return value from array
 
 
       function is_lepton(i)
-       implicit none
+      implicit none
       include 'types.f'
       logical:: is_lepton
-c--- note: checks for charged leptons only      
+c--- note: checks for charged leptons only
       
       include 'constants.f'
       include 'nf.f'
@@ -168,7 +194,7 @@ c--- note: checks for charged leptons only
       include 'is_functions_com.f'
       integer:: i
 
-c--- return value from array      
+c--- return value from array
       is_lepton=isleptarray(i)
       
       return 
@@ -179,7 +205,7 @@ c--- return value from array
        implicit none
       include 'types.f'
       logical:: is_electron
-c--- note: checks for electrons only      
+c--- note: checks for electrons only
       
       include 'constants.f'
       include 'nf.f'
@@ -199,7 +225,7 @@ c--- return value from array
        implicit none
       include 'types.f'
       logical:: is_muon
-c--- note: checks for electrons only      
+c--- note: checks for electrons only
       
       include 'constants.f'
       include 'nf.f'
@@ -208,7 +234,7 @@ c--- note: checks for electrons only
       include 'is_functions_com.f'
       integer:: i
 
-c--- return value from array      
+c--- return value from array
       is_muon=ismuonarray(i)
       
       return 
@@ -227,7 +253,7 @@ c--- return value from array
       include 'is_functions_com.f'
       integer:: i
 
-c--- return value from array      
+c--- return value from array
       is_neutrino=isneutarray(i)
       
       return 
@@ -246,7 +272,7 @@ c--- return value from array
       include 'is_functions_com.f'
       integer:: i
 
-c--- return value from array      
+c--- return value from array
       is_darkmatter=isdmarray(i)
       
       return 

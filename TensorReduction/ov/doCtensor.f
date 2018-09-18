@@ -4,13 +4,14 @@ c--- This is just a wrapping routine that calls ovCtensor or pvCtensor
       implicit none
 C     q1,q2 are the momenta in the propagators
 C     m1s,m2s,m3s are the squares of the masses in the propagators
+      include 'types.f'
       include 'TRconstants.f'
       include 'TRydef.f'
       include 'TRtensorcontrol.f'
-      double complex FC0(-2:0),FC1(y1max,-2:0),FC2(y2max,-2:0),
+      complex(dp):: FC0(-2:0),FC1(y1max,-2:0),FC2(y2max,-2:0),
      . FC3(y3max,-2:0),FC4(y4max,-2:0),FC5(y5max,-2:0),FC6(y6max,-2:0),
      . C00(-2:0),tau3(4,-2:0)
-      double precision q1(4),q2(4),p2(4),m1s,m2s,m3s
+      real(dp):: q1(4),q2(4),p2(4),m1s,m2s,m3s
 
       if (doovred) then
         p2(:)=q2(:)-q1(:)

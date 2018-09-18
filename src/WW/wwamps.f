@@ -1,12 +1,10 @@
       subroutine wwamps(j1,j2,j3,j4,j5,j6,j7,za,zb,f)
+c  -first label of fs,ft is gluon polarization, second is qqb line
       implicit none
       include 'types.f'
-c  -first label of fs,ft is gluon polarization, second is qqb line
-      
-      include 'constants.f'
-      include 'nf.f'
-      include 'mxpart.f'
       include 'cplx.h'
+      include 'constants.f'
+      include 'mxpart.f'
       include 'sprods_com.f'
       include 'zprods_decl.f'
       include 'zerowidth.f'
@@ -14,7 +12,7 @@ c  -first label of fs,ft is gluon polarization, second is qqb line
       include 'anomcoup.f'
       include 'xanomcoup.f'
       include 'kprocess.f'
-      include 'srdiags.f'      
+      include 'srdiags.f'
       integer:: j,k,jtype,j1,j2,j3,j4,j5,j6,j7,mplus,minus
       complex(dp):: A7treea,B7treea,B7treeb
       complex(dp):: f(5,2,2),A7b_1,A7b_2,A7b_3
@@ -31,8 +29,8 @@ c----initialize to zero
       enddo
             
       if     (zerowidth  .eqv. .true.) then
-      prop34=s(3,4)/cplx2(s(3,4)-wmass**2,wmass*wwidth)
-      prop56=s(5,6)/cplx2(s(5,6)-wmass**2,wmass*wwidth)
+      prop34=cplx1(s(3,4))/cplx2(s(3,4)-wmass**2,wmass*wwidth)
+      prop56=cplx1(s(5,6))/cplx2(s(5,6)-wmass**2,wmass*wwidth)
       elseif (zerowidth .neqv. .true.) then
       prop34=cplx1(s(3,4)/(s(3,4)-wmass**2))
       prop56=cplx1(s(5,6)/(s(5,6)-wmass**2)) 
@@ -42,40 +40,40 @@ c----initialize to zero
       f(1,mplus,mplus)= czip
 c      f(2,mplus,mplus)=-A7treeb(j2,j1,j3,j4,j5,j6,j7,za,zb)*propboth
       call A7treeb_anom(j2,j1,j3,j4,j5,j6,j7,za,zb,A7b_1,A7b_2,A7b_3)
-      f(2,mplus,mplus)=-(A7b_1*(2._dp+xdelg1_z+xdelk_z+xlambda_z)
+      f(2,mplus,mplus)=-(A7b_1*(2._dp+xdelg1_z+xdelk_z)
      &                 +A7b_2*(2._dp*(1._dp+xdelg1_z))
      &                 +A7b_3*(xlambda_z/wmass**2))*propboth
-      f(5,mplus,mplus)=-(A7b_1*(2._dp+xdelg1_g+xdelk_g+xlambda_g)
+      f(5,mplus,mplus)=-(A7b_1*(2._dp+xdelg1_g+xdelk_g)
      &                 +A7b_2*(2._dp*(1._dp+xdelg1_g))
      &                 +A7b_3*(xlambda_g/wmass**2))*propboth
 
       f(1,mplus,minus)=+A7treea(j1,j2,j3,j4,j5,j6,j7,za,zb)*propboth      
 c      f(2,mplus,minus)=+A7treeb(j1,j2,j3,j4,j5,j6,j7,za,zb)*propboth
       call A7treeb_anom(j1,j2,j3,j4,j5,j6,j7,za,zb,A7b_1,A7b_2,A7b_3)
-      f(2,mplus,minus)=(A7b_1*(2._dp+xdelg1_z+xdelk_z+xlambda_z)
+      f(2,mplus,minus)=(A7b_1*(2._dp+xdelg1_z+xdelk_z)
      &                 +A7b_2*(2._dp*(1._dp+xdelg1_z))
      &                 +A7b_3*(xlambda_z/wmass**2))*propboth
-      f(5,mplus,minus)=(A7b_1*(2._dp+xdelg1_g+xdelk_g+xlambda_g)
+      f(5,mplus,minus)=(A7b_1*(2._dp+xdelg1_g+xdelk_g)
      &                 +A7b_2*(2._dp*(1._dp+xdelg1_g))
      &                 +A7b_3*(xlambda_g/wmass**2))*propboth
 
       f(1,minus,mplus)= czip
 c      f(2,minus,mplus)=+A7treeb(j1,j2,j5,j6,j3,j4,j7,zb,za)*propboth
       call A7treeb_anom(j1,j2,j5,j6,j3,j4,j7,zb,za,A7b_1,A7b_2,A7b_3)
-      f(2,minus,mplus)=(A7b_1*(2._dp+xdelg1_z+xdelk_z+xlambda_z)
+      f(2,minus,mplus)=(A7b_1*(2._dp+xdelg1_z+xdelk_z)
      &                 +A7b_2*(2._dp*(1._dp+xdelg1_z))
      &                 +A7b_3*(xlambda_z/wmass**2))*propboth
-      f(5,minus,mplus)=(A7b_1*(2._dp+xdelg1_g+xdelk_g+xlambda_g)
+      f(5,minus,mplus)=(A7b_1*(2._dp+xdelg1_g+xdelk_g)
      &                 +A7b_2*(2._dp*(1._dp+xdelg1_g))
      &                 +A7b_3*(xlambda_g/wmass**2))*propboth
 
       f(1,minus,minus)=-A7treea(j2,j1,j5,j6,j3,j4,j7,zb,za)*propboth
 c      f(2,minus,minus)=-A7treeb(j2,j1,j5,j6,j3,j4,j7,zb,za)*propboth
       call A7treeb_anom(j2,j1,j5,j6,j3,j4,j7,zb,za,A7b_1,A7b_2,A7b_3)
-      f(2,minus,minus)=-(A7b_1*(2._dp+xdelg1_z+xdelk_z+xlambda_z)
+      f(2,minus,minus)=-(A7b_1*(2._dp+xdelg1_z+xdelk_z)
      &                 +A7b_2*(2._dp*(1._dp+xdelg1_z))
      &                 +A7b_3*(xlambda_z/wmass**2))*propboth
-      f(5,minus,minus)=-(A7b_1*(2._dp+xdelg1_g+xdelk_g+xlambda_g)
+      f(5,minus,minus)=-(A7b_1*(2._dp+xdelg1_g+xdelk_g)
      &                 +A7b_2*(2._dp*(1._dp+xdelg1_g))
      &                 +A7b_3*(xlambda_g/wmass**2))*propboth
 

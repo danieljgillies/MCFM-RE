@@ -276,10 +276,9 @@ c------------ FILL HISTOGRAMS
       subroutine analysis_wrap(wt)
       implicit none
       include 'types.f'
+      include 'nproc.f'
       
       real(dp):: wt
-      integer:: nproc
-      common/nproc/nproc
       
          if(nproc==44) then
             write(6,*) 'No analysis routine written for nproc=',nproc

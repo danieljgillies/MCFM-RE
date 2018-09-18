@@ -236,9 +236,10 @@ c--- re-order jets according to pt, for a W/Z/H+jet event
      &    (kcase==kW_2jet) .or. (kcase==kZ_2jet) .or.
      &    (kcase==kW_3jet) .or. (kcase==kZ_3jet) .or.
      &    (kcase==kggfus1) .or. (kcase==kggfus2) .or.
+     &    (kcase==khjetma) .or.
      &    (kcase==kggfus3) .or. (kcase==kqq_Hqq) .or.
      &    (kcase==kqqHqqg) .or. (kcase==kqg_tbq) .or.
-     &    (kcase==kgagajj)) then
+     &    (kcase==kgagajj) .or. (kcase==kh2jmas)) then
         jetevent=.true.
         if (jetalgorithm == Rsepcone) then
           if (jets > 0) pt5=getet(p(5,4),p(5,1),p(5,2),p(5,3))

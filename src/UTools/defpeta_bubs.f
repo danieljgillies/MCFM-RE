@@ -2,6 +2,7 @@
 !=== routine which takes in a momentum, P and defines two orthogonal 
 !=== spinors p and eta which are can be used in double cuts
       subroutine defpeta_bubs(P,p1,p2) 
+        use cxx11random
       implicit none
       include 'types.f'
        
@@ -11,15 +12,14 @@
       include 'cplx.h'
       real(dp):: P(4),p1(4),p2(4)
       real(dp):: Psq,Pdoteta
-      real(dp):: ran2
       real(dp):: phi1,eta1,Et1
       real(dp):: r1,r2,r3,tau
       integer:: i
 
       Psq=P(4)**2-P(1)**2-P(2)**2-P(3)**2
-      r1=ran2()
-      r2=ran2()
-      r3=ran2()
+      r1=cxx11_random_number()
+      r2=cxx11_random_number()
+      r3=cxx11_random_number()
 
 !==== first define a random light-like vector 
       Et1=r1*Psq/2._dp

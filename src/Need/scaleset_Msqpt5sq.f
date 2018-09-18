@@ -14,6 +14,7 @@ c---  sqrt(M^2+pt5^2), where M is the mass of the particle (34)
 
       if((kcase==kWgamma) .or.
      &   (kcase==kZgamma) .or.
+     &   (kcase==kWgajet) .or.
      &   (kcase==kZgajet) .or.
      &   (kcase==kZga2jt)) then
         mu0=mass3**2+pt(5,p)**2

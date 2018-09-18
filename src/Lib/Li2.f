@@ -8,8 +8,8 @@ C     returns Li_2(x) for real x, minf < x < 1
       complex(dp):: wgplg
       
       if (x > 1._dp) then
-        write(6,*) 'x>1 in Li2 function, src/Lib/Li2.f'
-        stop
+        write(6,*) 'x>1 in Li2 function, src/Lib/Li2.f, x=', x
+        call abort
       endif
       
       Li2 = real(wgplg(1,1,x))

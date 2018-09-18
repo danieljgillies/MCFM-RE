@@ -76,13 +76,13 @@ c--- run mt to appropriate scale
       
 
       function qlC2DDHK(s12,s34,msq)
+        use mod_qcdloop_c
       implicit none
       include 'types.f'
       include 'cplx.h'
       complex(dp):: qlC2DDHK
       
       include 'scale.f'
-      complex(dp):: qlI2,qlI3
       real(dp):: s12,s34,msq 
       qlC2DDHK=-cplx1(0.5_dp/(s12-s34))
      & +0.5_dp*s34/(s12-s34)**2
@@ -97,12 +97,12 @@ c          - C0DDHK(p1,p2,mt,mt,mt)*mt^2*[s12-s34]^-1
 
 
       function qlC0DDHK(s12,s34,msq)
+        use mod_qcdloop_c
       implicit none
       include 'types.f'
       complex(dp):: qlC0DDHK
       
       include 'scale.f'
-      complex(dp):: qlI3
       real(dp):: s12,s34,msq 
       
       qlC0DDHK=qlI3(s12,s34,0._dp,msq,msq,msq,musq,0)

@@ -2,17 +2,17 @@
      . Czero2,N0)
       implicit none
 C---  Expression for Eq. 5.59
+      include 'types.f'
       include 'TRconstants.f' 
       include 'pvDnames.f' 
       include 'pvDv.f' 
       include 'Darraydef.f' 
       include 'Darrays.f' 
-      integer ep,N0,i,j,i1,i2,n,m,np
+      integer::ep,N0,i,j,i1,i2,n,m,np
       parameter(np=3)
-      double precision Xtwiddle(0:np,0:np),Gtwiddle(np,np),f(np),
+      real(dp)::Xtwiddle(0:np,0:np),Gtwiddle(np,np),f(np),
      . Gtt(np,np,np,np)
-      double complex Shat3(np,z2max,-2:0),Czero2(z2max,-2:0),
-     . bit,pole
+      complex(dp):: Shat3(np,z2max,-2:0),Czero2(z2max,-2:0),bit,pole
 
 
       do ep=-2,0

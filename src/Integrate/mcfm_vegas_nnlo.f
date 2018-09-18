@@ -42,6 +42,7 @@
       include 'taucut.f'
       include 'nproc.f'
       include 'mpicommon.f'
+      include 'parttypes.f'
       integer myitmx,myinit,i,j,k,mynproc,nprocabove
       integer(kind=8) myncall,myncall_save
       integer:: ierr
@@ -50,8 +51,7 @@
      & sigfrag,sdfrag,chifrag,sigWdk,sdWdk,chiWdk,
      & xreal,xreal2,xinteg,xerr,adjust,myscale,myfacscale,
      & mymb,sumsig,sumsigr,sumsigf,sumsd,sumsdr,sumsdf,
-     & sigips(4),sdips(4),xcallwt,
-     & sig(5),sd(5),chi(5)
+     & xcallwt,sig(5,4),sd(5,4),chi(5,4)
       integer mykpart
       character*3 getstr,psgen
       common/mykpart/mykpart
@@ -63,7 +63,7 @@
       common/bypart/lord_bypart
       external lowint,virtint,realint,fragint,scetint,qtint
       data first/.true./
-      save first,sigips,sdips
+      save first
            
 c--- Initialize all integration results to zero, so that the
 c--- total of all contributions may be combined at the end
@@ -74,8 +74,11 @@ c--- NNLO: below cut
 c--- NNLO: above cut virt
 c--- NNLO: above cut real
 
-      sig(:)=zip
-      sd(:)=zip
+      ipsgen = 1
+
+      sig(:,:)=zip
+      sd(:,:)=zip
+      chi(:,:)=zip
       
       lord_bypart(:,:)=0d0
 
@@ -152,7 +155,7 @@ c--- (added and then taken away)
       ndim=ndim+1
       call boundregion(ndim,region)
       call vegasnr(region,ndim,virtint,myinit,myncall,myitmx,
-     &             nprn,sig(1),sd(1),chi(1))
+     &  nprn,sig(1,ipsgen),sd(1,ipsgen),chi(1,ipsgen),snloBelow,ipsgen)
       ndim=ndim-1
             
 c--- set up the grid info for real integration
@@ -200,7 +203,7 @@ c--- Real integration should have three extra dimensions
       ndim=ndim+3
       call boundregion(ndim,region)
       call vegasnr(region,ndim,realint,myinit,ncall,myitmx,
-     &            nprn,sig(2),sd(2),chi(2))
+     &    nprn,sig(2,ipsgen),sd(2,ipsgen),chi(2,ipsgen),snloAbove,ipsgen)
       ndim=ndim-3
       if (rank == 0) write(6,*) 
       ncall=myncall
@@ -218,6 +221,19 @@ c-------------------------------------------------------------------------------
 c--- set up SCET variables
       call setupscet(nprocabove)
 
+!!! DEBUG: only compute RR !!!
+!      nproc=nprocabove
+!      abovecut=.true.
+!      call chooser
+!      goto 667
+!!! DEBUG: only compute RR !!!
+
+  665 continue
+      if(doipsgen) then
+          psgen=getstr(ipsgen)
+          write(6,*) '********* Phase space region ',ipsgen,' *********'
+      endif
+            
 c--- SCET below-cut contribution
 c--- integration should have two extra dimensions (added and then taken away)
       if (first .and. (myinit == 1)) then
@@ -229,10 +245,16 @@ c-- special input name for SCET grid
           readin=.false.
           writeout=.true.
           outgridfile='dvegas_scet_below.grid'
+          if (doipsgen) then
+            outgridfile='dvegas_scet_below_PS'//psgen(1:1)//'.grid'
+          endif
         else
           readin=.true.
           writeout=.false.
           ingridfile='dvegas_scet_below.grid'
+          if (doipsgen) then
+            ingridfile='dvegas_scet_below_PS'//psgen(1:1)//'.grid'
+          endif
         endif
       endif
       kpart=mykpart
@@ -240,14 +262,32 @@ c-- special input name for SCET grid
       scalereset=.true.
       ndim=ndim+2
       abovecut=.false.
-      call boundregion(ndim,region)
-      call vegasnr(region,ndim,scetint,myinit,myncall,myitmx,
-     &             nprn,sig(3),sd(3),chi(3))
+      if ((knnlopart == 0) .or. (knnlopart == knnloVV)) then
+        call boundregion(ndim,region)
+        call vegasnr(region,ndim,scetint,myinit,myncall,myitmx,
+     &     nprn,sig(3,ipsgen),sd(3,ipsgen),chi(3,ipsgen),nnloBelow,ipsgen)
 ! Uncomment these lines (and comment-out the above two) to switch
 ! from jettiness-slicing to QT-slicing
 !      call vegasnr(region,ndim,qtint,myinit,myncall,myitmx,
-!     &             nprn,sig(3),sd(3),chi(3))
+!     &             nprn,sig(3,ipsgen),sd(3,ipsgen),chi(3,ipsgen),nnloBelow,ipsgen)
+      else
+        sig(3,ipsgen)=zip
+        sd(3,ipsgen)=zip
+        chi(3,ipsgen)=zip
+      endif
       ndim=ndim-2
+
+      ! next ipsgen scet_below piece
+      if(doipsgen .and. ipsgen < maxipsgen) then
+          ipsgen = ipsgen + 1
+          goto 665
+      endif
+
+! if we're only computing power corrections, nothing more to be done
+        if (onlypowcorr) goto 33 
+
+      ipsgen=1
+
       nproc=nprocabove
 c--- scale up number of points more for W/Z/H+jet processes
       if ( (nprocabove == 22) .or. (nprocabove == 27)
@@ -267,6 +307,12 @@ c--- scale up number of points more for W/Z/H+jet processes
         readin=.true.
         writeout=.false.
         ingridfile='dvegas_scet_above.grid'
+      endif
+
+  666 continue
+      if(doipsgen) then
+          psgen=getstr(ipsgen)
+          write(6,*) '********* Phase space region ',ipsgen,' *********'
       endif
             
 c--- set up the grid info for virtual
@@ -304,10 +350,41 @@ c--- (added and then taken away)
       reset=.true.
       scalereset=.true.
       ndim=ndim+1
-      call boundregion(ndim,region)
-      call vegasnr(region,ndim,virtint,myinit,myncall,myitmx,
-     &             nprn,sig(4),sd(4),chi(4))
+! include this part if performing a full calculation, or just RV
+      if ((knnlopart == 0) .or. (knnlopart == knnloRV)) then
+        call boundregion(ndim,region)
+        call vegasnr(region,ndim,virtint,myinit,myncall,myitmx,
+     &     nprn,sig(4,ipsgen),sd(4,ipsgen),chi(4,ipsgen),nnloVirtAbove,ipsgen)
+      else
+        sig(4,ipsgen)=zip
+        sd(4,ipsgen)=zip
+        chi(4,ipsgen)=zip
+      endif
       ndim=ndim-1
+
+      ! next ipsgen virt_above piece
+      if(doipsgen .and. ipsgen < maxipsgen) then
+          ipsgen = ipsgen + 1
+          goto 666
+      endif
+      ipsgen=1
+
+c---
+c--- now handle real_above
+c---
+
+!      ! ipsgen process specific setup
+!      if(nprocabove==302) then
+!          doipsgen = .true.
+!          ipsgen = 1
+!          maxipsgen = 2
+!      endif
+
+  667 continue
+      if(doipsgen) then
+          psgen=getstr(ipsgen)
+          write(6,*) '********* Phase space region ',ipsgen,' *********'
+      endif
             
 c--- set up the grid info for real integration
       if (first .and. (myinit == 1)) then
@@ -352,25 +429,36 @@ c--- Real integration should have three extra dimensions
         write(6,*) 'Adjusting number of points for real to',ncall
       endif
       ndim=ndim+3
-      call boundregion(ndim,region)
-      call vegasnr(region,ndim,realint,myinit,ncall,myitmx,
-     &            nprn,sig(5),sd(5),chi(5))
+! include this part if performing a full calculation, or just RR
+      if ((knnlopart == 0) .or. (knnlopart == knnloRR)) then
+        call boundregion(ndim,region)
+        call vegasnr(region,ndim,realint,myinit,ncall,myitmx,
+     &     nprn,sig(5,ipsgen),sd(5,ipsgen),chi(5,ipsgen),nnloRealAbove,ipsgen)
+      else
+        sig(5,ipsgen)=zip
+        sd(5,ipsgen)=zip
+        chi(5,ipsgen)=zip
+      endif
       ndim=ndim-3
       if (rank == 0) write(6,*) 
       ncall=myncall
+
+      ! next ipsgen real_above piece
+      if(doipsgen .and. ipsgen < maxipsgen) then
+          ipsgen = ipsgen + 1
+          goto 667
+      endif
+      ipsgen=1
+
+   33 continue
 
 c--- return nproc to the value from the input file
       nproc=mynproc
       if (first) call chooser
 
 c--- calculate integration variables to be returned
-      xinteg=zip
-      xerr=zip
-      do k=1,5
-        xinteg=xinteg+sig(k)
-        xerr=xerr+sd(k)**2
-      enddo
-      xerr=sqrt(xerr)
+      xinteg = sum(sig(:,:))
+      xerr = sqrt(sum(sd(:,:)**2))
       
 c--- return part, scale, myncall and coeffonly to their real values
       kpart=mykpart

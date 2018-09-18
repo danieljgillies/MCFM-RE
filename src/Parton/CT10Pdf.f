@@ -182,7 +182,7 @@ C                                                               30 - 33
           Stop
         Endif
         IU= NextUn10()
-	filename=checkpath('Pdfdata/'//Tablefile)
+        filename=checkpath('Pdfdata/'//Tablefile)
         Open(IU, File=filename, Status='OLD', Err=100)
  21     Call Readpds0 (IU)
         Close (IU)

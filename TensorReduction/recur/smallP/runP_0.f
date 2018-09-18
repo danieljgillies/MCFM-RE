@@ -1,13 +1,14 @@
       subroutine runP_0(k,f,Gr,Shat1,N0)
       implicit none
+      include 'types.f'
       include 'pvDnames.f'
       include 'pvDv.f'
       include 'Darraydef.f'
       include 'Darrays.f'
       integer ep,N0,k,np
       parameter(np=3)
-      double precision f(np),Gr(np,np)
-      double complex Shat1(np,-2:0)
+      real(dp):: f(np),Gr(np,np)
+      complex(dp):: Shat1(np,-2:0)
        
       do ep=-2,0
       Dv(dd0+N0,ep)=

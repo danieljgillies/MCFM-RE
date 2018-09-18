@@ -1,4 +1,5 @@
       subroutine getggHZZamps(p,Mloop_bquark,Mloop_tquark,eftV_6)
+        use mod_qcdloop_c
       implicit none
       include 'types.f'
 c--- Returns a series of arrays representing the dressed amp[itudes

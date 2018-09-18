@@ -1,3 +1,4 @@
+      include 'maxd.f'
       integer:: ibin(maxd+1,maxhisto),icont(maxhisto)
       real(dp):: xbinwgt(maxd+1,maxhisto),binmin(maxhisto),
      & bindel(maxhisto)

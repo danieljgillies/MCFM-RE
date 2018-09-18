@@ -42,7 +42,7 @@ c---- do not allow cuts on m34 if doing gamma gamma (will be done elsewhere)
       endif
      
 c---- check to see whether this is a VBS process
-      if ( ((nproc >= 220) .and. (nproc <= 229))
+      if ( ((nproc >= 220) .and. (nproc <= 229) .and. (nproc /= 221))
      & .or. (nproc == 2201) .or. (nproc == 2221)
      & .or. (nproc == 2231) .or. (nproc == 2241)
      & .or. (nproc == 2251) .or. (nproc == 2281)
@@ -106,12 +106,20 @@ c        if ((s56 < max(bbsqmin,cutoff)).or.(s56>bbsqmax)) return 1
         if ((s36 < bbsqmin) .or. (s36 > bbsqmax)) return 1
       endif
 
+c--- only apply cuts on s3456 if vectors 3, 4, 5 and 6 are defined
+      if ((abs(p(3,4)) > 1.e-8_dp) .and. (abs(p(4,4)) > 1.e-8_dp)
+     &    .and. (abs(p(5,4)) > 1.e-8_dp) .and. (abs(p(6,4)) > 1.e-8_dp))
+     &     then
+
       s3456=+(p(3,4)+p(4,4)+p(5,4)+p(6,4))**2
      &      -(p(3,1)+p(4,1)+p(5,1)+p(6,1))**2
      &      -(p(3,2)+p(4,2)+p(5,2)+p(6,2))**2
      &      -(p(3,3)+p(4,3)+p(5,3)+p(6,3))**2
+
       if (s3456 < m3456min**2) return 1
       if (s3456 > m3456max**2) return 1
+
+      endif
 
       if (VBSprocess) then
         s78=+(p(7,4)+p(8,4))**2-(p(7,1)+p(8,1))**2

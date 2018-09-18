@@ -1,38 +1,39 @@
       subroutine pvAfill(m1sq,N)
 C    N is the offset in the storage
       implicit none
+      include 'types.f'
       include 'pvAnames.f'
       include 'TRconstants.f'
       include 'TRonshellcutoff.f'
       include 'pvAv.f'
       include 'TRscale.f'
-      integer N,Np,ep,j
-      double precision m1sq
-      double complex trI1
+      integer:: N,Np,ep,j
+      real(dp):: m1sq
+      complex(dp):: trI1
       logical,save::first=.true.
       logical,save::scaleset=.false.
-      double precision,save::id(0:2),idp2(0:2)
+      real(dp),save::id(0:2),idp2(0:2)
 !$omp threadprivate(scaleset,first,id,idp2)
 
       if (first) then
       first=.false.
 C--id=1/D
-      id(0)=0.25d0
-      id(1)=id(0)*0.5d0
-      id(2)=id(1)*0.5d0
+      id(0)=0.25_dp
+      id(1)=id(0)*0.5_dp
+      id(2)=id(1)*0.5_dp
 C--idp2=1/[D+2]
-      idp2(0)=1d0/6d0
-      idp2(1)=idp2(0)/3d0
-      idp2(2)=idp2(1)/3d0
+      idp2(0)=1._dp/6._dp
+      idp2(1)=idp2(0)/3._dp
+      idp2(2)=idp2(1)/3._dp
       endif
 
       if (scaleset .neqv. .true.) then
       scaleset=.true.
       if ((scale .eq. -1d12) .and. (musq .eq. -1d12)) then
       write(6,*) 'Did you forget to call setmudim?'
-      write(6,*) 'Setting scale to scale=1d0'
-      scale=1d0
-      musq=1d0
+      write(6,*) 'Setting scale to scale=1._dp'
+      scale=1._dp
+      musq=1._dp
       endif
       endif
 

@@ -34,20 +34,23 @@ c---    alternate return if generated point should be discarded
       logical:: vetow_2gam
       integer:: ii
       real(dp):: r(mxdim),p(mxpart,4),pswt,
-     & ptmp,m3,m4,m5,wt34,wt345,wt346,wt3456,wtprop,
-     & s34,s345,s346,s3456,dot,wtips(4),plo(mxpart,4),pswtdip
+     & ptmp,m3,m4,m5,wt34,wt345,wt346,wt3456,wtprop,zaprop,
+     & s34,s345,s346,s3456,dot,wtips(4),plo(mxpart,4),pswtdip,
+     & rmass,rwidth
       
 c--- statement function
-      wtprop(s34,wmass,wwidth)=(s34-wmass**2)**2+(wmass*wwidth)**2
+      wtprop(s34,rmass,rwidth)=(s34-rmass**2)**2+(rmass*rwidth)**2
+      zaprop(s34,rmass,rwidth)=s34*((s34-rmass**2)**2+(rmass*rwidth)**2)
 
       pswt=zip
-
+      
 c--- processes that use "gen2"
       if     ( (kcase==kW_only)
      &    .or. (kcase==kZ_only)
      &    .or. (kcase==kHigaga)
      &    .or. (kcase==kWcsbar)
      &    .or. (kcase==kWcs_ms)
+     &    .or. (kcase==kgg2lep)
      &    .or. (kcase==kvlchk2) ) then
         if (kcase==kvlchk2) then
           wsqmin=0._dp
@@ -65,13 +68,15 @@ c--- processes that use "gen2jet"
      &   .or. (kcase==kdirgam)
      &   .or. (kcase==khflgam)
      &   .or. (kcase==kgamgam)
-     &   .or. (kcase==kgg2gam)) then
+     &   .or. (kcase==kgg2gam)
+     &   .or. (kcase==ktwo_ew)) then
         npart=2
         call gen2jet(r,p,pswt,*999)
 
 c--- processes that use "gen2m"     
       elseif ( (kcase==kggfus0)
      &    .or. (kcase==ktt_tot)
+     &    .or. (kcase==ktt_mix)
      &    .or. (kcase==kbb_tot)
      &    .or. (kcase==kcc_tot) ) then
         npart=2
@@ -98,6 +103,10 @@ c--- processes that use "gen3h"
         npart=3
         call gen3h(r,p,pswt,*999)
 
+      elseif (kcase==kHi_Zaj) then
+        npart=4
+        call gen_HZgamj(r,p,pswt,*999)
+
 c---  processes that use "gen3jet"     
       elseif ( (kcase==kWgamma) 
      &   .or.  (kcase==kZgamma)
@@ -109,15 +118,36 @@ c---  processes that use "gen3jet"
           wsqmax=sqrts**2
         endif
         npart=3
-        call gen_Vphotons_jets(r,1,0,p,pswt,*999)
+        if     (ipsgen == 1) then
+!          call gen3(r,p,pswt,*999)  --- clearly gives same answer, but not as efficient
+          call gen_Vphotons_jets(r,1,0,p,pswt,*999)
+        elseif (ipsgen == 2) then
+         call genVphoton(r,p,pswt,*999)
+        else
+          write(6,*) 'Invalid value of ipsgen in gen_lops.f!'
+          stop
+        endif
+        if ((kcase == kZgamma) .and. (maxipsgen == 2)) then
+          s34=2._dp*dot(p,3,4)
+          s345=s34+2._dp*dot(p,3,5)+2._dp*dot(p,4,5)
+          wt34=zaprop(s34,zmass,zwidth)
+          wt345=zaprop(s345,zmass,zwidth)
+          wtips(1)=wt345
+          wtips(2)=wt34
+          pswt=pswt*wtips(ipsgen)/(wtips(1)+wtips(2))
+        endif
         
-c--- processes that use "gen3jetgaga"     
+c--- processes that use "gen3jetgaga"
       elseif (kcase==kgmgmjt) then
         npart=3
 c        call gen3jetgaga(r,p,pswt,*999)
 c        call gen_photons_jets(r,2,1,p,pswt,*999)
         if     ((usescet) .and. (abovecut) .and. (kpart.ne.kreal)) then
-          call gen3taucut(r,p,pswt,*999)
+          if (tauboost) then
+            call gen3(r,p,pswt,*999) ! gen3taucut tailored to non-boosted case
+          else
+            call gen3taucut(r,p,pswt,*999)
+          endif
         else
           call gen3(r,p,pswt,*999)
         endif
@@ -138,21 +168,37 @@ c        call gen_photons_jets(r,3,0,p,pswt,*999)
         npart=4
         call gen_photons_jets(r,4,0,p,pswt,*999)
 
-c--- processes that use "gen_Vphotons_jets"     
 c--- special treatment for W+gamma+jet and Z+gamma+jet 
       elseif ( (kcase==kWgajet) .or. (kcase==kZgajet) ) then
         npart=4
-c      if (new_pspace) then
-c          call gen_vgamj(r,p,pswt,*999) ! New PS routine
-c      else
         if     (ipsgen == 1) then
-          call gen_Vphotons_jets(r,1,1,p,pswt,*999)
+          if     ((usescet) .and. (abovecut) .and. (kpart.ne.kreal)) then
+            if (tauboost) then
+              call genVgataucut(r,p,pswt,*999) ! check for tauboost now implemented in this routine
+!              call gen4(r,p,pswt,*999) ! genVgataucut tailored to non-boosted case
+            else
+              call genVgataucut(r,p,pswt,*999)
+            endif
+          else
+            call gen4(r,p,pswt,*999)
+!            call gen_Vphotons_jets(r,1,1,p,pswt,*999) ! MCFM-8.0 call
+          endif
         elseif (ipsgen == 2) then
-          call gen_Vphotons_jets_dkrad(r,1,1,p,pswt,*999)
+          call gen4(r,p,pswt,*999)
+c         call gen_Vphotons_jets_dkrad(r,1,1,p,pswt,*999)
         else
-        write(6,*) 'Parameter ipsgen should be 1 or 2'
-        write(6,*) 'ipsgen = ',ipsgen
-        stop
+          write(6,*) 'Parameter ipsgen should be 1 or 2'
+          write(6,*) 'ipsgen = ',ipsgen
+          stop
+        endif
+        if ((kcase == kZgajet) .and. (maxipsgen == 2)) then
+          s34=2._dp*dot(p,3,4)
+          s345=s34+2._dp*dot(p,3,5)+2._dp*dot(p,4,5)
+          wt34=zaprop(s34,zmass,zwidth)
+          wt345=zaprop(s345,zmass,zwidth)
+          wtips(1)=wt345
+          wtips(2)=wt34
+          pswt=pswt*wtips(ipsgen)/(wtips(1)+wtips(2))
         endif
 c      endif
        
@@ -217,16 +263,26 @@ c--- special treatment for Z+gamma+gamma+jet
         endif
 
 c--- special treatment for Z+gamma+jet+jet 
-      elseif ( (kcase==kZga2jt) ) then
+      elseif ( (kcase==kZga2jt) .or. (kcase==kWga2jt) ) then
         npart=5
-        if (ipsgen == 1) then
-          call gen_Vphotons_jets(r,1,2,p,pswt,*999)
-        elseif (ipsgen == 2) then
-          call gen_Vphotons_jets_dkrad(r,1,2,p,pswt,*999)
-        else
-          write(6,*) 'Parameter ipsgen should be 1 or 2'
-          write(6,*) 'ipsgen = ',ipsgen
-          stop
+!        if (ipsgen == 1) then
+!          call gen_Vphotons_jets(r,1,2,p,pswt,*999)
+!        elseif (ipsgen == 2) then
+!          call gen_Vphotons_jets_dkrad(r,1,2,p,pswt,*999)
+!        else
+!          write(6,*) 'Parameter ipsgen should be 1 or 2'
+!          write(6,*) 'ipsgen = ',ipsgen
+!          stop
+!        endif
+        call gen5(r,p,pswt,*999)
+        if (maxipsgen == 2) then
+          s34=2._dp*dot(p,3,4)
+          s345=s34+2._dp*dot(p,3,5)+2._dp*dot(p,4,5)
+          wt34=zaprop(s34,zmass,zwidth)
+          wt345=zaprop(s345,zmass,zwidth)
+          wtips(1)=wt345
+          wtips(2)=wt34
+          pswt=pswt*wtips(ipsgen)/(wtips(1)+wtips(2))
         endif
 
       elseif ((kcase==kthrjet) .or. (kcase==kgamjet)) then
@@ -452,11 +508,16 @@ c--- processes that use "gen_njets" with an argument of "1"
      &    .or. (kcase==khttjet)
      &    .or. (kcase==kattjet)
      &    .or. (kcase==kggfus1)
+     &    .or. (kcase==khjetma)
      &    .or. (kcase==kHgagaj)
      &    .or. (kcase==kgQ__ZQ) ) then
         npart=3
         if     ((usescet) .and. (abovecut) .and. (kpart.ne.kreal)) then
-            call gen3taucut(r,p,pswt,*999)
+            if (tauboost) then
+              call gen3(r,p,pswt,*999) ! gen3taucut tailored to non-boosted case
+            else
+              call gen3taucut(r,p,pswt,*999)
+            endif
         elseif ((usescet) .and. (abovecut) .and. (kpart == kreal)) then
             call gen3(r,p,pswt,*999)
          else
@@ -473,6 +534,7 @@ c--- processes that use "gen_njets" with an argument of "2"
      &    .or. (kcase==kqq_Hgg)
      &    .or. (kcase==kggfus2)
      &    .or. (kcase==kgagajj)
+     &    .or. (kcase==kh2jmas)
      &    .or. (kcase==kW_bjet)
      &    .or. (kcase==kWcjetg)
      &    .or. (kcase==kZ_bjet) ) then
@@ -515,8 +577,11 @@ c--- WH+jet processes with 2-body Higgs decays
       elseif ( (kcase==kWH1jet)  .or. (kcase==kZH1jet) ) then
         npart=5
         if ((usescet) .and. (abovecut) .and. (kpart.ne.kreal)) then
-          call genVHjtaucut(r,p,pswt,*999)
-!          call gen5(r,p,pswt,*999)
+          if (tauboost) then
+            call gen5(r,p,pswt,*999) ! genVHjtaucut tailored to non-boosted case
+          else
+            call genVHjtaucut(r,p,pswt,*999)
+          endif
         else
           if (hdecaymode == 'wpwm') then
             npart=7

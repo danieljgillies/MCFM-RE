@@ -1,5 +1,6 @@
       subroutine Carraysetup
       implicit none
+      include 'types.f'
       include 'pvCnames.f'
       include 'Carraydef.f'
       include 'Carrays.f'  

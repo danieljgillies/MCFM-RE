@@ -17,12 +17,14 @@
       include 'kprocess.f'
       include 'runstring.f'
       include 'first.f'
+      include 'lhcb.f'
+      include 'specialcuts.f'
       logical:: failed,gencuts_Zt,gencuts_WZjj,gencuts_input
       logical, save :: makeVBScuts,makeATLAS_sscuts,
      &     makeCMS_hzz,makeCMS_hzz_vbf,makeVHbb,makeVHWW,
      &     makeATLAS_gaga2
       integer:: njets
-      logical gencuts_VHbb,gencuts_VHWW,gencuts_ATLAS_gaga2
+      logical gencuts_VHbb,gencuts_VHWW,gencuts_ATLAS_gaga2,lhcb_cuts
       real(dp):: pjet(mxpart,4)
 !$omp threadprivate(makeVBScuts,makeATLAS_sscuts)
 !$omp threadprivate(makeCMS_hzz,makeCMS_hzz_vbf)
@@ -73,6 +75,18 @@
       if (makeCMS_hzz) then
         call CMS_hzz(pjet,failed)
         if (failed) gencuts=.true.
+        return
+      endif
+      
+      if (cut_mode > 0) then
+        lhcb_pass(1) = .false.
+        lhcb_pass(2) = .false.
+        if (dir_mode == 0) then
+           gencuts = lhcb_cuts(pjet, njets, 1)
+           gencuts = lhcb_cuts(pjet, njets, 2) .and. gencuts
+        else
+           gencuts = lhcb_cuts(pjet, njets, dir_mode)
+        endif
         return
       endif
       

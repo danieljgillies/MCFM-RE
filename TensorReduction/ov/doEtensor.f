@@ -4,12 +4,13 @@ c--- This is just a wrapping routine that calls ovDtensor or pvDtensor
       implicit none
 C     q1,q2,q3 are the loop offset momenta
 C     m1s,m2s,m3s,m4s are the squares of the masses in the propagators
+      include 'types.f'
       include 'TRconstants.f'
       include 'TRydef.f'
       include 'TRtensorcontrol.f'
-      double complex FE0(-2:0),FE1(y1max,-2:0),FE2(y2max,-2:0),
+      complex(dp):: FE0(-2:0),FE1(y1max,-2:0),FE2(y2max,-2:0),
      & FE3(y3max,-2:0),FE4(y4max,-2:0),FE5(y5max,-2:0),FE6(y6max,-2:0)
-      double precision p2(4),p3(4),p4(4),q1(4),q2(4),q3(4),q4(4),
+      real(dp):: p2(4),p3(4),p4(4),q1(4),q2(4),q3(4),q4(4),
      & m1s,m2s,m3s,m4s,m5s
       
       if (doovred) then

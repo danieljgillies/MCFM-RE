@@ -34,7 +34,6 @@
       include 'hbbparams.f'
       include 'cutoff.f'
       include 'noglue.f'
-      include 'qlfirst.f'
       integer:: j,k,ig
       real(dp):: msq(-nf:nf,-nf:nf),msq0(-nf:nf,-nf:nf),
      & p(mxpart,4),fac,prop,subuv,hdecay,
@@ -57,12 +56,6 @@ c--set msq=0 to initialize
       msq(:,:)=0._dp
       scheme='dred'
 
-c--- initialize QCDLoop
-      if (qlfirst) then
-        qlfirst=.false.
-        call qlinit
-      endif
-      
 c-- if Gflag=.false. then only the endpoint contributions from the
 c-- 4-quark diagrams are included, ie. no pole subtraction for this
 c-- piece. Therefore return 0.

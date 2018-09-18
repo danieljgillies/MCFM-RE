@@ -3,16 +3,16 @@
 C****NB The arguments of this routine are the external momenta "p",
 C       and not the momentum offsets in the loop "q" ******
 C****   m1s,m2s,m3s,m4s,m5s are the internal masses squared.
-
       implicit none
+      include 'types.f'
+      include 'TRconstants.f'
       include 'TRydef.f'
       include 'TRbadpoint.f'
       include 'TRmaxindex.f'
-      include 'TRconstants.f'
-      double precision p1(4),p2(4),p3(4),p4(4),p5(4),
+      real(dp):: p1(4),p2(4),p3(4),p4(4),p5(4),
      & inGram(4,4),Gram(4,4),
      & s1Dp1,s1Dp2,s1Dp3,s1Dp4,s2Dp2,s2Dp3,s2Dp4,s3Dp3,s3Dp4,s4Dp4
-      double complex FE0(-2:0),FE1(y1max,-2:0),FE2(y2max,-2:0),
+      complex(dp):: FE0(-2:0),FE1(y1max,-2:0),FE2(y2max,-2:0),
      & FE3(y3max,-2:0),FE4(y4max,-2:0),FE5(y5max,-2:0),
      & FD0_1(-2:0),FD1_1(y1max,-2:0),FD2_1(y2max,-2:0),
      & FD3_1(y3max,-2:0),FD4_1(y4max,-2:0),
@@ -26,7 +26,7 @@ C****   m1s,m2s,m3s,m4s,m5s are the internal masses squared.
      & FD3_5(y3max,-2:0),FD4_5(y4max,-2:0),
      & FD1_1a(y1max,-2:0),FD2_1a(y2max,-2:0),
      & FD3_1a(y3max,-2:0),FD4_1a(y4max,-2:0),RHS(4),inRHS(4)
-      double precision p1Dp1,p2Dp2,p3Dp3,p4Dp4,p5Dp5,d,
+      real(dp):: p1Dp1,p2Dp2,p3Dp3,p4Dp4,p5Dp5,d,
      & p1Dp2,p1Dp3,p2Dp3,p1Dp4,p2Dp4,p3Dp4,
      & m1s,m2s,m3s,m4s,m5s,s12,s23,s34,s45,s51,
      & p12(4),p23(4),p34(4),p45(4),p51(4),p123(4),p1234(4)

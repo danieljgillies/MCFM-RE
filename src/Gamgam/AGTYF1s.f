@@ -17,6 +17,7 @@
       implicit none
       include 'types.f'
       real(dp):: F1sx
+      include 'constants.f'
       include 'zeta.f'
       real(dp):: t,u,Lx,Ly,Ls
 
