@@ -72,10 +72,11 @@ RECURDIR	= $(TENSORREDDIR)/recur
 OVDIR		= $(TENSORREDDIR)/ov
 MOD_QCDLOOP=$(MCFMHOME)/qcdloop-2.0.2
 VPATH		= $(DIRS):$(MOD_QCDLOOP):$(INCPATH):$(TENSORREDDIR)/Include:$(SOURCEDIR)/mpidummy
+JETVHETODIR = $(MCFMHOME)/JetVHeto
 
 # Flags for compilation
 FFLAGS 	= -fno-f2c -ffixed-line-length-none -fopenmp -O2 \
- -I$(INCPATH) -I$(MPIDUMMY) -I$(TENSORREDDIR)/Include -L$(PVDIR) -L$(PVEXTDIR) -J$(OBJNAME) -I$(MOD_QCDLOOP)
+ -I$(INCPATH) -I$(MPIDUMMY) -I$(TENSORREDDIR)/Include -L$(PVDIR) -L$(PVEXTDIR) -J$(OBJNAME) -I$(MOD_QCDLOOP) -I$(JETVHETODIR)
 
 # If using FROOT package for ROOT ntuples, first specify C++ compiler:
 CXXFLAGS=$(CXXFLAGS0) -std=c++11 -Wall $(DROOT) 
@@ -1692,7 +1693,10 @@ gen_realps.o \
 lowint.o \
 realint.o \
 virtint.o \
-scetint.o 
+scetint.o \
+virtfin.o \
+resmNLLint.o \
+resmNNLLint.o
 
 QQHFILES = \
 qq_Hqq_g.o \
@@ -2710,7 +2714,7 @@ gridwrap_dummy.o \
 fill_APPLgrid.o
 
 LIBDIR=$(MCFMHOME)/qcdloop-2.0.2/local/lib
-LIBFLAGS=-lqcdloop -lov -lpv  -lpvext -lsmallG -lsmallY -lsmallP -lsmallF -lstdc++
+LIBFLAGS=-ljetvheto -lqcdloop -lov -lpv  -lpvext -lsmallG -lsmallY -lsmallP -lsmallF -lstdc++
 
 
 # Check NTUPLES flag
@@ -2862,7 +2866,7 @@ FOROPTS = -include=$(INCPATH) -nonovice -nopretty -quiet
 
 
 Bin/mcfm_omp: $(ALLMCFM)
-	@$(FC) $(FFLAGS) -L$(LIBDIR) -L$(PVDIR) -L$(RECURDIR) -L$(OVDIR) -o $@ \
+	@$(FC) $(FFLAGS) -L$(LIBDIR) -L$(PVDIR) -L$(RECURDIR) -L$(OVDIR) -L$(JETVHETODIR) -o $@ \
 	$(patsubst %,$(OBJNAME)/%,$(ALLMCFM)) $(LIBFLAGS) 
 	@echo $(PDFMSG)
 	@echo $(NTUPMSG)

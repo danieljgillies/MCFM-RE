@@ -339,6 +339,7 @@ c---  (added and then taken away)
          call vegasnr(region,ndim,resmNNLLint,myinit,myncall,myitmx,
      &        nprn,sig,sd,chi,nloVirt,ipsgen)
          ndim=ndim-1
+      endif
 
       if (mykpart==ksnlo .and. doipsgen) then
           sigips(ipsgen) = sigips(ipsgen) + sig

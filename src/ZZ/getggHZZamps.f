@@ -28,7 +28,7 @@ c---
       real(dp):: p(mxpart,4),mb2,mt2
       complex(dp):: Mloop_bquark(2,2,2,2),Mloop_tquark(2,2,2,2),
      & eftV_6(2,2,2,2),ggHmt(2,2),ggHmb(2,2),ggH6(2,2),
-     & qlI3,C0mt,C0mb,prop12,prop34,prop56,
+     & C0mt,C0mb,prop12,prop34,prop56,
      & H4l(2,2),sinthw,higgsprop
       real(dp):: rescale 
 
