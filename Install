@@ -70,5 +70,13 @@ if [ ! -e TensorReduction/pv/libpv.a ]; then
   popd
 fi
 
+if [ ! -e JetVHeto/libjetvheto.a ]; then
+    echo 'Compiling JetVHeto library'
+    pushd JetVHeto
+    ${MAKE}
+    popd
+fi
+
+
 echo ''
 echo 'Installation complete. You may now compile MCFM by running make'
