@@ -19,7 +19,7 @@
       character*255 outlabel1,runname,outlabeltmp
       character*3 strmh,getstr,strpt
       character*6 strtaucut
-      character*9 strscale
+      character*14 strscale
       character*15 part,kpartstring
       character*6 case,kcasestring
       common/runname/runname

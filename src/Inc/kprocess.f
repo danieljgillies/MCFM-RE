@@ -150,8 +150,8 @@
       integer, parameter :: kZ_tdkj= 148
       integer, parameter :: kZtdk2j= 149
       integer, parameter :: kHHpair= 150
-      integer, parameter :: kWH 1jet=151
-      integer, parameter :: kZH 1jet=152
+      integer, parameter :: kWH1jet= 151
+      integer, parameter :: kZH1jet= 152
       integer, parameter :: ktottth= 153
       integer, parameter :: kqq_tth= 154
       integer, parameter :: ktth_ww= 155

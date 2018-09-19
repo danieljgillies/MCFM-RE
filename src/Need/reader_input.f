@@ -354,8 +354,6 @@ c--- pdf options
       if (verbose) call writeinput(6,' * ',' ','pdlabel')
       read(20,*) PDFname
       if (verbose) call writeinput(6,' * ',' ','LHAPDF group')
-      read(20,*) PDFmember
-      if (verbose) call writeinput(6,' * ',' ','LHAPDF set')
 
       if (verbose) write(6,*)
       read(20,99) line

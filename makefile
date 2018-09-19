@@ -1477,7 +1477,7 @@ pol_real.o \
 cdot.o
 
 NEEDFILES = \
-usercode_f77.o \
+usercode.o \
 olo_dummy.o \
 lhcbcode.o \
 set_anomcoup.o \
