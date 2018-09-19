@@ -95,6 +95,7 @@ subroutine userplotter(pjet, wt, wt2, nd)
   include 'ptilde.f'
   include 'npart.f'
   include 'nplot.f'
+  include 'scalevar.f'
 
   ! needed for the resummation
   include 'kpart.f'
@@ -109,7 +110,7 @@ subroutine userplotter(pjet, wt, wt2, nd)
   common/Rcut/Rcut
   real(dp) :: dot, M_B
   integer  :: order
-  real(dp) :: sudakov_arr(1)
+  real(dp) :: sudakov_arr(1), sudakov_arr_up(1), sudakov_arr_dn(1)
   interface
      function sudakov(proc, M, muR, muF, Q, as, p, jet_radius,&
           &observable, small_r, small_r_R0, ptj_veto, order) result(res)
@@ -212,8 +213,24 @@ subroutine userplotter(pjet, wt, wt2, nd)
 
      sudakov_arr=sudakov(born_config, M_B, scale, facscale, q_scale, as, p_pow,&
           &Rcut, observable, small_r, r_scale, (/ptj_veto/), order) 
+
+     ! central scale
      wt = wt*sudakov_arr(1)
      wt2 = wt**2
+
+     ! scale variation reweight
+     if (doscalevar) then
+        if (maxscalevar > 6) then
+           sudakov_arr_up = sudakov(born_config, M_B, scale, facscale, q_scale*rt2, &
+                as, p_pow, Rcut, observable, small_r, r_scale, (/ptj_veto/), order) 
+
+           sudakov_arr_dn = sudakov(born_config, M_B, scale, facscale, q_scale/rt2, &
+                as, p_pow, Rcut, observable, small_r, r_scale, (/ptj_veto/), order) 
+
+           scalereweight(7)=scalereweight(7)*sudakov_arr_up(1)/sudakov_arr(1)
+           scalereweight(8)=scalereweight(8)*sudakov_arr_dn(1)/sudakov_arr(1)
+        end if
+     end if
   end if
 
   !define quantities to plot

@@ -780,7 +780,6 @@ c--- check dynstring to see whether to do scale variation and truncate dynstring
          doscalevar=.true.
          dynstring=dynstring(1:len(trim(dynstring))-10)
          maxscalevar=8
-
       else
         doscalevar=.false.
       endif

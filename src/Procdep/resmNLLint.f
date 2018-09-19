@@ -56,7 +56,7 @@ c--- To use VEGAS random number sequence :
       integer:: ih1,ih2,j,k,nvec,sgnj,sgnk,ii,i1,i2,i3,i4
       integer:: i,t
       integer:: itrial
-      real(dp):: alphas,msqtrial,xmsqvar(2),
+      real(dp):: alphas,msqtrial,xmsqvar(4),
      & fx1up(-nf:nf),fx2up(-nf:nf),fx1dn(-nf:nf),fx2dn(-nf:nf)
       real(dp):: r(mxdim),W,xmsq,val,val2,ptmp,
      & fx1(-nf:nf),fx2(-nf:nf),p(mxpart,4),pjet(mxpart,4),
@@ -81,7 +81,8 @@ c--- To use VEGAS random number sequence :
       external qq_tchan_ztq,qq_tchan_ztq_mad
       external qq_tchan_htq,qq_tchan_htq_mad,qq_tchan_htq_amp
       external qqb_gamgam_g,qqb_gmgmjt_gvec,gg_hzgamg,gg_hg_zgam_gvec
-      real(dp) :: L_tilde_arr(1)
+      real(dp) :: L_tilde_arr(1), Ltilde_up, Ltilde_dn, tmp_q_scale
+      real(dp) :: fx1qup(-nf:nf),fx2qup(-nf:nf),fx1qdn(-nf:nf),fx2qdn(-nf:nf)
       real(dp) :: facscaleLtilde
 !$omp threadprivate(/bqscale/)
 
@@ -128,7 +129,7 @@ c      stop
       L_tilde_arr = Ltilde((/ptj_veto/q_scale/), p_pow)
       L_tilde = L_tilde_arr(1)
       if (do_lumi) then
-         facscaleLtilde = facscale * exp(-L_tilde)
+         facscaleLtilde = facscale*exp(-L_tilde)
       else
          facscaleLtilde = facscale
       end if
@@ -867,10 +868,25 @@ c--- usual case
               call fdist(ih1,xx(1),facscaleLtilde,fx1)
               call fdist(ih2,xx(2),facscaleLtilde,fx2)
               if (doscalevar) then
-                call fdist(ih1,xx(1),facscale*two,fx1up)
-                call fdist(ih2,xx(2),facscale*two,fx2up)
-                call fdist(ih1,xx(1),facscale/two,fx1dn)
-                call fdist(ih2,xx(2),facscale/two,fx2dn)
+                call fdist(ih1,xx(1),facscaleLtilde*two,fx1up)
+                call fdist(ih2,xx(2),facscaleLtilde*two,fx2up)
+                call fdist(ih1,xx(1),facscaleLtilde/two,fx1dn)
+                call fdist(ih2,xx(2),facscaleLtilde/two,fx2dn)
+                if (maxscalevar > 6) then
+
+                   tmp_q_scale = q_scale*rt2
+                   L_tilde_arr = Ltilde((/ptj_veto/tmp_q_scale/), p_pow)
+                   Ltilde_up = L_tilde_arr(1)
+
+                   tmp_q_scale = q_scale/rt2
+                   L_tilde_arr = Ltilde((/ptj_veto/tmp_q_scale/), p_pow)
+                   Ltilde_dn = L_tilde_arr(1)
+
+                  call fdist(ih1,xx(1),facscale*exp(-Ltilde_up),fx1qup)
+                  call fdist(ih2,xx(2),facscale*exp(-Ltilde_up),fx2qup)
+                  call fdist(ih1,xx(1),facscale*exp(-Ltilde_dn),fx1qdn)
+                  call fdist(ih2,xx(2),facscale*exp(-Ltilde_dn),fx2qdn)
+                endif
                 xmsqvar(:)=zip
               endif
            endif
@@ -920,6 +936,10 @@ c--- DEFAULT
         if (doscalevar) then
           xmsqvar(1)=xmsqvar(1)+fx1up(j)*fx2up(k)*msq(j,k)
           xmsqvar(2)=xmsqvar(2)+fx1dn(j)*fx2dn(k)*msq(j,k)
+          if (maxscalevar > 6) then
+            xmsqvar(3)=xmsqvar(3)+fx1qup(j)*fx2qup(k)*msq(j,k)
+            xmsqvar(4)=xmsqvar(4)+fx1qdn(j)*fx2qdn(k)*msq(j,k)
+          endif
         endif
         if (kewcorr /= knone) xmsqjk_noew=fx1(j)*fx2(k)*msq_noew(j,k)
       endif
@@ -1016,11 +1036,15 @@ c---  but not if we are already unweighting ...
           scalereweight(2)=(alphas(scale/two,amz,nlooprun)/as)**alphaspow
           scalereweight(1)=scalereweight(1)*xmsqvar(1)/xmsq
           scalereweight(2)=scalereweight(2)*xmsqvar(2)/xmsq
-          if (maxscalevar == 6) then
+          if (maxscalevar > 2) then
             scalereweight(3)=scalereweight(1)*xmsq/xmsqvar(1)
             scalereweight(4)=scalereweight(2)*xmsq/xmsqvar(2)
             scalereweight(5)=xmsqvar(1)/xmsq
             scalereweight(6)=xmsqvar(2)/xmsq
+          endif
+          if (maxscalevar > 6) then
+             scalereweight(7)=xmsqvar(3)/xmsq
+             scalereweight(8)=xmsqvar(4)/xmsq
           endif
         else
           scalereweight(:)=zip

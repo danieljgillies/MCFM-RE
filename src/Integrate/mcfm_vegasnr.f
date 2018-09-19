@@ -70,8 +70,7 @@
       logical:: first,myreadin
       common/bypart/lord_bypart
       external lowint,virtint,realint,fragint,scetint
-      external resmLLint,resmNLLint,resmNNLLint
-      external expdNLLint, expdNNLLint
+      external resmNLLint,resmNNLLint
       data first/.true./
       save first
 

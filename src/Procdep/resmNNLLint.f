@@ -122,7 +122,8 @@ c      data p/56*0._dp/
       integer, save:: nshot=1
       external gg_ZZ,qqb_w1jet_vbis
       real(dp) :: L_tilde_arr(1)
-      real(dp) :: facscaleLtilde
+      real(dp) :: facscaleLtilde, savefacscaleLtilde
+      real(dp) :: saveq_scale
 !$omp threadprivate(/rvcolourchoice/)
 !$omp threadprivate(nshot)
 
@@ -187,6 +188,8 @@ c--- (W+2 jet and Z+2 jet processes only)
         itrial=maxscalevar+1
         savescale=scale
         savefacscale=facscale
+        saveq_scale=q_scale
+        savefacscaleLtilde=facscaleLtilde
       endif
   
    66 continue
@@ -206,27 +209,51 @@ c--- (W+2 jet and Z+2 jet processes only)
         if (dynamicscale .eqv. .false.) then
           scale=savescale
           facscale=savefacscale
+          q_scale=saveq_scale
+          facscaleLtilde=savefacscaleLtilde
         endif
-        if      (itrial == 7) then
+        if     (itrial == 9) then
+           q_scale=q_scale/rt2
+           L_tilde_arr = Ltilde((/ptj_veto/q_scale/), p_pow)
+           L_tilde = L_tilde_arr(1)
+           if (do_lumi) then
+              facscaleLtilde=facscale*exp(-L_tilde)
+           else
+              facscaleLtilde=facscale
+           endif
+        elseif (itrial == 8) then
+           q_scale=q_scale*rt2
+           L_tilde_arr = Ltilde((/ptj_veto/q_scale/), p_pow)
+           L_tilde = L_tilde_arr(1)
+           if (do_lumi) then
+              facscaleLtilde=facscale*exp(-L_tilde)
+           else
+              facscaleLtilde=facscale
+           endif
+        elseif (itrial == 7) then
            facscale=facscale/two
-         elseif (itrial == 6) then
+           facscaleLtilde=facscaleLtilde/two
+        elseif (itrial == 6) then
            facscale=facscale*two
-         elseif (itrial == 5) then
+           facscaleLtilde=facscaleLtilde*two
+        elseif (itrial == 5) then
            scale=scale/two
-         elseif (itrial == 4) then
+        elseif (itrial == 4) then
            scale=scale*two
-         elseif (itrial == 3) then
+        elseif (itrial == 3) then
            scale=scale/two
            facscale=facscale/two
-         elseif (itrial == 2) then
+           facscaleLtilde=facscaleLtilde/two
+        elseif (itrial == 2) then
            scale=scale*two
            facscale=facscale*two
-         endif
-         musq=scale**2
-         as=alphas(scale,amz,nlooprun)
-         ason2pi=as/twopi
-         ason4pi=as/fourpi
-         gsq=fourpi*as
+           facscaleLtilde=facscaleLtilde*two
+        endif
+        musq=scale**2
+        as=alphas(scale,amz,nlooprun)
+        ason2pi=as/twopi
+        ason4pi=as/fourpi
+        gsq=fourpi*as
       endif
       
       xx(1)=-2._dp*p(1,4)/sqrts
@@ -2484,6 +2511,7 @@ c--- go back for second pass (Qflag)
           if (doscalevar) then
             scale=savescale
             facscale=savefacscale
+            facscaleLtilde=savefacscaleLtilde
           endif
           goto 44
         else
@@ -2509,6 +2537,8 @@ c--- in case of return inside scale variation
       if (doscalevar .and. (itrial >= 0)) then
         scale=savescale
         facscale=savefacscale
+        q_scale=saveq_scale
+        facscaleLtilde=savefacscaleLtilde
       endif
 
       return

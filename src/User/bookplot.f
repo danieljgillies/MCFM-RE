@@ -114,6 +114,10 @@ c--- handled at the end in the default MCFM histograms
                trimtitle=trim(origtitle)//': scale -u-'
             elseif (iscale == 6) then
                trimtitle=trim(origtitle)//': scale -d-'
+            elseif (iscale == 7) then
+               trimtitle=trim(origtitle)//': scale --u'
+            elseif (iscale == 8) then
+               trimtitle=trim(origtitle)//': scale --d'
             endif
           endif
           wt=origwt*scalereweight(iscale)
