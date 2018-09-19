@@ -1,5 +1,5 @@
-module qcd
-  use types; use consts_dp
+module jetvheto_qcd
+  use jetvheto_types; use jetvheto_consts_dp
 
   integer,  parameter :: nf_def = 5
   real(dp), parameter :: ca_def = 3, cf_def = four/three, tr_def = half
@@ -36,4 +36,4 @@ module qcd
   real(dp), public :: mvv_A3  = 16*cf_def*cmw_K2_def
   real(dp), public :: mvv_A3G = 16*ca_def*cmw_K2_def
   
-end module qcd
+end module jetvheto_qcd

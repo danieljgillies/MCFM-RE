@@ -1,8 +1,8 @@
-module resummation
-  use types; use consts_dp
-  use rad_tools
-  use warnings_and_errors
-  use emsn_tools
+module jetvheto_resummation
+  use jetvheto_types; use jetvheto_consts_dp
+  use jetvheto_rad_tools
+  use jetvheto_warnings_and_errors
+  use jetvheto_emsn_tools
   implicit none
 
   private
@@ -78,4 +78,4 @@ contains
   end function resummed_sigma_nolumi
 
 
-end module resummation
+end module jetvheto_resummation

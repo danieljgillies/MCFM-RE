@@ -3,9 +3,9 @@
 ! Includes a module for the non-inclusive correction
 ! -------------------------------------------------------
 !========================================================
-module emsn_tools
-  use types; use consts_dp
-  use rad_tools; use qcd
+module jetvheto_emsn_tools
+  use jetvheto_types; use jetvheto_consts_dp
+  use jetvheto_rad_tools; use jetvheto_qcd
   implicit none
   private
 
@@ -179,4 +179,4 @@ contains
     
   end function av_ln2z_smallR
 
-end module emsn_tools
+end module jetvheto_emsn_tools

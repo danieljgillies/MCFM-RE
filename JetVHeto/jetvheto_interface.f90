@@ -6,9 +6,9 @@
 
 function sudakov(proc, M, muR, muF, Q, as, p, jet_radius,&
      &observable, small_r, small_r_R0, ptj_veto, order) result(res)
-  use types; use consts_dp
-  use rad_tools
-  use resummation
+  use jetvheto_types; use jetvheto_consts_dp
+  use jetvheto_rad_tools
+  use jetvheto_resummation
   implicit none
   character(len=*),            intent(in)  :: proc, observable
   integer,                     intent(in)  :: order

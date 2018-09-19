@@ -3,8 +3,10 @@
 ! Includes a module providing the resummation ingredients
 ! -------------------------------------------------------
 !========================================================
-module rad_tools
-  use types; use consts_dp; use qcd; use warnings_and_errors
+module jetvheto_rad_tools
+  use jetvheto_types; use jetvheto_consts_dp
+  use jetvheto_qcd
+  use jetvheto_warnings_and_errors
   implicit none
 
   private
@@ -300,4 +302,4 @@ contains
 
   !========================================================
 
-end module rad_tools
+end module jetvheto_rad_tools

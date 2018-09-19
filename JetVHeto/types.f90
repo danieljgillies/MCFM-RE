@@ -10,13 +10,13 @@
 !----------------------------------------------------------------------
 ! The next two are maybe to be used only when it's time for a general
 ! rewrite?
-module types
+module jetvheto_types
   implicit none
   integer, parameter  :: dp = kind(1.0d0), sp = kind(1.0)
-end module types
+end module jetvheto_types
 !----------------------------------------------------------------------
-module consts_dp
-  use types
+module jetvheto_consts_dp
+  use jetvheto_types
   implicit none
   private
 
@@ -38,5 +38,5 @@ module consts_dp
   real(dp), public, parameter :: zero = 0.0_dp, one = 1.0_dp
   real(dp), public, parameter :: three = 3.0_dp, four = 4.0_dp
 
-end module consts_dp
+end module jetvheto_consts_dp
 

@@ -7,8 +7,8 @@
 !!
 !! $Id: warnings_and_errors.f90,v 1.6 2004/02/26 19:02:19 salam Exp $
 !======================================================================
-module warnings_and_errors
-  use types
+module jetvheto_warnings_and_errors
+  use jetvheto_types
   implicit none
   private
 
@@ -158,5 +158,5 @@ contains
     stddev = unit
   end subroutine wae_setunit
   
-end module warnings_and_errors
+end module jetvheto_warnings_and_errors
 
