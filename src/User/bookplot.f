@@ -6,6 +6,7 @@
       include 'outputflags.f'
       include 'vegas_common.f'
       include 'scalevar.f'
+      include 'jetvheto.f'
       integer:: n,iscale
       character*(*) titlex
       character*40 trimtitle,origtitle
@@ -86,19 +87,35 @@ c--- handled at the end in the default MCFM histograms
       if (doscalevar) then
         iscale=iscale+1
         if (iscale <= maxscalevar) then
-          if     (iscale == 1) then
-            trimtitle=trim(origtitle)//': scale uu'
-          elseif (iscale == 2) then
-            trimtitle=trim(origtitle)//': scale dd'
-          elseif (iscale == 3) then
-            trimtitle=trim(origtitle)//': scale u-'
-          elseif (iscale == 4) then
-            trimtitle=trim(origtitle)//': scale d-'
-          elseif (iscale == 5) then
-            trimtitle=trim(origtitle)//': scale -u'
-          elseif (iscale == 6) then
-            trimtitle=trim(origtitle)//': scale -d'
-          endif  
+          if    (.not. jetvheto) then
+            if     (iscale == 1) then
+              trimtitle=trim(origtitle)//': scale uu'
+            elseif (iscale == 2) then
+              trimtitle=trim(origtitle)//': scale dd'
+            elseif (iscale == 3) then
+              trimtitle=trim(origtitle)//': scale u-'
+            elseif (iscale == 4) then
+              trimtitle=trim(origtitle)//': scale d-'
+            elseif (iscale == 5) then
+              trimtitle=trim(origtitle)//': scale -u'
+            elseif (iscale == 6) then
+              trimtitle=trim(origtitle)//': scale -d'
+            endif
+          elseif (jetvheto) then
+            if     (iscale == 1) then
+               trimtitle=trim(origtitle)//': scale uu-'
+            elseif (iscale == 2) then
+               trimtitle=trim(origtitle)//': scale dd-'
+            elseif (iscale == 3) then
+               trimtitle=trim(origtitle)//': scale u--'
+            elseif (iscale == 4) then
+               trimtitle=trim(origtitle)//': scale d--'
+            elseif (iscale == 5) then
+               trimtitle=trim(origtitle)//': scale -u-'
+            elseif (iscale == 6) then
+               trimtitle=trim(origtitle)//': scale -d-'
+            endif
+          endif
           wt=origwt*scalereweight(iscale)
           wt2=origwt2*scalereweight(iscale)**2
           n=n+1

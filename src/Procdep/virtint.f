@@ -85,7 +85,7 @@ c---- SSend
 
       integer:: ih1,ih2,j,k,m,n,cs,ics,csmax,nvec,is,iq,ia,ib,ic,ii
       integer itrial
-      real(dp):: savescale,savefacscale,xmsqvar(6),alphas
+      real(dp):: savescale,savefacscale,xmsqvar(8),alphas
       real(dp):: p(mxpart,4),pjet(mxpart,4),r(mxdim),W,xmsq,
      & val,val2,fx1(-nf:nf),fx2(-nf:nf),fx1z(-nf:nf),fx2z(-nf:nf),xmsqt,
      & fx1_H(-nf:nf),fx2_H(-nf:nf),fx1_L(-nf:nf),fx2_L(-nf:nf),

@@ -22,7 +22,7 @@
       include 'couple.f'
       include 'nlooprun.f'
       integer itrial
-      real(dp):: savescale,savefacscale,xmsqvar(6),alphas
+      real(dp):: savescale,savefacscale,xmsqvar(8),alphas
       real(dp):: p(mxpart,4),pjet(mxpart,4),r(mxdim),W,xmsq,
      & val,val2,pswt,xjac,wgt,QB(2),z1,z2,flux,BrnRat
       integer j
