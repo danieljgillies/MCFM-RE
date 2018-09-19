@@ -776,23 +776,11 @@ c--- check dynstring to see whether to do scale variation and truncate dynstring
         doscalevar=.true.
         dynstring=dynstring(1:len(trim(dynstring))-10)
         maxscalevar=6
-      else
-        doscalevar=.false.
-      endif
-      
-c--- check dynstring to see whether to do scale variation and truncate dynstring if so
-      if (dynstring(len(trim(dynstring))-8:len(trim(dynstring))) == '+scalevar') then
-        doscalevar=.true.
-        dynstring=dynstring(1:len(trim(dynstring))-9)
-        maxscalevar=6
-      elseif (dynstring(len(trim(dynstring))-9:len(trim(dynstring))) == '+scalevar2') then
-        doscalevar=.true.
-        dynstring=dynstring(1:len(trim(dynstring))-10)
-        maxscalevar=2
-      elseif (dynstring(len(trim(dynstring))-9:len(trim(dynstring))) == '+scalevar6') then
-        doscalevar=.true.
-        dynstring=dynstring(1:len(trim(dynstring))-10)
-        maxscalevar=6
+      elseif (dynstring(len(trim(dynstring))-9:len(trim(dynstring))) == '+scalevar8') then
+         doscalevar=.true.
+         dynstring=dynstring(1:len(trim(dynstring))-10)
+         maxscalevar=8
+
       else
         doscalevar=.false.
       endif
