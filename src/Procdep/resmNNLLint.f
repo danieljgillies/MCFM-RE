@@ -109,7 +109,6 @@ c---- SSend
       logical:: bin,includedipole,checkpiDpjk
       real(dp):: QandGint
       integer mykpart
-      real(dp) :: facscaleLtilde
 
       integer:: t
 
@@ -123,6 +122,7 @@ c      data p/56*0._dp/
       integer, save:: nshot=1
       external gg_ZZ,qqb_w1jet_vbis
       real(dp) :: L_tilde_arr(1)
+      real(dp) :: facscaleLtilde
 !$omp threadprivate(/rvcolourchoice/)
 !$omp threadprivate(nshot)
 
