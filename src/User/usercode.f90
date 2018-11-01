@@ -485,7 +485,7 @@ function ATLAS_hww2017(ppart) result(res)
   etajveto_track = 2.5_dp
   ptjveto_track  = 25._dp
   ! calorimeter
-  etajveto_calo  = 4.5_dp
+  etajveto_calo  = 99._dp
   ptjveto_calo   = 30._dp
 
   ! for debug set etajveto to large
