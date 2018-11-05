@@ -419,7 +419,8 @@ subroutine userplotter(pjet, wt, wt2, nd)
 
 
   ! trying to write out to lund plane
-  write(6,'(2es20.10)') etaj, log(ptj/m3456)
+  write(6,'(2es20.10)') 0.5_dp*log(dot(pjet,2,7)/dot(pjet,1,7)), &
+       0.5_dp*log((two*dot(pjet,1,7)*dot(pjet,2,7)/dot(pjet,1,2))/m3456**2)
 
 end subroutine userplotter
 
