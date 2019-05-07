@@ -220,6 +220,7 @@ c---    this contribution is finite, so we only retain "0" piece
 
 c---  dimension 8 operators
       A1dim8(2,2)= A1pp(za,zb)
+      A1dim8(2,2)= A1pp(za,zb)
       
 c--- factor two for complete massless isodoublets
       faccont=ctwo
