@@ -3,10 +3,10 @@
 # Replace this with the location of Cernlib on your system (if desired)
 CERNLIB     = 
 # Replace this with the location of LHAPDF on your system (if desired)
-LHAPDFLIB   =
+LHAPDFLIB   = 
 
 # Flag for compiling with OpenMP (YES) or not (anything else)
-USEOMP = YES
+USEOMP = NO
 # Flag for compiling with MPI (YES) or not (anything else)
 # note: USEMPI -> YES automatically puts USEOMP -> YES
 USEMPI = NO
@@ -494,7 +494,8 @@ spinfns.o \
 recurrenceA.o \
 recurrenceB.o \
 recurrenceC.o \
-recurrence.o 
+recurrence.o \
+gg_ww_dim8.o
 
 STOPBFILES = \
 extend_trans_stopb.o \

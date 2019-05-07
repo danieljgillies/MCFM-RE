@@ -494,7 +494,8 @@ spinfns.o \
 recurrenceA.o \
 recurrenceB.o \
 recurrenceC.o \
-recurrence.o 
+recurrence.o \
+gg_ww_dim8.o
 
 STOPBFILES = \
 extend_trans_stopb.o \

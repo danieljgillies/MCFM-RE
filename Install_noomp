@@ -72,6 +72,15 @@ if [ ! -e TensorReduction/pv/libpv.a ]; then
   cd ..
 fi
 
+# Compile JetVHeto library if necessary
+if [ ! -e JetVHeto/libjetvheto.a ]; then
+  ls
+  echo 'Compiling JetVHeto library'
+  cd JetVHeto
+  make 
+  cd ..
+fi
+
 echo ''
 echo 'Installation complete. You may now compile MCFM by'
 echo 'ensuring that USEOMP = NO in the makefile and running make.'
