@@ -1,5 +1,4 @@
       subroutine gg_ww(pin,msqgg)
-      use gg_ww_dim8
       implicit none
       include 'types.f'
       
@@ -26,8 +25,6 @@ c--- Triangle (axial) pieces cancel for massless isodoublets
       real(dp):: p(mxpart,4),pin(mxpart,4),msqgg,fac
       complex(dp):: Avec(2,2),Agen3(2,2),sum(2,2,-2:0),
      & box(2,2,-2:0),triang(2,2,-2:0),bub(2,2,-2:0),faccont
-      complex(dp):: A1dim8(2,2),A2dim8(2,2),A3dim8(2,2)
-      complex(dp):: A4dim8(2,2),A5dim8(2,2),A6dim8(2,2)
       complex(dp):: a64v
       real(dp):: dot,s12,s34,s56,dot1256,afac,bfac,gden,delta,
      & dot1234,dot3456,pttwo,ptWsafetycut_massive,ptWsafetycut_massless
@@ -218,10 +215,6 @@ c---    this contribution is finite, so we only retain "0" piece
          Agen3 = czip
       endif
 
-c---  dimension 8 operators
-      A1dim8(2,2)= A1pp(za,zb)
-      A1dim8(2,2)= A1pp(za,zb)
-      
 c--- factor two for complete massless isodoublets
       faccont=ctwo
 
