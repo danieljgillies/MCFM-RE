@@ -1,4 +1,4 @@
-      subroutine qqb_hww_tb(p,msq)
+e3De4      subroutine qqb_hww_tb(p,msq)
       implicit none
       include 'types.f'
       

@@ -23,9 +23,8 @@ contains
     complex(dp) :: za(:,:), zb(:,:)
     complex(dp) :: res
 
-    res = -(zb(2,1)**2*((za(3,5)*zb(5,4)+za(3,6)*zb(6,4))*&
-         &(za(3,5)*zb(6,3)+za(4,5)*zb(6,4))+zb(5,3)*zb(6,4)*&
-         &(za(3,5)*zb(5,3)+za(4,5)*zb(5,4)+za(3,6)*zb(6,3)+za(4,6)*zb(6,4))))
+    res = -zb(2,1)**2*(za(3,5)**2*(zb(5,4)*zb(6,3)-zb(5,3)*zb(6,4))&
+         &-za(4,6)*za(3,5)*zb(6,4)**2+za(3,6)*za(4,5)*zb(6,4)**2)
 
   end function A2pp
 
