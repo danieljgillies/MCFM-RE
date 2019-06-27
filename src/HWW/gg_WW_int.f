@@ -439,19 +439,14 @@ c---  dimension 8 operators
       Adim8(6,1,2)= czip
       Adim8(6,1,1)= conjg(Adim8(6,2,2))
 
-      do h1=1,2
-         do h2=1,2
-            Adim8(:,h1,h2)=Adim8(:,h1,h2)*cdim8(:)
-         enddo
-      enddo
-      
 c---  MCFM propagator convention
-      Adim8 = Adim8/(s(3,4)*s(5,6))/
+      Adim8 = Adim8/(s(3,4)*s(5,6))
       
       msqgg=0._dp
       do h1=1,2
       do h2=1,2
-      Atot(h1,h2)=faccont*Avec(h1,h2)+Agen3(h1,h2)+Ahiggs(h1,h2)
+         Atot(h1,h2)=faccont*Avec(h1,h2)+Agen3(h1,h2)+Ahiggs(h1,h2)!+
+!     .        dot_product(cdim8(:),Adim8(:,h1,h2))
 
       if     (caseggWW4l) then
 c--- This accumulates total contributions
