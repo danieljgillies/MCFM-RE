@@ -449,22 +449,22 @@ c---  strong coupling constant omitted due to cancelling with kappa/v^4
 
 c---  kappa parameter defined (temporary hardcode)
 c---  strong coupling constant omitted due to cancelling with ratio convention
-      kdim8(1)=1
-      kdim8(2)=1
-      kdim8(3)=1
-      kdim8(4)=1
-      kdim8(5)=1
-      kdim8(6)=1
+      kdim8(1)=0.1d0
+      kdim8(2)=0.1d0
+      kdim8(3)=0.1d0
+      kdim8(4)=0.1d0
+      kdim8(5)=0.1d0
+      kdim8(6)=0.1d0
 
-      kdim8(:)=kdim8(:)*gwsq**2/((16,0)*wmass**4)
+      kdim8(:)=kdim8(:)*gwsq**2/((16d0,zero)*wmass**4)
 
 c---
 
       msqgg=0._dp
       do h1=1,2
       do h2=1,2
-         Atot(h1,h2)=faccont*Avec(h1,h2)+Agen3(h1,h2)+Ahiggs(h1,h2)!+
-!     .        dot_product(kdim8(:),Adim8(:,h1,h2))
+         Atot(h1,h2)=faccont*Avec(h1,h2)+Agen3(h1,h2)+Ahiggs(h1,h2)+
+     .        dot_product(kdim8(:),Adim8(:,h1,h2))
 
       if     (caseggWW4l) then
 c--- This accumulates total contributions
