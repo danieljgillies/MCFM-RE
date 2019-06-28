@@ -33,7 +33,7 @@ c--- Triangle (axial) pieces cancel for massless isodoublets
       complex(dp):: Avec(2,2),Ahiggs(2,2),Agen3(2,2),Atot(2,2),
      & faccont,fachiggs,amphiggs,f,e3De4,sum(2,2,-2:0)
       complex(dp):: Adim8(6,2,2)
-      real(dp) :: cdim8(6)
+      real(dp) :: kdim8(6)
       real(dp):: phi,muk,rho,ssig,csig,theta,
      & p1true(4),p2true(4),p3true(4),p4true(4),p5true(4),p6true(4),
      & dot,s12,s34,s56,dot1256,afac,bfac,gden,delta,
@@ -442,11 +442,29 @@ c---  dimension 8 operators
 c---  MCFM propagator convention
       Adim8 = Adim8/(s(3,4)*s(5,6))
       
+c---  Ratio convention
+c---  strong coupling constant omitted due to cancelling with kappa/v^4
+      rdim8 = ctwo*pi/gwsq
+      Adim8 = Adim8*rdim8
+
+c---  kappa parameter defined (temporary hardcode)
+c---  strong coupling constant omitted due to cancelling with ratio convention
+      kdim8(1)=1
+      kdim8(2)=1
+      kdim8(3)=1
+      kdim8(4)=1
+      kdim8(5)=1
+      kdim8(6)=1
+
+      kdim8(:)=kdim8(:)*gwsq**2/((16,0)*wmass**4)
+
+c---
+
       msqgg=0._dp
       do h1=1,2
       do h2=1,2
          Atot(h1,h2)=faccont*Avec(h1,h2)+Agen3(h1,h2)+Ahiggs(h1,h2)!+
-!     .        dot_product(cdim8(:),Adim8(:,h1,h2))
+!     .        dot_product(kdim8(:),Adim8(:,h1,h2))
 
       if     (caseggWW4l) then
 c--- This accumulates total contributions
