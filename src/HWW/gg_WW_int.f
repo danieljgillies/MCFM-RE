@@ -33,6 +33,7 @@ c--- Triangle (axial) pieces cancel for massless isodoublets
       complex(dp):: Avec(2,2),Ahiggs(2,2),Agen3(2,2),Atot(2,2),
      & faccont,fachiggs,amphiggs,f,e3De4,sum(2,2,-2:0)
       complex(dp):: Adim8(6,2,2)
+      complex(dp) :: rdim8
       real(dp) :: kdim8(6)
       real(dp):: phi,muk,rho,ssig,csig,theta,
      & p1true(4),p2true(4),p3true(4),p4true(4),p5true(4),p6true(4),
@@ -449,12 +450,12 @@ c---  strong coupling constant omitted due to cancelling with kappa/v^4
 
 c---  kappa parameter defined (temporary hardcode)
 c---  strong coupling constant omitted due to cancelling with ratio convention
-      kdim8(1)=0.1d0
-      kdim8(2)=0.1d0
-      kdim8(3)=0.1d0
-      kdim8(4)=0.1d0
-      kdim8(5)=0.1d0
-      kdim8(6)=0.1d0
+      kdim8(1)=1d-30
+      kdim8(2)=1d-30
+      kdim8(3)=1d-30
+      kdim8(4)=1d-30
+      kdim8(5)=1d-30
+      kdim8(6)=1d-30
 
       kdim8(:)=kdim8(:)*gwsq**2/((16d0,zero)*wmass**4)
 
