@@ -44,15 +44,7 @@ function userincludedipole(nd, ppart, mcfm_result)
      if ( (nproc == 61) .or. (nproc == 66) .or. (nproc == 69) &
           & .or. (nproc == 113) .or. (nproc == 123) .or. (nproc == 124) & 
           & .or. (nproc == 125) .or. (nproc == 126) ) then
-        ! compute m35
-          m35 = (pjet(3,4) + pjet(5,4))**2
-          do i = 1, 3
-             m35 = m35 - (pjet(3,i) + pjet(5,i))**2
-          enddo
-          m35 = sqrt(m35)
-
-        !        if (ATLAS_hww2017(ppart)) then
-        if (m35 > 55d0) then
+        if (ATLAS_hww2017(ppart)) then
            userincludedipole = mcfm_result
            return
         else
