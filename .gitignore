@@ -62,3 +62,5 @@ QCDLoop/test
 # latex output
 *.pdf
 
+# unix backup files
+*~
