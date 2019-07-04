@@ -33,8 +33,8 @@ function userincludedipole(nd, ppart, mcfm_result)
   logical :: bin,makecuts,ATLAS_hww2017
   common/bin/bin
   common/makecuts/makecuts
-
-  real(dp) :: ptj
+  real(dp) :: ptj, m35
+  integer  :: i
 
   ! take the MCFM result as the default choice
   userincludedipole = mcfm_result
@@ -45,9 +45,9 @@ function userincludedipole(nd, ppart, mcfm_result)
           & .or. (nproc == 113) .or. (nproc == 123) .or. (nproc == 124) & 
           & .or. (nproc == 125) .or. (nproc == 126) ) then
         ! compute m35
-          m35 = (pjet(3,4) + pjet(5,4))**2
+          m35 = (ppart(3,4) + ppart(5,4))**2
           do i = 1, 3
-             m35 = m35 - (pjet(3,i) + pjet(5,i))**2
+             m35 = m35 - (ppart(3,i) + ppart(5,i))**2
           enddo
           m35 = sqrt(m35)
 

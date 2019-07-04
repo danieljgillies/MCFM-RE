@@ -3,10 +3,10 @@
 # Replace this with the location of Cernlib on your system (if desired)
 CERNLIB     = 
 # Replace this with the location of LHAPDF on your system (if desired)
-LHAPDFLIB   =
+LHAPDFLIB   = 
 
 # Flag for compiling with OpenMP (YES) or not (anything else)
-USEOMP = YES
+USEOMP = NO
 # Flag for compiling with MPI (YES) or not (anything else)
 # note: USEMPI -> YES automatically puts USEOMP -> YES
 USEMPI = NO
@@ -56,7 +56,7 @@ LINKONELOOP     = NO
 #   NATIVE -- internal routines
 #   PDFLIB -- PDFLIB v8.04
 #   LHAPDF -- Les Houches library
-PDFROUTINES = LHAPDF
+PDFROUTINES = NATIVE
 
 # Set this to NO/YES/FROOT
 #   NO  -- no n-tuple output or unweighting is possible
@@ -2350,7 +2350,7 @@ test: $(OMPTEST)
 	@echo $(PDFMSG)
 	@echo $(NTUPMSG)
 
-mcfmalt: mcfmlib $(NONLIB)
+mcfmalt: mcfmlib $(Documents\GitHub\MCFM-RE)
 	$(FC) $(FFLAGS) -L$(LIBDIR) -L$(QLDIR) -L$(FFDIR) -L$(PVDIR) -L$(RECURDIR) -L$(OVDIR) -L$(JETVHETODIR) -o $@ \
 	$(patsubst %,$(OBJNAME)/%,$(NONLIB)) -lmcfm $(LIBFLAGS) 
 	mv mcfmalt Bin/mcfm
