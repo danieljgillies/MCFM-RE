@@ -76,7 +76,7 @@ c--- APPLgrid - end
       logical:: technicalincluded
       real(dp):: ran2,ran2nr,randummy
       real(dp):: alphas
-      integer :: tmp
+      integer :: tmp,i
       
       common/writerefs/writerefs
       common/spira/spira
@@ -469,6 +469,10 @@ c---  kappa's
       if (verbose) call writeinput(6,' * ',' ','k_b')
       read(20,*) k_g
       if (verbose) call writeinput(6,' * ',' ','k_g')
+      do i=1,6
+         read(20,*) kdim8(i)
+      enddo   
+      if (verbose) call writeinput(6,' * ',' ','kdim8')
       read(20,*) intonly
       if (verbose) call writeinput(6,' * ',' ','intonly')
 

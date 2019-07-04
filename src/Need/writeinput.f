@@ -59,7 +59,7 @@ c      include 'ptilde.f'
 c      include 'APPLinclude.f'
 c--- APPLgrid - end
       character*(*) tag,lstring,rstring
-      character*72 f93,f94,f95,f96,f97,f98,f99
+      character*72 f93,f94,f95,f96,f97,f98,f99,f100
       character*15 kpartstring
       logical:: dryrun,makecuts,writeall,spira,writerefs
       integer:: unitno, nmin,nmax
@@ -100,7 +100,10 @@ c--- f98 logical:: format
       f98='('''//lstring//''',L20,12x,''['',a,'']'','''//rstring//''')' 
 c--- f99 floating point format
       f99='('''//lstring//''',f20.4,12x,''['',a,'']'','''
-     & //rstring//''')' 
+     &     //rstring//''')'
+c--- f100 floating point format
+c      f100='('''//lstring//''',f20.4,12x,''['',a,'']'','''
+c     &     //rstring//''')'  
     
       writeall=.false.
       if (tag == 'WRITEALL') writeall=.true.
@@ -444,6 +447,12 @@ c--- catch special scale choices for stop+b process
       if ((tag == 'k_g') .or. (writeall)) then
          write(unitno,fmt=f99) k_g,'kappa_g'
       endif
+      if ((tag == 'kdim8') .or. (writeall)) then
+         write(unitno,*) kdim8,'kdim8'
+c     do i=1,size(kdim8)
+c            write(unitno,fmt=f100) kdim8(i),'kdim8(',i,')'
+c         enddo
+      endif      
       if ((tag == 'intonly') .or. (writeall)) then
          write(unitno,fmt=f98) intonly,'intonly'
       endif

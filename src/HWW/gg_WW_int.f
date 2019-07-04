@@ -448,18 +448,19 @@ c---  strong coupling constant omitted due to cancelling with kappa/v^4
       rdim8 = ctwo*pi/gwsq
 ! check with 1602.05141
       rdim8 = rdim8*four*pi/gsq
-      Adim8 = Adim8*rdim8
+      kdim8 = kdim8*rdim8
 
 c---  kappa parameter defined (temporary hardcode)
-c---  strong coupling constant omitted due to cancelling with ratio convention
-      kdim8(1)=zero
+c---  strong coupling constant omitted due to cancelling of kappa with
+c---  ratio convention
+!     kdim8(1)=zero
 !     kdim8(2)=1d-30
-! check with 1602.05141
-      kdim8(2)=1d-13
-      kdim8(3)=zero
-      kdim8(4)=zero
-      kdim8(5)=zero
-      kdim8(6)=zero
+! check with 1602.05141, now to be defined in input.DAT
+!     kdim8(2)=1d-13
+!     kdim8(3)=zero
+!     kdim8(4)=zero
+!     kdim8(5)=zero
+!     kdim8(6)=zero
 
       ! our normalisation, comment to check with 1602.05141
 !      kdim8(:)=kdim8(:)*gwsq**2/((16d0,zero)*wmass**4)
@@ -470,8 +471,9 @@ c---
       msqgg=0._dp
       do h1=1,2
       do h2=1,2
-         Atot(h1,h2)=faccont*Avec(h1,h2)+Agen3(h1,h2)+Ahiggs(h1,h2)+
-     .        dot_product(kdim8(:),Adim8(:,h1,h2))
+         
+          Atot(h1,h2)=faccont*Avec(h1,h2)+Agen3(h1,h2)+Ahiggs(h1,h2)+
+      .        dot_product(kdim8(:),Adim8(:,h1,h2))
 
       if     (caseggWW4l) then
 c--- This accumulates total contributions
