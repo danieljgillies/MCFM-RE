@@ -446,10 +446,10 @@ c---  Ratio convention
 c---  strong coupling constant omitted due to cancelling with kappa/v^4
       rdim8 = ctwo*pi/gwsq
 ! check with 1602.05141
-      rdim8 = rdim8*four*pi/gsq
+!      rdim8 = rdim8*four*pi/gsq
       Adim8 = Adim8*rdim8
-      ! our normalisation, comment to check with 1602.05141
-!      Adim8=Adim8*gwsq**2/((16d0,zero)*wmass**4)
+!     our normalisation, comment to check with 1602.05141
+      Adim8=Adim8*gwsq**2/((16d0,zero)*wmass**4)
 
 c---  
       msqgg=0._dp
