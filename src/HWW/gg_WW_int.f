@@ -34,7 +34,6 @@ c--- Triangle (axial) pieces cancel for massless isodoublets
      & faccont,fachiggs,amphiggs,f,e3De4,sum(2,2,-2:0)
       complex(dp):: Adim8(6,2,2)
       complex(dp) :: rdim8
-      real(dp) :: kdim8(6)
       real(dp):: phi,muk,rho,ssig,csig,theta,
      & p1true(4),p2true(4),p3true(4),p4true(4),p5true(4),p6true(4),
      & dot,s12,s34,s56,dot1256,afac,bfac,gden,delta,
@@ -473,7 +472,7 @@ c---
       do h2=1,2
          
           Atot(h1,h2)=faccont*Avec(h1,h2)+Agen3(h1,h2)+Ahiggs(h1,h2)+
-      .        dot_product(kdim8(:),Adim8(:,h1,h2))
+     .        dot_product(kdim8(:),Adim8(:,h1,h2))
 
       if     (caseggWW4l) then
 c--- This accumulates total contributions
