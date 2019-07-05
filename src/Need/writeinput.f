@@ -447,12 +447,12 @@ c--- catch special scale choices for stop+b process
       if ((tag == 'k_g') .or. (writeall)) then
          write(unitno,fmt=f99) k_g,'kappa_g'
       endif
-      if ((tag == 'kdim8') .or. (writeall)) then
-         write(unitno,*) kdim8,'kdim8'
+!      if ((tag == 'kdim8') .or. (writeall)) then
+!         write(unitno,*) kdim8,'kdim8'
 c     do i=1,size(kdim8)
 c            write(unitno,fmt=f100) kdim8(i),'kdim8(',i,')'
 c         enddo
-      endif      
+!      endif      
       if ((tag == 'intonly') .or. (writeall)) then
          write(unitno,fmt=f98) intonly,'intonly'
       endif
