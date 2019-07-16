@@ -449,7 +449,7 @@ c--- added these variables to scale plots at intermediate steps
      &' set xlabel ','"',A,'" font "Helvetica, 20"',/1X,
      &' set ylabel ','"d{/Symbol s}/d',A,
      &' [fb]" font "Helvetica, 20"',/1X,
-     &' set xrange [ ',F10.5,':',F10.5,']')
+     &' set xrange [ ',F11.5,':',F11.5,']')
       if(SCALE .eq. 'log') then
          write(97,*) ' set logscale y'
       endif
@@ -466,6 +466,8 @@ c--- added these variables to scale plots at intermediate steps
       endif
     1 CONTINUE
       WRITE(97,200)
+      ! Add newline to be extra safe with gnuplot
+      write(97,*)
   200 FORMAT(' e')
       END
 
