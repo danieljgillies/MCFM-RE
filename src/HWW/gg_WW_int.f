@@ -451,6 +451,8 @@ c---  strong coupling constant omitted due to cancelling with kappa/v^4
 !     our normalisation, comment to check with 1602.05141
       Adim8=Adim8*gwsq**2/((16d0,zero)*wmass**4)
 
+!      write(*,*) 'kdim8', kdim8
+!      write(*,*) 'Adim8', Adim8(:,1,1)
 c---  
       msqgg=0._dp
       do h1=1,2
@@ -479,6 +481,8 @@ c--- This only accumulates the interference
       enddo
       enddo
 
+
+      
 c--- overall factor from diagrams
       fac=avegg*V*(2._dp*gwsq*gsq/(16._dp*pisq)*gwsq/2._dp)**2
      & *s(3,4)**2/((s(3,4)-wmass**2)**2+(wwidth*wmass)**2)
