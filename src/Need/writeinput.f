@@ -103,7 +103,7 @@ c--- f99 floating point format
       f99='('''//lstring//''',f20.4,12x,''['',a,'']'','''
      &     //rstring//''')'
 c--- f100 floating point format
-      f100='('''//lstring//''',f20.4,12x,''['',a,'']'','''
+      f100='('''//lstring//''',es20.2E2,12x,''['',a,'']'','''
      &     //rstring//''')'  
     
       writeall=.false.

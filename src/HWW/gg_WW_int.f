@@ -445,11 +445,12 @@ c---  MCFM propagator convention
 c---  Ratio convention
 c---  strong coupling constant omitted due to cancelling with kappa/v^4
       rdim8 = ctwo*pi/gwsq
-!  check with 1602.05141 - omit unless checking
+!      check with 1602.05141 - omit unless checking
 !      rdim8 = rdim8*four*pi/gsq
       Adim8 = Adim8*rdim8
 !     our normalisation, comment out when checking with 1602.05141
       Adim8=Adim8*gwsq**2/((16d0,zero)*wmass**4)
+
 c---  
       msqgg=0._dp
       do h1=1,2
@@ -464,12 +465,16 @@ c--- This accumulates total contributions
 c--- This only accumulates contributions containing the Higgs diagram,
 c---  i.e. the Higgs diagrams squared and the interference
         msqgg=msqgg+abs(Atot(h1,h2))**2
-     &             -abs(faccont*Avec(h1,h2)+Agen3(h1,h2))**2
+     &        -abs(faccont*Avec(h1,h2)+Agen3(h1,h2))**2
+     &        -abs(Ahiggs(h1,h2)
+     &        +dot_product(kdim8(:),Adim8(:,h1,h2)))**2
+     &        +abs(Ahiggs(h1,h2))**2
       elseif (caseHWWint) then
 c--- This only accumulates the interference
-        msqgg=msqgg+abs(Atot(h1,h2))**2
-     &             -abs(faccont*Avec(h1,h2)+Agen3(h1,h2))**2
-     &             -abs(Ahiggs(h1,h2))**2
+         msqgg=msqgg+abs(Atot(h1,h2))**2
+     &        -abs(faccont*Avec(h1,h2)+Agen3(h1,h2))**2
+     &        -abs(Ahiggs(h1,h2)
+     &        +dot_product(kdim8(:),Adim8(:,h1,h2)))**2
       else
         write(6,*) 'Unexpected case in gg_WW_int: ',kcase
         stop
