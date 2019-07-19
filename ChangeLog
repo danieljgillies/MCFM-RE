@@ -1,3 +1,12 @@
+2019-07-19  Harry Phillips  <hp257@eod-2.uscs.susx.ac.uk>
+
+	* src/HWW/gg_ww_dim8.f90 (gg_ww_dim8): *** ADDED ***
+	contains relevant helicity amplitudes for CP-even dimension-8
+	operators contributing to gg->WW 
+
+	* src/HWW/gg_WW_int.f (gg_ww_int):
+	implemented contribution of dimension 8 operators to gg->WW
+
 2018-03-16  Luke  <luke@Rus>
 
 	* src/Inc/kappa.f (main): anomalous Yukawa couplings parameters

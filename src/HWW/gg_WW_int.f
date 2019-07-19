@@ -464,17 +464,24 @@ c--- This accumulates total contributions
       elseif (caseHWWHpi) then
 c--- This only accumulates contributions containing the Higgs diagram,
 c---  i.e. the Higgs diagrams squared and the interference
-        msqgg=msqgg+abs(Atot(h1,h2))**2
+         if (any(kdim8 /= zero)) then
+            stop "kdim8 /= 0 not allowed for this process"
+         endif
+         msqgg=msqgg+abs(Atot(h1,h2))**2
      &        -abs(faccont*Avec(h1,h2)+Agen3(h1,h2))**2
-     &        -abs(Ahiggs(h1,h2)
-     &        +dot_product(kdim8(:),Adim8(:,h1,h2)))**2
-     &        +abs(Ahiggs(h1,h2))**2
       elseif (caseHWWint) then
+         if (any(kdim8 /= zero)) then
+            stop "kdim8 /= 0 not allowed for this process"
+         endif
+         msqgg=msqgg+abs(Atot(h1,h2))**2
+     &        -abs(faccont*Avec(h1,h2)+Agen3(h1,h2))**2
+     &        -abs(Ahiggs(h1,h2))**2
+      elseif (intonly) then
 c--- This only accumulates the interference
          msqgg=msqgg+abs(Atot(h1,h2))**2
      &        -abs(faccont*Avec(h1,h2)+Agen3(h1,h2))**2
-     &        -abs(Ahiggs(h1,h2)
-     &        +dot_product(kdim8(:),Adim8(:,h1,h2)))**2
+     &        -abs(Ahiggs(h1,h2))**2
+     &        -abs(dot_product(kdim8(:),Adim8(:,h1,h2)))**2
       else
         write(6,*) 'Unexpected case in gg_WW_int: ',kcase
         stop
