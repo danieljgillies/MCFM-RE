@@ -456,13 +456,21 @@ c---
       do h1=1,2
       do h2=1,2
           Atot(h1,h2)=faccont*Avec(h1,h2)+Agen3(h1,h2)+Ahiggs(h1,h2)+
-     .        dot_product(kdim8(:),Adim8(:,h1,h2))
-
-      if     (caseggWW4l) then
-c--- This accumulates total contributions
-        msqgg=msqgg+abs(Atot(h1,h2))**2
-      elseif (caseHWWHpi) then
-c--- This only accumulates contributions containing the Higgs diagram,
+     &        dot_product(kdim8(:),Adim8(:,h1,h2))
+c---  
+          if (caseggWW4l) then
+c---  This only accumulates the interference
+             if (intonly) then
+                msqgg=msqgg+abs(Atot(h1,h2))**2
+     &          -abs(faccont*Avec(h1,h2)+Agen3(h1,h2))**2
+     &          -abs(Ahiggs(h1,h2))**2
+     &          -abs(dot_product(kdim8(:),Adim8(:,h1,h2)))**2
+             else
+c---  This accumulates total contributions
+                msqgg=msqgg+abs(Atot(h1,h2))**2
+             endif
+          elseif (caseHWWHpi) then
+c---  This only accumulates contributions containing the Higgs diagram,
 c---  i.e. the Higgs diagrams squared and the interference
          if (any(kdim8 /= zero)) then
             stop "kdim8 /= 0 not allowed for this process"
@@ -476,15 +484,9 @@ c---  i.e. the Higgs diagrams squared and the interference
          msqgg=msqgg+abs(Atot(h1,h2))**2
      &        -abs(faccont*Avec(h1,h2)+Agen3(h1,h2))**2
      &        -abs(Ahiggs(h1,h2))**2
-      elseif (intonly) then
-c--- This only accumulates the interference
-         msqgg=msqgg+abs(Atot(h1,h2))**2
-     &        -abs(faccont*Avec(h1,h2)+Agen3(h1,h2))**2
-     &        -abs(Ahiggs(h1,h2))**2
-     &        -abs(dot_product(kdim8(:),Adim8(:,h1,h2)))**2
       else
-        write(6,*) 'Unexpected case in gg_WW_int: ',kcase
-        stop
+         write(6,*) 'Unexpected case in gg_WW_int: ',kcase
+         stop
       endif
       
       enddo
