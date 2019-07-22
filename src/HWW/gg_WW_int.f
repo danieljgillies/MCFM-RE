@@ -33,7 +33,7 @@ c--- Triangle (axial) pieces cancel for massless isodoublets
       complex(dp):: Avec(2,2),Ahiggs(2,2),Agen3(2,2),Atot(2,2),
      & faccont,fachiggs,amphiggs,f,e3De4,sum(2,2,-2:0)
       complex(dp):: Adim8(6,2,2)
-      complex(dp) :: rdim8
+      complex(dp):: rdim8
       real(dp):: phi,muk,rho,ssig,csig,theta,
      & p1true(4),p2true(4),p3true(4),p4true(4),p5true(4),p6true(4),
      & dot,s12,s34,s56,dot1256,afac,bfac,gden,delta,

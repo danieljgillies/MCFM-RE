@@ -1,4 +1,5 @@
       subroutine qqb_hww_tb(p,msq)
+      use gg_ww_dim8
       implicit none
       include 'types.f'
       
@@ -21,6 +22,8 @@ c--- including both top and bottom quark loops
       real(dp):: mfsq,tau,tauinv,rt,rescale
       complex(dp):: Ahiggs_t(2,2), Ahiggs_b(2,2), Ahiggs_g(2,2)
       complex(dp):: Ahiggs(2,2),fachiggs,amphiggs,f,e3De4
+      complex(dp):: Adim8(6,2,2)
+      complex(dp):: rdim8
 !      complex(dp):: num_c
 
       do j=-nf,nf
@@ -92,6 +95,50 @@ c--- Rescale for width study
          Ahiggs_g(:,:)=Ahiggs_g(:,:)*rescale
       endif
 
+c---  dimension 8 operators
+! hijacked
+      Adim8(1,2,2)= A1pp(za,zb)*im*(four,zero)
+      Adim8(1,2,1)= A1pm(za,zb)*im*ctwo
+      Adim8(1,1,2)= conjg(Adim8(1,2,1))
+      Adim8(1,1,1)= conjg(Adim8(1,2,2))
+
+      Adim8(2,2,2)= A2pp(za,zb)*im*(8._dp,zero)
+      Adim8(2,2,1)= czip
+      Adim8(2,1,2)= czip
+      Adim8(2,1,1)= conjg(Adim8(2,2,2))
+
+      Adim8(3,2,2)= A3pp(za,zb)*im*(8._dp,zero)
+      Adim8(3,2,1)= A3pm(za,zb)*im*(8._dp,zero)
+      Adim8(3,1,2)= conjg(Adim8(3,2,1))
+      Adim8(3,1,1)= conjg(Adim8(3,2,2))
+
+      Adim8(4,2,2)= A4pp(za,zb)*im*(four,zero)
+      Adim8(4,2,1)= A4pm(za,zb)*im*(four,zero)
+      Adim8(4,1,2)= conjg(Adim8(4,2,1))
+      Adim8(4,1,1)= conjg(Adim8(4,2,2))
+
+      Adim8(5,2,2)= A5pp(za,zb)*im*wmass**2
+      Adim8(5,2,1)= A5pm(za,zb)*im*wmass**2
+      Adim8(5,1,2)= conjg(Adim8(5,2,1))
+      Adim8(5,1,1)= conjg(Adim8(5,2,2))
+
+      Adim8(6,2,2)= A6pp(za,zb)*im*(four,zero)*wmass**2
+      Adim8(6,2,1)= czip
+      Adim8(6,1,2)= czip
+      Adim8(6,1,1)= conjg(Adim8(6,2,2))
+
+c---  MCFM propagator convention
+      Adim8 = Adim8/(s(3,4)*s(5,6))
+      
+c---  Ratio convention
+c---  strong coupling constant omitted due to cancelling with kappa/v^4
+      rdim8 = ctwo*pi/gwsq
+!      check with 1602.05141 - omit unless checking
+!      rdim8 = rdim8*four*pi/gsq
+      Adim8 = Adim8*rdim8
+!     our normalisation, comment out when checking with 1602.05141
+      Adim8=Adim8*gwsq**2/((16d0,zero)*wmass**4)
+
 c---  fill amplitude with full contributions of Higgs
       Ahiggs(1,1)=Ahiggs_t(1,1)+Ahiggs_b(1,1)+Ahiggs_g(1,1)
       Ahiggs(1,2)=Ahiggs_t(1,2)+Ahiggs_b(1,2)+Ahiggs_g(1,2)
@@ -101,7 +148,8 @@ c---  fill amplitude with full contributions of Higgs
       msqgg=0._dp
       do h1=1,2
       do h2=1,2
-      msqgg=msqgg+abs(Ahiggs(h1,h2))**2
+         msqgg=msqgg+abs(Ahiggs(h1,h2)
+     &        +dot_product(kdim8(:),Adim8(:,h1,h2)))**2
 
       if (intonly) then
 c---  accumulate just the interference terms
