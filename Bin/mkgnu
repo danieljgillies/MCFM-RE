@@ -1,0 +1,19 @@
+# for each .dat file
+for FILEPATH in dat/*.DAT; do
+    # get filename (strip path and extension)
+    FILENAME=$(basename $FILEPATH .DAT)
+
+    # get seed from filename
+    SEED=${FILENAME:6:1}
+
+    # run experiment
+    ./mcfm dat/$FILENAME.DAT
+
+    # append seed to gnu filename
+    # mv "WWqqbr_nlo_PDF4LHC_1.00_1.00_${2}.gnu" "${basename $GNU_FILENAME .gnu}_${SEED}.gnu"
+    # create output directory if it doesn't exist
+    # mkdir -p gnu
+
+    # move gnu file into output directory
+    # mv $GNU_FILENAME gnu/
+done
