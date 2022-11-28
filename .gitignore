@@ -46,6 +46,10 @@ QCDLoop/test
 *.top
 *.dat
 *.gnu
+*.csv
+*_csv
+*_gnu
+*_dat
 
 # plots
 *.ps
