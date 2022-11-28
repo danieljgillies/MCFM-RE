@@ -27,11 +27,11 @@ c
       
       include 'ewinput.f'
       data ewscheme  / +1                  /   ! Chooses EW scheme
-      data Gf_inp    / 1.16639e-5_dp          /   ! G_F
-      data aemmz_inp / 7.7585538055706e-03_dp /   ! alpha_EM(m_Z)=1/128.89
-      data xw_inp    / 0.2223_dp            /   ! sin^2(theta_W)
-      data wmass_inp / 80.385_dp            /   ! W mass
-      data zmass_inp / 91.1876_dp           /   ! Z mass
+      data Gf_inp    / 1.16639e-5_dp          /   ! G_F ------
+      data aemmz_inp / 7.54677e-03_dp /   ! alpha_EM(m_Z)=1/128.89
+      data xw_inp    / 0.2336991285_dp            /   ! sin^2(theta_W)
+      data wmass_inp / 80.419_dp            /   ! W mass -----
+      data zmass_inp / 91.1880_dp           /   ! Z mass -----
 ************************************************************************
 
 
@@ -67,7 +67,7 @@ c---  Widths: note that the top width is calculated in the program
 c---  The W width of 2.1054 is derived using the measured BR of
 c---    10.86 +/- 0.09 % (PDG 2015) and the LO partial width calculation
 c---    for Mw=80.385 GeV
-      data wwidth,zwidth/2.093_dp,2.4952_dp/
+      data wwidth,zwidth/2.047600_dp,2.4952_dp/
       data tauwidth/2.269e-12_dp/
 c--- Number of active flavours in the initial state: this parameter
 c--- may be changed in the program for some processes

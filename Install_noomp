@@ -3,9 +3,11 @@
 # first configure the makefile
 
 # Insert the location of Cernlib on your system (if desired)
-set CERNLIB     = 
+set CERNLIB= 
 # Insert the location of LHAPDF on your system (if desired)
-set LHAPDFLIB   = 
+LHAPDFLIB="/home/dc-gill1/lib"
+
+echo $LHAPDFLIB
 
 if [$CERNLIB == '']; then
   echo 'Warning: no directory specified for CERNLIB'
@@ -13,6 +15,7 @@ else
   echo 'CERNLIB directory: '$CERNLIB
 fi
 if [$LHAPDFLIB == '']; then
+  echo $LHAPDFLIB
   echo 'Warning: no directory specified for LHAPDF'
 else
   echo 'LHAPDFLIB directory: '$LHAPDFLIB

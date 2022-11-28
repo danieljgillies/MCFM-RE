@@ -32,6 +32,8 @@ c--- Triangle (axial) pieces cancel for massless isodoublets
       complex(dp):: Ahiggs_t(2,2), Ahiggs_b(2,2), Ahiggs_g(2,2)
       complex(dp):: Avec(2,2),Ahiggs(2,2),Agen3(2,2),Atot(2,2),
      & faccont,fachiggs,amphiggs,f,e3De4,sum(2,2,-2:0)
+     
+      complex(dp):: thing,thing_1,thing_2,thing3,thing4,thing5,thing6,thing7
       complex(dp):: Adim8(6,2,2)
       complex(dp):: rdim8
       real(dp):: phi,muk,rho,ssig,csig,theta,
@@ -352,8 +354,10 @@ c--- fill amplitudes with contributions of Higgs: bottom loop
       Ahiggs_b(2,2)=fachiggs*amphiggs*zb(1,2)/za(2,1)
 
 c---  fill amplitudes with contributions of Higgs: contact interaction
-      amphiggs=k_g*(s(1,2)/6._dp)*im*e3De4
 
+      amphiggs=k_g*(s(1,2)/6._dp)*im*e3De4*(((48*pisq)*4*(wmass**2)))/(gsq*gwsq)
+      !*(((hmass**2)*96*pisq*wmass**2)/(gsq*gwsq))
+      !-- za12**2 ++zb12**2
       Ahiggs_g(1,1)=fachiggs*amphiggs*za(1,2)/zb(2,1)
       Ahiggs_g(1,2)=czip
       Ahiggs_g(2,1)=czip
@@ -408,63 +412,106 @@ c---  fill amplitude with full contributions of Higgs
       Ahiggs(2,1)=Ahiggs_t(2,1)+Ahiggs_b(2,1)+Ahiggs_g(2,1)
       Ahiggs(2,2)=Ahiggs_t(2,2)+Ahiggs_b(2,2)+Ahiggs_g(2,2)
 
+c---      thing=za(3,4)*za(5,6)*((zb(1,4)*zb(2,6))**2+(zb(1,6)*zb(2,4))**2)
+
+c---      thing_1=-(za(3,4)*zb(5,6)*((za(2,5)*zb(1,4))**2)+zb(3,4)*za(5,6)*((za(2,3)*zb(1,6))**2))
+
+c---      thing_2=-(za(3,4)*zb(5,6)*((za(1,5)*zb(2,4))**2)+zb(3,4)*za(5,6)*((za(1,3)*zb(2,6))**2))
+
+c---      thing3=(zb(3,4)*zb(5,6)*((za(1,3)*za(2,5))**2+(za(1,5)*za(2,3))**2))
+
+c---      thing4=-za(3,4)*za(5,6)*(((zb(1,3)*zb(2,5))**2)+((zb(1,5)*zb(2,3))**2)) 
+
+c---     thing5=-(za(3,4)*zb(5,6)*((za(2,6)*zb(1,3))**2)+zb(3,4)*za(5,6)*((za(2,4)*zb(1,5))**2))
+
+c---      thing6=-(za(3,4)*zb(5,6)*((za(1,6)*zb(2,3))**2)+zb(3,4)*za(5,6)*((za(1,4)*zb(2,5))**2))
+      
+c---      thing7=-zb(3,4)*zb(5,6)*(((za(1,4)*za(2,6))**2)+((za(1,6)*za(2,4))**2)) 
+
 c---  dimension 8 operators
       Adim8(1,2,2)= A1pp(za,zb)*im*(four,zero)
-      Adim8(1,2,1)= A1pm(za,zb)*im*ctwo
+c---      print *, Adim8(1,2,2)
+      Adim8(1,2,1)= A1pm(za,zb)*im*(four,zero)
+c---      print *, Adim8(1,2,1)
       Adim8(1,1,2)= conjg(Adim8(1,2,1))
       Adim8(1,1,1)= conjg(Adim8(1,2,2))
 
       Adim8(2,2,2)= A2pp(za,zb)*im*(8._dp,zero)
+c---      print *, Adim8(2,2,2)
       Adim8(2,2,1)= czip
       Adim8(2,1,2)= czip
       Adim8(2,1,1)= conjg(Adim8(2,2,2))
 
       Adim8(3,2,2)= A3pp(za,zb)*im*(8._dp,zero)
-      Adim8(3,2,1)= A3pm(za,zb)*im*(8._dp,zero)
-      Adim8(3,1,2)= conjg(Adim8(3,2,1))
+c---      print *, Adim8(3,2,2)
+c---      Adim8(3,2,1)= A3pm(za,zb)*im*(8._dp,zero)
+      Adim8(3,2,1)= czip
+c---      print *, Adim8(3,2,1)
+c---      Adim8(3,1,2)= conjg(Adim8(3,2,1))
+      Adim8(3,1,2)= czip
       Adim8(3,1,1)= conjg(Adim8(3,2,2))
 
       Adim8(4,2,2)= A4pp(za,zb)*im*(four,zero)
       Adim8(4,2,1)= A4pm(za,zb)*im*(four,zero)
-      Adim8(4,1,2)= conjg(Adim8(4,2,1))
-      Adim8(4,1,1)= conjg(Adim8(4,2,2))
+      Adim8(4,1,2)= conjg(Adim8(1,2,1))
+      Adim8(4,1,1)= conjg(Adim8(1,2,2))
+
+      
+
 
       Adim8(5,2,2)= A5pp(za,zb)*im*wmass**2
+c---      print *, Adim8(5,2,2)
       Adim8(5,2,1)= A5pm(za,zb)*im*wmass**2
+c---      print *, Adim8(5,2,1)
       Adim8(5,1,2)= conjg(Adim8(5,2,1))
       Adim8(5,1,1)= conjg(Adim8(5,2,2))
 
-      Adim8(6,2,2)= A6pp(za,zb)*im*(four,zero)*wmass**2
+c---      Adim8(6,2,2)= (zb(1,2)**2)*za(3,5)*zb(4,6)*im*(four,zero)*wmass**2
+c---      Adim8(6,2,2)=  ((zb(1,2)**2)*za(3,5)*zb(4,6))*im*(8._dp,zero)*wmass**2
+c---      print *, Adim8(6,2,2)
+      Adim8(6,2,2)= A6pp(za,zb)*im*(8._dp,zero)*wmass**2
       Adim8(6,2,1)= czip
       Adim8(6,1,2)= czip
-      Adim8(6,1,1)= conjg(Adim8(6,2,2))
+      Adim8(6,1,1)= (za(1,2)**2)*za(3,5)*zb(4,6)*im*(8._dp,zero)*wmass**2
+c---      Adim8(6,2,2)= ((za(1,2)**2)*za(3,5)*zb(4,6))*im*(8._dp,zero)*wmass**2 
+c---      Adim8(6,1,1)= (za(1,2)**2)*za(3,5)*zb(4,6)*im*(four,zero)*wmass**2
+
+     
 
 c---  MCFM propagator convention
       Adim8 = Adim8/(s(3,4)*s(5,6))
-      
+      Adim8 = Adim8/(gwsq*gsq/(8._dp*pisq))
 c---  Ratio convention
 c---  strong coupling constant omitted due to cancelling with kappa/v^4
-      rdim8 = ctwo*pi/gwsq
+!      rdim8 = ctwo*pi/gwsq
+
 !      check with 1602.05141 - omit unless checking
 !      rdim8 = rdim8*four*pi/gsq
-      Adim8 = Adim8*rdim8
+!      Adim8 = Adim8*rdim8
 !     our normalisation, comment out when checking with 1602.05141
-      Adim8=Adim8*gwsq**2/((16d0,zero)*wmass**4)
-
+!      Adim8=Adim8*gwsq**2/((16d0,zero)*wmass**4)
+      
 c---  
       msqgg=0._dp
       do h1=1,2
       do h2=1,2
-          Atot(h1,h2)=faccont*Avec(h1,h2)+Agen3(h1,h2)+Ahiggs(h1,h2)+
-     &        dot_product(kdim8(:),Adim8(:,h1,h2))
-c---  
+      Atot(h1,h2)= Ahiggs(h1,h2)+dot_product(kdim8(:),Adim8(:,h1,h2))
+c---      Atot(h1,h2)=Ahiggs(h1,h2)
+c---      Atot(h1,h2)=Agen3(h1,h2)
+c---      Atot(h1,h2)=faccont*Avec(h1,h2)+Agen3(h1,h2)+Ahiggs(h1,h2)+dot_product(kdim8(:),Adim8(:,h1,h2)) 
           if (caseggWW4l) then
 c---  This only accumulates the interference
              if (intonly) then
                 msqgg=msqgg+abs(Atot(h1,h2))**2
-     &          -abs(faccont*Avec(h1,h2)+Agen3(h1,h2))**2
      &          -abs(Ahiggs(h1,h2))**2
      &          -abs(dot_product(kdim8(:),Adim8(:,h1,h2)))**2
+c---                  print *, "Ahiggs"
+c---                  print *,  Ahiggs(h1,h2)
+c---                  print *, "Avec"
+c---                  print *, faccont*Avec(h1,h2)+Agen3(h1,h2)
+c---                  print *, "Adim8"
+c---                  print *, dot_product(kdim8(:),Adim8(:,h1,h2))
+c---                  print *, abs(Atot(h1,h2))**2-abs(faccont*Avec(h1,h2)+Agen3(h1,h2))**2-abs(Ahiggs(h1,h2))**2-abs(dot_product(kdim8(:),Adim8(:,h1,h2)))**2
              else
 c---  This accumulates total contributions
                 msqgg=msqgg+abs(Atot(h1,h2))**2
@@ -472,21 +519,21 @@ c---  This accumulates total contributions
           elseif (caseHWWHpi) then
 c---  This only accumulates contributions containing the Higgs diagram,
 c---  i.e. the Higgs diagrams squared and the interference
-         if (any(kdim8 /= zero)) then
-            stop "kdim8 /= 0 not allowed for this process"
-         endif
-         msqgg=msqgg+abs(Atot(h1,h2))**2
-     &        -abs(faccont*Avec(h1,h2)+Agen3(h1,h2))**2
-      elseif (caseHWWint) then
-         if (any(kdim8 /= zero)) then
-            stop "kdim8 /= 0 not allowed for this process"
-         endif
-         msqgg=msqgg+abs(Atot(h1,h2))**2
-     &        -abs(faccont*Avec(h1,h2)+Agen3(h1,h2))**2
-     &        -abs(Ahiggs(h1,h2))**2
-      else
-         write(6,*) 'Unexpected case in gg_WW_int: ',kcase
-         stop
+c---         if (any(kdim8 /= zero)) then
+c---            stop "kdim8 /= 0 not allowed for this process"
+c---         endif
+c---         msqgg=msqgg+abs(Atot(h1,h2))**2
+c---     &        -abs(faccont*Avec(h1,h2)+Agen3(h1,h2))**2
+c---      elseif (caseHWWint) then
+c---         if (any(kdim8 /= zero)) then
+c---            stop "kdim8 /= 0 not allowed for this process"
+c---         endif
+c---         msqgg=msqgg+abs(Atot(h1,h2))**2
+c---     &        -abs(faccont*Avec(h1,h2)+Agen3(h1,h2))**2
+c---     &        -abs(Ahiggs(h1,h2))**2
+c---      else
+c---        write(6,*) 'Unexpected case in gg_WW_int: ',kcase
+c---         stop
       endif
       
       enddo
@@ -494,12 +541,14 @@ c---  i.e. the Higgs diagrams squared and the interference
 
 
       
+      
 c--- overall factor from diagrams
       fac=avegg*V*(2._dp*gwsq*gsq/(16._dp*pisq)*gwsq/2._dp)**2
+!     fac=avegg*V*(gwsq/2)**2 -- 4x bigger 
+!      fac=avegg*V*(gwsq/4)**2 
      & *s(3,4)**2/((s(3,4)-wmass**2)**2+(wwidth*wmass)**2)
      & *s(5,6)**2/((s(5,6)-wmass**2)**2+(wwidth*wmass)**2)
       fac=fac/pmax**4
-      
       msq(0,0)=msqgg*fac
       return
       end

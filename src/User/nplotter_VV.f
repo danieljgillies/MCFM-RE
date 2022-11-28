@@ -191,9 +191,9 @@ c---   llplot:  equal to "lin"/"log" for linear/log scale
       n=n+1
       call bookplot(n,tag,'mll',m45,wt,wt2,zip,100._dp,2._dp,'lin')
       n=n+1
-      call bookplot(n,tag,'mll',m34,wt,wt2,zip,250._dp,5._dp,'lin')
+      call bookplot(n,tag,'mll_2',m34,wt,wt2,zip,250._dp,5._dp,'lin')
       n=n+1
-      call bookplot(n,tag,'mll_2',m56,wt,wt2,zip,250._dp,5._dp,'lin')
+      call bookplot(n,tag,'mll_3',m56,wt,wt2,zip,250._dp,5._dp,'lin')
       n=n+1
 c      call bookplot(n,tag,'m4l',m3456,wt,wt2,hmass-0.5._dp,hmass+0.5._dp,
 c     & 0.05._dp,'lin')
@@ -229,9 +229,9 @@ c--- Plots of mtrans in specific regions
       n=n+1
 
 c--- Plots of mtrans in specific regions
-      call bookplot(n,tag,'.75 m_H < m(trans) < m_H',
-     & mtrans,wt,wt2,mthl,mthu,1._dp,'log')
-      n=n+1
+c      call bookplot(n,tag,'.75 m_H < m(trans) < m_H',
+c     & mtrans,wt,wt2,mthl,mthu,1._dp,'log')
+c      n=n+1
       
       
 c--- Plots of m(3456) in specific regions

@@ -353,13 +353,15 @@ subroutine userplotter(pjet, wt, wt2, nd)
     !!! transverse components of visible and invisible particle pairs
 
   ! m(45), m_ll
-  call bookplot(iplot,tag,'mll',m45,wt,wt2,zip,1000._dp,20._dp,'log')
+  call bookplot(iplot,tag,'mWW', m3456,wt,wt2,zip,1980._dp,20._dp,'log')
   iplot = iplot + 1
-  call bookplot(iplot,tag,'mll_full',m45,wt,wt2,zip,14000._dp,200._dp,'log')
+  call bookplot(iplot,tag,'mll',m45,wt,wt2,zip,1980._dp,20._dp,'log')
+  iplot = iplot + 1
+  call bookplot(iplot,tag,'mll_full',m45,wt,wt2,zip,14000._dp,150._dp,'log')
   iplot = iplot + 1
 
   ! pt(45), pt_ll
-  call bookplot(iplot,tag,'ptll',ptll,wt,wt2,zip,1000._dp,20._dp,'log')
+  call bookplot(iplot,tag,'ptll',ptll,wt,wt2,zip,1980._dp,20._dp,'log')
   iplot = iplot + 1
   call bookplot(iplot,tag,'ptll_full',ptll,wt,wt2,zip,14000._dp,200._dp,'log')
   iplot = iplot + 1

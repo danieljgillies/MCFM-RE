@@ -1,3 +1,9 @@
+2022-11-28  Daniel Gillies  <dc-gill1@d3-login02>
+
+	* src/HWW/gg_ww_dim8.f90 (gg_ww_dim8):
+	I have chnaged the helicity amplitudes to the true values.
+	which now returns the variable "other" instead of the variable "res".
+
 2019-07-19  Harry Phillips  <hp257@eod-2.uscs.susx.ac.uk>
 
 	* src/HWW/gg_ww_dim8.f90 (gg_ww_dim8): *** ADDED ***
