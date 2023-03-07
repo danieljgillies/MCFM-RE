@@ -1,5 +1,6 @@
       subroutine gg_ww_int(p,msq)
       use gg_ww_dim8
+      use gg_ww_dim8_full
       implicit none
       include 'types.f'
       
@@ -39,7 +40,10 @@ c--- Triangle (axial) pieces cancel for massless isodoublets
       real(dp):: phi,muk,rho,ssig,csig,theta,
      & p1true(4),p2true(4),p3true(4),p4true(4),p5true(4),p6true(4),
      & dot,s12,s34,s56,dot1256,afac,bfac,gden,delta,
-     & dot1234,dot3456,pmax,ptWsafetycut_massive,ptWsafetycut_massless
+     & dot1234,dot3456,pmax,ptWsafetycut_massive,ptWsafetycut_massless,
+     & s13,s14,s15,s16,s23,s24,
+     & s25,s26,s35,s36,s45,s46,
+     & s134,s234,s156,s256,s3456
       complex(dp):: fvs,fvf,box(2,2,-2:0),triang(2,2,-2:0),
      & bub(2,2,-2:0)
       character*9 pp,pm
@@ -164,6 +168,27 @@ C--- define flattened vectors (k12 and k56)
       s12=2._dp*dot(p,1,2)
       s56=2._dp*dot(p,5,6)
       s34=2._dp*dot(p,3,4)
+c--- New invariants      
+      s13=2._dp*dot(p,1,3)
+      s14=2._dp*dot(p,1,4)
+      s15=2._dp*dot(p,1,5)
+      s16=2._dp*dot(p,1,6)
+      s23=2._dp*dot(p,2,3)
+      s24=2._dp*dot(p,2,4)
+      s25=2._dp*dot(p,2,5)
+      s26=2._dp*dot(p,2,6)
+      s35=2._dp*dot(p,3,5)
+      s36=2._dp*dot(p,3,6)
+      s45=2._dp*dot(p,4,5)
+      s46=2._dp*dot(p,4,6)
+
+      s134=2._dp*(dot(p,1,3)+dot(p,1,4))
+      s234=2._dp*(dot(p,2,3)+dot(p,2,4))
+      s156=2._dp*(dot(p,1,5)+dot(p,1,6))
+      s256=2._dp*(dot(p,2,5)+dot(p,2,6))
+      s3456=2._dp*(dot(p,3,5)+dot(p,3,6)+dot(p,4,5)+dot(p,4,6))
+      
+c--- End new invariants
       dot1256=0.5_dp*(s34-s12-s56)
       delta=dot1256**2-s12*s56
       gden=dot1256+sqrt(delta)
@@ -355,7 +380,7 @@ c--- fill amplitudes with contributions of Higgs: bottom loop
 
 c---  fill amplitudes with contributions of Higgs: contact interaction
 
-      amphiggs=k_g*(s(1,2)/6._dp)*im*e3De4*(((48*pisq)*4*(wmass**2)))/(gsq*gwsq)
+      amphiggs=k_g*(s(1,2)/6._dp)*im*e3De4!*(((48*pisq)*4*(wmass**2)))/(gsq*gwsq)
       !*(((hmass**2)*96*pisq*wmass**2)/(gsq*gwsq))
       !-- za12**2 ++zb12**2
       Ahiggs_g(1,1)=fachiggs*amphiggs*za(1,2)/zb(2,1)
@@ -433,49 +458,60 @@ c---  dimension 8 operators
 c---      print *, Adim8(1,2,2)
       Adim8(1,2,1)= A1pm(za,zb)*im*(four,zero)
 c---      print *, Adim8(1,2,1)
-      Adim8(1,1,2)= conjg(Adim8(1,2,1))
-      Adim8(1,1,1)= conjg(Adim8(1,2,2))
+      Adim8(1,1,2)= A1mp(za,zb)*im*(four,zero)
+      Adim8(1,1,1)= A1mm(za,zb)*im*(four,zero)
 
       Adim8(2,2,2)= A2pp(za,zb)*im*(8._dp,zero)
 c---      print *, Adim8(2,2,2)
       Adim8(2,2,1)= czip
       Adim8(2,1,2)= czip
-      Adim8(2,1,1)= conjg(Adim8(2,2,2))
+      Adim8(2,1,1)= (za(1,2)**2)*Adim8(2,2,2)/(zb(1,2)**2)
 
       Adim8(3,2,2)= A3pp(za,zb)*im*(8._dp,zero)
-c---      print *, Adim8(3,2,2)
-c---      Adim8(3,2,1)= A3pm(za,zb)*im*(8._dp,zero)
       Adim8(3,2,1)= czip
-c---      print *, Adim8(3,2,1)
-c---      Adim8(3,1,2)= conjg(Adim8(3,2,1))
       Adim8(3,1,2)= czip
-      Adim8(3,1,1)= conjg(Adim8(3,2,2))
+      Adim8(3,1,1)= -(za(1,2)**2)*Adim8(3,2,2)/(zb(1,2)**2)
+
+c---      Adim8(4,2,2)= conjg(Adim8(1,1,1))
+c---      Adim8(4,2,1)= -conjg(Adim8(1,1,2))
+c---      Adim8(4,1,2)= -conjg(Adim8(1,2,1))
+c---      Adim8(4,1,1)= conjg(Adim8(1,2,2))
 
       Adim8(4,2,2)= A4pp(za,zb)*im*(four,zero)
+      !print *, "++"
+      !print *, abs(Adim8(4,2,2))
+c---      print *, Adim8(1,2,2)
       Adim8(4,2,1)= A4pm(za,zb)*im*(four,zero)
-      Adim8(4,1,2)= conjg(Adim8(1,2,1))
-      Adim8(4,1,1)= conjg(Adim8(1,2,2))
-
-      
-
+      !print *, "+-"
+      !print *, abs(Adim8(4,2,1))
+c---      print *, Adim8(1,2,1)
+      Adim8(4,1,2)= A4mp(za,zb)*im*(four,zero)
+      !print *, "-+"
+      !print *, abs(Adim8(4,1,2))
+      Adim8(4,1,1)= A4mm(za,zb)*im*(four,zero)
+      !print *, "--"
+      !print *, abs(Adim8(4,1,1))
 
       Adim8(5,2,2)= A5pp(za,zb)*im*wmass**2
 c---      print *, Adim8(5,2,2)
       Adim8(5,2,1)= A5pm(za,zb)*im*wmass**2
 c---      print *, Adim8(5,2,1)
-      Adim8(5,1,2)= conjg(Adim8(5,2,1))
-      Adim8(5,1,1)= conjg(Adim8(5,2,2))
+      Adim8(5,1,2)= A5mp(za,zb)*im*wmass**2
+
+      Adim8(5,1,1)= (za(1,2)**2)*Adim8(5,2,2)/(zb(1,2)**2)
 
 c---      Adim8(6,2,2)= (zb(1,2)**2)*za(3,5)*zb(4,6)*im*(four,zero)*wmass**2
 c---      Adim8(6,2,2)=  ((zb(1,2)**2)*za(3,5)*zb(4,6))*im*(8._dp,zero)*wmass**2
 c---      print *, Adim8(6,2,2)
-      Adim8(6,2,2)= A6pp(za,zb)*im*(8._dp,zero)*wmass**2
+c---      Adim8(6,2,2)= A6pp(za,zb)*im*(four,zero)*wmass**2
+      Adim8(6,2,2)= -Adim8(5,2,2)*(four,zero)
       Adim8(6,2,1)= czip
       Adim8(6,1,2)= czip
-      Adim8(6,1,1)= (za(1,2)**2)*za(3,5)*zb(4,6)*im*(8._dp,zero)*wmass**2
+      Adim8(6,1,1)= -Adim8(5,1,1)*(four,zero)
+c---      Adim8(6,1,1)= (za(1,2)**2)*Adim8(6,2,2)/(zb(1,2)**2)
+
 c---      Adim8(6,2,2)= ((za(1,2)**2)*za(3,5)*zb(4,6))*im*(8._dp,zero)*wmass**2 
 c---      Adim8(6,1,1)= (za(1,2)**2)*za(3,5)*zb(4,6)*im*(four,zero)*wmass**2
-
      
 
 c---  MCFM propagator convention
@@ -495,17 +531,30 @@ c---
       msqgg=0._dp
       do h1=1,2
       do h2=1,2
-      Atot(h1,h2)= Ahiggs(h1,h2)+dot_product(kdim8(:),Adim8(:,h1,h2))
+c---      print *, "Start"
+c---      print *, abs(Ahiggs(h1,h2))
+c---      print *, abs(dot_product(kdim8(:),Adim8(:,h1,h2)))
+c---      Atot(h1,h2)= Ahiggs(h1,h2)+dot_product(kdim8(:),Adim8(:,h1,h2))
 c---      Atot(h1,h2)=Ahiggs(h1,h2)
 c---      Atot(h1,h2)=Agen3(h1,h2)
-c---      Atot(h1,h2)=faccont*Avec(h1,h2)+Agen3(h1,h2)+Ahiggs(h1,h2)+dot_product(kdim8(:),Adim8(:,h1,h2)) 
+      Atot(h1,h2)=faccont*Avec(h1,h2)+Agen3(h1,h2)+Ahiggs(h1,h2)+dot_product(kdim8(:),Adim8(:,h1,h2)) 
           if (caseggWW4l) then
 c---  This only accumulates the interference
              if (intonly) then
-                msqgg=msqgg+abs(Atot(h1,h2))**2
-     &          -abs(Ahiggs(h1,h2))**2
-     &          -abs(dot_product(kdim8(:),Adim8(:,h1,h2)))**2
-c---                  print *, "Ahiggs"
+!                  msqgg=msqgg+abs(Atot(h1,h2))**2
+!     &             -abs(faccont*Avec(h1,h2)+Agen3(h1,h2))**2
+!     &             -abs(Ahiggs(h1,h2)+dot_product(kdim8(:),Adim8(:,h1,h2)))**2
+!
+!                  msqgg=msqgg+abs(Atot(h1,h2))**2
+!     &             -abs(faccont*Avec(h1,h2)+Agen3(h1,h2)+Ahiggs(h1,h2))**2
+!     &             -abs(dot_product(kdim8(:),Adim8(:,h1,h2)))**2
+!                  msqgg=msqgg+abs(Atot(h1,h2))**2
+!     &             -abs(Ahiggs_g(h1,h2))**2
+!     &             -abs(Ahiggs_t(h1,h2))**2
+!     &             -abs(faccont*Avec(h1,h2)+Agen3(h1,h2))**2
+                  msqgg=msqgg+2*conjg(dot_product(kdim8(:),Adim8(:,h1,h2)))*(faccont*Avec(h1,h2)+Agen3(h1,h2)+Ahiggs(h1,h2))
+                  !msqgg=msqgg+2*conjg(Ahiggs(h1,h2))*(faccont*Avec(h1,h2)+Agen3(h1,h2)+Ahiggs(h1,h2))
+                  !msqgg=msqgg+abs(dot_product(kdim8(:),Adim8(:,h1,h2)))**2
 c---                  print *,  Ahiggs(h1,h2)
 c---                  print *, "Avec"
 c---                  print *, faccont*Avec(h1,h2)+Agen3(h1,h2)
@@ -525,7 +574,7 @@ c---         endif
 c---         msqgg=msqgg+abs(Atot(h1,h2))**2
 c---     &        -abs(faccont*Avec(h1,h2)+Agen3(h1,h2))**2
 c---      elseif (caseHWWint) then
-c---         if (any(kdim8 /= zero)) then
+c---         if (any(kdim8 /= zero)) thenhg76%ABDdtyun
 c---            stop "kdim8 /= 0 not allowed for this process"
 c---         endif
 c---         msqgg=msqgg+abs(Atot(h1,h2))**2
@@ -538,10 +587,48 @@ c---         stop
       
       enddo
       enddo
+c---      print *, "Helicity"
+c---      print *, msqgg
+c--- New
+c---      print *, "helicity"
+c---      print *, msqgg
+c---      print *, "new"
+c---      print *, 2._dp*dot(p,4,6)
+c---      print *, (s136 - s13 - (2*s36) - s56)/2
+c---      msqgg=(8*(s12**2)*(2._dp*dot(p,3,6))*(2._dp*dot(p,4,5)))/((gwsq*gsq/(8._dp*pisq))**2)
+!      msqgg=(kdim8(4)*kdim8(6)) 
+c---      msqgg=msqgg*(wmass**4)*M6(s12,s35,s46)/16
+c---      msqgg=msqgg*(wmass**4)*M5(s12,s13,s14,s15,s16,s23,s24,s25,s26,s35,s46)/16 
+c---      msqgg=msqgg*M4WW(s12,s134,s234,s156,s256,s3456)/16 
+!      msqgg=msqgg*(((REALPART(fachiggs))*M46int(s12,s13,s14,s15,s16,s23,s24,s25,s26,s34,s35
+!     & ,s36,s45,s46,s56))+((REALPART(-(zero,one)*fachiggs))*M46int_im(s12,s13,s14,s15,s16,s23,s24
+!     & ,s25,s26,s34,s35,s36,s45,s46,s56
+!     & ,p(1,:),p(2,:),p(3,:),p(4,:),p(5,:),p(6,:))))/16
+!      print *, msqgg
+c---      msqgg=msqgg*M1(s12,s13,s14,s15,s16,s23,s24,s25,s26,s34,s35
+c---     & ,s36,s45,s46,s56)/16
 
 
-      
-      
+!      msqgg=msqgg/((gwsq*gsq/(8._dp*pisq))**2) 
+!      msqgg=msqgg/((s(3,4)*s(5,6))**2) 
+
+c--- Only for dim6 interference
+!      msqgg=2*msqgg*wmass**2    
+
+c---  Only for no lepton decay
+!      msqgg=msqgg/(gwsq*8._dp)
+!      msqgg=msqgg/16._dp
+!      msqgg=msqgg*((s(3,4)-wmass**2)**2+(wwidth*wmass)**2)
+!      msqgg=msqgg*((s(5,6)-wmass**2)**2+(wwidth*wmass)**2)
+
+
+!      print *, "M"
+c---      print *, msqgg
+c---      print *, msqgg   
+c--- New ends  
+               
+
+
 c--- overall factor from diagrams
       fac=avegg*V*(2._dp*gwsq*gsq/(16._dp*pisq)*gwsq/2._dp)**2
 !     fac=avegg*V*(gwsq/2)**2 -- 4x bigger 

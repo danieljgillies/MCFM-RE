@@ -1,3 +1,29 @@
+2022-11-29  Daniel Gillies  <dc-gill1@d3-login02>
+
+	* src/HWW/gg_WW_int.f (gg_ww_int):
+
+	Then implemented all other amplitudes as simply as possible.
+
+	Implemeted A5mp into overall gg amplitude.
+
+	* src/HWW/gg_ww_dim8.f90:
+
+	Added new A5mp function with different amplitude from
+	A5pm.
+
+	* src/HWW/gg_WW_int.f (gg_ww_int):
+
+	Changed the normalisation of operator 6 and increased
+	the speed by having operator six copy off operator 5.
+
+	* src/HWW/gg_ww_dim8.f90:
+
+	-- Blank to create new entry
+
+	* src/HWW/gg_WW_int.f (gg_ww_int): 
+
+	Moved lines to avoid cutt-off
+
 2022-11-28  Daniel Gillies  <dc-gill1@d3-login02>
 
 	* src/HWW/gg_ww_dim8.f90 (gg_ww_dim8):

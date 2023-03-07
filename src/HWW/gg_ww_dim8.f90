@@ -4,8 +4,8 @@ module gg_ww_dim8
   
   private
 
-  public :: A1pp,A2pp,A3pp,A4pp,A5pp,A6pp
-  public :: A1pm,A3pm,A4pm,A5pm
+  public :: A1pp,A1mm,A2pp,A3pp,A4pp,A4mm,A5pp,A6pp
+  public :: A1pm,A1mp,A3pm,A4pm,A4mp,A5pm,A5mp
 
 contains
 !Test
@@ -20,6 +20,13 @@ contains
     other = za(3,4)*za(5,6)*((zb(1,4)*zb(2,6))**2+(zb(1,6)*zb(2,4))**2)
     !print *, "A1pp", "Real", res, "Mine", other, "Done"
   end function A1pp
+
+  function A1mm(za,zb) result(other)
+    complex(dp), intent(in) :: za(:,:), zb(:,:)
+    complex(dp) :: res
+    complex(dp) :: other
+    other = zb(3,4)*zb(5,6)*((za(1,3)*za(2,5))**2+(za(1,5)*za(2,3))**2)
+  end function A1mm
 
   function A2pp(za,zb) result(other)
     complex(dp) :: za(:,:), zb(:,:)
@@ -55,9 +62,21 @@ contains
     complex(dp) :: za(:,:), zb(:,:)
     complex(dp) :: res
     complex(dp) :: other
-    other = -za(3,4)*za(5,6)*(((zb(1,3)*zb(2,5))**2)+((zb(1,5)*zb(2,3))**2))
+    !other = -za(3,4)*za(5,6)*(((zb(1,5)**2)*(zb(2,3)**2))+((zb(1,3)**2)*(zb(2,5)**2)))
+    !other=(zb(1,2)**2)*(zb(3,4)*zb(5,6)*(za(3,5)**2)-za(3,4)*za(5,6)*(zb(4,6)**2))  LAst one
+    other = -za(3,4)*za(5,6)*(((zb(1,4)**2)*(zb(2,6)**2))+((zb(1,6)**2)*(zb(2,4)**2)))
     !print *, "A4pp", "Real", res, "Mine", other, "Done"
   end function A4pp
+
+  function A4mm(za,zb) result(other)
+    complex(dp) :: za(:,:), zb(:,:)
+    complex(dp) :: res
+    complex(dp) :: other
+    !other = -zb(3,4)*zb(5,6)*(((za(1,6)**2)*(za(2,4)**2))+((za(1,4)**2)*(za(2,6)**2))) 
+    !other=(za(1,2)**2)*(za(3,4)*za(5,6)*(zb(4,6)**2)-zb(3,4)*zb(5,6)*(za(3,5)**2))Last one
+    other = -zb(3,4)*zb(5,6)*(((za(1,5)**2)*(za(2,3)**2))+((za(1,3)**2)*(za(2,5)**2)))
+    !print *, "A4pp", "Real", res, "Mine", other, "Done"
+  end function A4mm
 
   function A5pp(za,zb) result(other)
     complex(dp) :: za(:,:), zb(:,:)
@@ -112,6 +131,15 @@ contains
     !     &"check2", check2, "Done"
   end function A1pm
 
+  function A1mp(za,zb) result(other)
+    complex(dp), intent(in) :: za(:,:), zb(:,:)
+    complex(dp) :: res
+    complex(dp) :: other
+
+    other = -(za(3,4)*zb(5,6)*((za(1,5)*zb(2,4))**2)+zb(3,4)*za(5,6)*((za(1,3)*zb(2,6))**2))
+    
+  end function A1mp
+
   function A3pm(za,zb) result(res)
     complex(dp) :: za(:,:), zb(:,:)
     complex(dp) :: res
@@ -137,10 +165,21 @@ contains
     complex(dp) :: za(:,:), zb(:,:)
     complex(dp) :: res
     complex(dp) :: other
-    other = -(zb(3,4)*za(5,6)*((zb(2,4)*za(1,5))**2)+&
-         &za(3,4)*zb(5,6)*((zb(2,6)*za(1,3))**2))
+    !other = -(za(3,4)*zb(5,6)*((za(2,6)*zb(1,3))**2)+&
+    !     &zb(3,4)*za(5,6)*((za(2,4)*zb(1,5))**2))
+    other = (za(3,4)*zb(5,6)*((za(1,5)*zb(2,4))**2)+&
+         &zb(3,4)*za(5,6)*((za(1,3)*zb(2,6))**2))
     !print *, "A4pm", "Real", res, "Mine", other, "Done"
   end function A4pm
+
+  function A4mp(za,zb) result(other)
+    complex(dp) :: za(:,:), zb(:,:)
+    complex(dp) :: res
+    complex(dp) :: other
+    other = (za(3,4)*zb(5,6)*((za(1,6)*zb(2,3))**2)+&
+         &zb(3,4)*za(5,6)*((za(1,4)*zb(2,5))**2))
+    !print *, "A4pm", "Real", res, "Mine", other, "Done"
+  end function A4mp
 
   function A5pm(za,zb) result(other)
     complex(dp) :: za(:,:), zb(:,:)
@@ -151,6 +190,15 @@ contains
     other = 2*za(2,3)*za(2,5)*zb(1,4)*zb(1,6)
     !print *, "A5pm", "Real", res, "Mine", other, "Done"
   end function A5pm
+
+  function A5mp(za,zb) result(other)
+    complex(dp), intent(in) :: za(:,:), zb(:,:)
+    complex(dp) :: res
+    complex(dp) :: other
+
+    other = 2*za(1,3)*za(1,5)*zb(2,4)*zb(2,6)
+    
+  end function A5mp
 
   
 end module gg_ww_dim8

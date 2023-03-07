@@ -1,0 +1,48 @@
+#!/usr/bin/env python3
+import re, os, sys
+
+TITLE_PATTERN = r'  set title "(.*)" font "Helvetica, 20"'
+TABLE_BEGIN_PATTERN = r'  plot "-" with histeps'
+TABLE_ROW_PATTERN = r"\s+((?:\d|-|E|\.)+)\s+((?:\d|-|E|\.)+)\s+((?:\d|-|E|\.)+)"
+TABLE_END_PATTERN = r" e"
+
+# create output directory
+if not os.path.exists("csv"):
+    os.makedirs("csv")
+
+# title: occurence count
+title_occurences = dict()
+
+with open(sys.argv[1]) as input:
+    # read until we encounter EOF
+    while line := input.readline():
+        # check for title
+        if match := re.match(TITLE_PATTERN, line):
+            # check if title has already occured
+            if (title := match.group(1)) in title_occurences:
+                # check if it is the second occurence
+                if title_occurences[title] == 1:
+                    # append occurence count to first occurence's filename
+                    os.rename(f"csv/{title}.csv", f"csv/{title} (1).csv")
+                # increment occurence count
+                title_occurences[title] += 1
+                # append occurence count to title
+                title += f" ({title_occurences[title]})"
+            else:
+                # initialise occurence count
+                title_occurences[title] = 1
+            # read next line
+            continue
+
+        # check for table
+        if re.match(TABLE_BEGIN_PATTERN, line):
+            # create an output file using the title
+            with open(f"csv/{title}.csv", "w") as output:
+                # read each line until we encounter the end of table marker
+                while not re.match(TABLE_END_PATTERN, (line := input.readline())):
+                    # get the numerical column values
+                    cols = re.match(TABLE_ROW_PATTERN, line).group(1, 2, 3)
+                    # write in csv format
+                    output.write(f'{",".join(cols)}\n')
+                # table written
+            # close file

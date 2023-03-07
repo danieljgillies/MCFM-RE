@@ -1,0 +1,65 @@
+#!/usr/bin/env python3
+import argparse, os
+from string import Template
+
+
+def parameters():
+    # initialise command line parser
+    parser = argparse.ArgumentParser()
+
+    # parse and return values
+    parser.add_argument(
+        "seed_limit",
+        help="specifies the number of unique seeds to generate, a .dat file is created for each",
+        type=int,
+    )
+    parser.add_argument(
+        "runstring",
+        help="sets the .dat file's 'runstring' variable, a label appended to the name of each .gnu file",
+        type=str,
+    )
+    parser.add_argument(
+        "minimum", help="sets the .dat file's 'm3456min' variable", type=int
+    )
+    parser.add_argument(
+        "maximum", help="sets the .dat file's 'm3456max' variable", type=int
+    )
+    parser.add_argument(
+        "--cut",
+        help="sets the .dat file's 'makecuts' flag to true (false by default)",
+        action="store_true",
+    )
+
+    return vars(parser.parse_args()).values()
+
+
+# parse parameters provided via command line
+seeds, runstring, minimum, maximum, cut = parameters()
+
+# create output directory
+if not os.path.exists("dat"):
+    os.makedirs("dat")
+
+# construct template string
+with open("template.dat") as template_file:
+    template = Template(template_file.read())
+
+# create .dat files
+for seed in range(1, seeds + 1):
+    # 'fill in' template string
+    dat_data = template.substitute(
+        {
+            "runstring": runstring,
+            "seed": seed,
+            "min": minimum,
+            "max": maximum,
+            "cut": str(cut).lower(),
+        }
+    )
+
+    # generate .dat filename
+    filename = f"dg376_{seed}_{minimum}-{maximum}_{'cut' if cut else 'nocut'}.DAT"
+
+    # write .dat file
+    with open(f"dat/{filename}", "w") as dat_file:
+        dat_file.write(dat_data)

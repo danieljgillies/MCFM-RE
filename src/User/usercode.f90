@@ -51,8 +51,9 @@ function userincludedipole(nd, ppart, mcfm_result)
           enddo
           m35 = sqrt(m35)
 
-        !        if (ATLAS_hww2017(ppart)) then
-        if (m35 > 55d0) then
+        if (ATLAS_hww2017(ppart)) then
+        !if (m35 > 0d0) then
+        !if (m35 > 55d0) then
            userincludedipole = mcfm_result
            return
         else
@@ -471,7 +472,7 @@ function ATLAS_hww2017(ppart) result(res)
   real(dp) :: pt45,pt56,m45,mt45,mtrans
   real(dp) :: et_vec(4),etmiss,r2,delphi,m34,m56,m3456
   integer :: i
-  integer, parameter :: VVcut=3 ! set cuts for e mu
+  integer, parameter :: VVcut=6 ! set cuts for e mu
   logical :: passcuts, passveto
   real(dp) :: etaj,ptj,ptmiss,rjl1,rjl2,r,eta4,eta5,ptll
   real(dp) :: dphi,ptrel,pt36(4)
@@ -615,6 +616,21 @@ function ATLAS_hww2017(ppart) result(res)
            if (ptj > ptj_veto) passcuts = .false.
         endif
 
+      elseif (VVcut == 6) then
+         ! mue
+         if (abs(eta4) > 2.5_dp) passcuts = .false.
+         if (abs(eta5) > 2.5_dp) passcuts = .false.
+         if (m45 < 20._dp) passcuts = .false.
+         if (ptll < 30._dp) passcuts = .false.
+ 
+         if (pt(4,ppart) < 20._dp) passcuts=.false.
+         if (pt(5,ppart) < 20._dp) passcuts=.false.
+         if (ptmiss < 30._dp) passcuts = .false.
+         if (jets > 0) then
+            if (ptj > ptj_veto) &
+                  passveto = .false.
+         endif
+
      else
         stop 'VVcuts not set'
      endif
@@ -704,7 +720,6 @@ function ATLAS_hww2017(ppart) result(res)
         if (jets > 0) then
            if (ptj > ptj_veto) passcuts = .false.
         endif
-
      else
         stop 'VVcuts not set'
      endif

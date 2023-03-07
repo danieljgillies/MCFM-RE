@@ -40,6 +40,7 @@ def parameters():
         "--cut",
         help="sets the .dat file's 'makecuts' flag to true (default: false)",
         action="store_true",
+        default=True,
     )
 
     return vars(parser.parse_args()).values()
@@ -60,6 +61,7 @@ try:
         template = Template(template_file.read())
 except FileNotFoundError:
     # inform user that template file is missing
+    print(Path(template_filepath).resolve())
     sys.stderr.write("Could not find a template.DAT file in the current directory")
     sys.exit(0)
 
