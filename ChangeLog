@@ -1,5 +1,7 @@
 2023-03-09  Daniel Gillies  <dc-gill1@d3-login01>
 
+	* src/Parton/mrst2004.f (mrst2004): A function in this program requires a correction - unsure why...
+
 	* Bin/Autotools/gnu2csv.py: Created an Autotools file to store the automation tools for making many runs
 
 	* Bin/Autotools/mkdat.py: Copied in mkdat.py
