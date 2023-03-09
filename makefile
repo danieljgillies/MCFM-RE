@@ -495,7 +495,8 @@ recurrenceA.o \
 recurrenceB.o \
 recurrenceC.o \
 recurrence.o \
-gg_ww_dim8.o
+gg_ww_dim8.o \
+gg_ww_dim8_full.o
 
 STOPBFILES = \
 extend_trans_stopb.o \
