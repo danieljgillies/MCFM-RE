@@ -123,18 +123,17 @@ contains
     complex(dp), intent(in) :: za(:,:), zb(:,:)
     complex(dp) :: res
 
-    res = -(za(2,3)*za(2,5)*zb(4,2)*zb(6,1)+&
-         &za(2,3)*za(2,5)*zb(4,1)*zb(6,2))
+    res = 2*za(2,3)*za(2,5)*zb(1,4)*zb(1,6)
     
   end function A5pm
 
-  function A5pm(za,zb) result(res)
+  function A5mp(za,zb) result(res)
     complex(dp), intent(in) :: za(:,:), zb(:,:)
     complex(dp) :: res
 
     res = 2*za(1,3)*za(1,5)*zb(2,4)*zb(2,6)
 
-  end function A5pm
+  end function A5mp
 
   
 end module gg_ww_dim8

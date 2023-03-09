@@ -1,6 +1,9 @@
 2023-03-09  Daniel Gillies  <dc-gill1@d3-login01>
 
+	* src/HWW/gg_WW_int.f (gg_ww_int): removed A3pm
+
 	* src/HWW/gg_ww_dim8.f90 (A5pp): Added the correct amplitudes.
+	(A5mp): Corrected mistake
 
 	* src/Parton/mrst2004.f (mrst2004): A function in this program requires a correction - unsure why...
 

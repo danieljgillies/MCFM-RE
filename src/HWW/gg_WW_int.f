@@ -420,8 +420,8 @@ c---  dimension 8 operators
       Adim8(2,1,1)= conjg(Adim8(2,2,2))
 
       Adim8(3,2,2)= A3pp(za,zb)*im*(8._dp,zero)
-      Adim8(3,2,1)= A3pm(za,zb)*im*(8._dp,zero)
-      Adim8(3,1,2)= conjg(Adim8(3,2,1))
+      Adim8(3,2,1)= czip
+      Adim8(3,1,2)= czip
       Adim8(3,1,1)= conjg(Adim8(3,2,2))
 
       Adim8(4,2,2)= A4pp(za,zb)*im*(four,zero)
