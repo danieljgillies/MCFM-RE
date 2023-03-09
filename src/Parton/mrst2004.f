@@ -46,7 +46,7 @@ c      if(x.lt.xmin.or.x.gt.xmax)       print 98,x
      .f6(nx,nq),f7(nx,nq),f8(nx,nq),fc(nx,nqc),fb(nx,nqb)
       real*8 qq(nq),xx(nx),cc1(nx,nq,4,4),cc2(nx,nq,4,4),
      .cc3(nx,nq,4,4),cc4(nx,nq,4,4),cc6(nx,nq,4,4),cc8(nx,nq,4,4),
-     .ccc(nx,nqc,4,4),ccb(nx,nqb,4,4)
+     .ccc(nx,nqc,4,4),ccb(nx,nqb,4,4),cccold(nx,nqc,4,4),ccbold(nx,nqb,4,4)
       real*8 xxl(nx),qql(nq),qqlc(nqc),qqlb(nqb)
       character*72 filename,checkpath
       data xx/1d-5,2d-5,4d-5,6d-5,8d-5,
@@ -117,6 +117,21 @@ c notation: 1=uval 2=val 3=glue 4=usea 5=chm 6=str 7=btm 8=dsea
    44 continue
       qqlc(1)=dlog(emc2)
       call jeppe1_2004(nx,nqc,xxl,qqlc,fc,ccc)
+!      call jeppe1_2004_old(nx,nqc,xxl,qqlc,fc,cccold)
+!      do m=1,nqc
+!      do n=1,nx
+!      do j=1,4
+!      do k=1,4
+!      if ((abs(cccold(n,m,j,k)) > 1.e-15) .or. (abs(ccc(n,m,j,k)) > 1.e-15)) then
+!        if (abs(ccc(n,m,j,k)/cccold(n,m,j,k)-1d0) > 1.e-9) then
+!          write(6,*) 'call 1 n,m,j,k',n,m,j,k,ccc(n,m,j,k)/cccold(n,m,j,k)
+!        endif
+!      endif
+!      enddo
+!      enddo
+!      enddo
+!      enddo
+!      pause 'Done call 1'
 
       do 45 m=1,nqb
       qqlb(m)=qql(m+nqb0)
@@ -125,6 +140,21 @@ c notation: 1=uval 2=val 3=glue 4=usea 5=chm 6=str 7=btm 8=dsea
    45 continue
       qqlb(1)=dlog(emb2)
       call jeppe1_2004(nx,nqb,xxl,qqlb,fb,ccb)
+!      call jeppe1_2004_old(nx,nqb,xxl,qqlb,fb,ccbold)
+!      do m=1,nqb
+!      do n=1,nx
+!      do j=1,4
+!      do k=1,4
+!      if ((abs(ccbold(n,m,j,k)) > 1.e-15) .or. (abs(ccb(n,m,j,k)) > 1.e-15)) then
+!        if (abs(ccb(n,m,j,k)/ccbold(n,m,j,k)-1d0) > 1.e-9) then
+!          write(6,*) 'call 2 n,m,j,k',n,m,j,k,ccb(n,m,j,k)/ccbold(n,m,j,k)
+!        endif
+!      endif
+!      enddo
+!      enddo
+!      enddo
+!      enddo
+!      pause 'Done call 2'
 
 
       init=1
@@ -163,7 +193,7 @@ c notation: 1=uval 2=val 3=glue 4=usea 5=chm 6=str 7=btm 8=dsea
      .f6(nx,nq),f7(nx,nq),f8(nx,nq),fc(nx,nqc),fb(nx,nqb)
       real*8 qq(nq),xx(nx),cc1(nx,nq,4,4),cc2(nx,nq,4,4),
      .cc3(nx,nq,4,4),cc4(nx,nq,4,4),cc6(nx,nq,4,4),cc8(nx,nq,4,4),
-     .ccc(nx,nqc,4,4),ccb(nx,nqb,4,4)
+     .ccc(nx,nqc,4,4),ccb(nx,nqb,4,4),cccold(nx,nqc,4,4),ccbold(nx,nqb,4,4)
       real*8 xxl(nx),qql(nq),qqlc(nqc),qqlb(nqb)
       character*72 filename,checkpath
       data xx/1d-5,2d-5,4d-5,6d-5,8d-5,
@@ -234,6 +264,21 @@ c notation: 1=uval 2=val 3=glue 4=usea 5=chm 6=str 7=btm 8=dsea
    44 continue
       qqlc(1)=dlog(emc2)
       call jeppe1_2004(nx,nqc,xxl,qqlc,fc,ccc)
+!      call jeppe1_2004_old(nx,nqc,xxl,qqlc,fc,cccold)
+!      do m=1,nqc
+!      do n=1,nx
+!      do j=1,4
+!      do k=1,4
+!      if ((abs(cccold(n,m,j,k)) > 1.e-15) .or. (abs(ccc(n,m,j,k)) > 1.e-15)) then
+!        if (abs(ccc(n,m,j,k)/cccold(n,m,j,k)-1d0) > 1.e-9) then
+!          write(6,*) 'call 3 n,m,j,k',n,m,j,k,ccc(n,m,j,k)/cccold(n,m,j,k)
+!        endif
+!      endif
+!      enddo
+!      enddo
+!      enddo
+!      enddo
+!      pause 'Done call 3'
 
       do 45 m=1,nqb
       qqlb(m)=qql(m+nqb0)
@@ -242,6 +287,22 @@ c notation: 1=uval 2=val 3=glue 4=usea 5=chm 6=str 7=btm 8=dsea
    45 continue
       qqlb(1)=dlog(emb2)
       call jeppe1_2004(nx,nqb,xxl,qqlb,fb,ccb)
+!      call jeppe1_2004_old(nx,nqb,xxl,qqlb,fb,ccbold)
+!      do m=1,nqb
+!      do n=1,nx
+!      do j=1,4
+!      do k=1,4
+!      if ((abs(ccbold(n,m,j,k)) > 1.e-15) .or. (abs(ccb(n,m,j,k)) > 1.e-15)) then
+!        if (abs(ccb(n,m,j,k)/ccbold(n,m,j,k)-1d0) > 1.e-9) then
+!          write(6,*) 'call 4 n,m,j,k',n,m,j,k,ccb(n,m,j,k)/ccbold(n,m,j,k)
+!        endif
+!      endif
+!      enddo
+!      enddo
+!      enddo
+!      enddo
+!      pause 'Done call 4'
+      
 
 
       init=1
@@ -273,11 +334,121 @@ c notation: 1=uval 2=val 3=glue 4=usea 5=chm 6=str 7=btm 8=dsea
    50 format(8f10.5)
       end
 
-      subroutine jeppe1_2004(nx,my,xx,yy,ff,cc)
+      subroutine jeppe1_2004_old(nx,my,xx,yy,ff,cc)
       implicit real*8(a-h,o-z)
       parameter(nnx=49,mmy=37)
       dimension xx(nx),yy(my),ff(nnx,mmy),ff1(nnx,mmy),ff2(nnx,mmy),
      xff12(nnx,mmy),yy0(4),yy1(4),yy2(4),yy12(4),z(16),wt(16,16),
+     xcl(16),cc(nx,my,4,4),iwt(16,16)
+
+      data iwt/1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+     x		  0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,
+     x		  -3,0,0,3,0,0,0,0,-2,0,0,-1,0,0,0,0,
+     x		  2,0,0,-2,0,0,0,0,1,0,0,1,0,0,0,0,
+     x		  0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,
+     x		  0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,
+     x		  0,0,0,0,-3,0,0,3,0,0,0,0,-2,0,0,-1,
+     x		  0,0,0,0,2,0,0,-2,0,0,0,0,1,0,0,1,
+     x		  -3,3,0,0,-2,-1,0,0,0,0,0,0,0,0,0,0,
+     x		  0,0,0,0,0,0,0,0,-3,3,0,0,-2,-1,0,0,
+     x		  9,-9,9,-9,6,3,-3,-6,6,-6,-3,3,4,2,1,2,
+     x		  -6,6,-6,6,-4,-2,2,4,-3,3,3,-3,-2,-1,-1,-2,
+     x		  2,-2,0,0,1,1,0,0,0,0,0,0,0,0,0,0,
+     x		  0,0,0,0,0,0,0,0,2,-2,0,0,1,1,0,0,
+     x		  -6,6,-6,6,-3,-3,3,3,-4,4,2,-2,-2,-2,-1,-1,
+     x		  4,-4,4,-4,2,2,-2,-2,2,-2,-2,2,1,1,1,1/
+
+
+      do 42 m=1,my
+      dx=xx(2)-xx(1)
+      ff1(1,m)=(ff(2,m)-ff(1,m))/dx
+      dx=xx(nx)-xx(nx-1)
+      ff1(nx,m)=(ff(nx,m)-ff(nx-1,m))/dx
+      do 41 n=2,nx-1
+      ff1(n,m)=polderiv_2004(xx(n-1),xx(n),xx(n+1),ff(n-1,m),ff(n,m),
+     xff(n+1,m))
+   41 continue
+   42 continue
+
+      do 44 n=1,nx
+      dy=yy(2)-yy(1)
+      ff2(n,1)=(ff(n,2)-ff(n,1))/dy
+      dy=yy(my)-yy(my-1)
+      ff2(n,my)=(ff(n,my)-ff(n,my-1))/dy
+      do 43 m=2,my-1
+      ff2(n,m)=polderiv_2004(yy(m-1),yy(m),yy(m+1),ff(n,m-1),ff(n,m),
+     xff(n,m+1))
+   43 continue
+   44 continue
+
+      do 46 m=1,my
+      dx=xx(2)-xx(1)
+      ff12(1,m)=(ff2(2,m)-ff2(1,m))/dx
+      dx=xx(nx)-xx(nx-1)
+      ff12(nx,m)=(ff2(nx,m)-ff2(nx-1,m))/dx
+      do 45 n=2,nx-1
+      ff12(n,m)=polderiv_2004(xx(n-1),xx(n),xx(n+1),ff2(n-1,m),ff2(n,m),
+     xff2(n+1,m))
+   45 continue
+   46 continue
+
+      do 53 n=1,nx-1
+      do 52 m=1,my-1
+      d1=xx(n+1)-xx(n)
+      d2=yy(m+1)-yy(m)
+      d1d2=d1*d2
+
+      yy0(1)=ff(n,m)
+      yy0(2)=ff(n+1,m)
+      yy0(3)=ff(n+1,m+1)
+      yy0(4)=ff(n,m+1)
+
+      yy1(1)=ff1(n,m)
+      yy1(2)=ff1(n+1,m)
+      yy1(3)=ff1(n+1,m+1)
+      yy1(4)=ff1(n,m+1)
+
+      yy2(1)=ff2(n,m)
+      yy2(2)=ff2(n+1,m)
+      yy2(3)=ff2(n+1,m+1)
+      yy2(4)=ff2(n,m+1)
+
+      yy12(1)=ff12(n,m)
+      yy12(2)=ff12(n+1,m)
+      yy12(3)=ff12(n+1,m+1)
+      yy12(4)=ff12(n,m+1)
+
+      do 47 k=1,4
+      z(k)=yy0(k)
+      z(k+4)=yy1(k)*d1
+      z(k+8)=yy2(k)*d2
+      z(k+12)=yy12(k)*d1d2
+   47 continue
+
+      do 49 l=1,16
+      xxd=0.
+      do 48 k=1,16
+      xxd=xxd+iwt(k,l)*z(k)
+   48 continue
+      cl(l)=xxd
+   49 continue
+      l=0
+      do 51 k=1,4
+      do 50 j=1,4
+      l=l+1
+      cc(n,m,k,j)=cl(l)
+   50 continue
+   51 continue
+   52 continue
+   53 continue
+      return
+      end
+
+
+      subroutine jeppe1_2004(nx,my,xx,yy,ff,cc)
+      implicit real*8(a-h,o-z)
+      dimension xx(nx),yy(my),ff(nx,my),ff1(nx,my),ff2(nx,my),
+     xff12(nx,my),yy0(4),yy1(4),yy2(4),yy12(4),z(16),wt(16,16),
      xcl(16),cc(nx,my,4,4),iwt(16,16)
 
       data iwt/1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
