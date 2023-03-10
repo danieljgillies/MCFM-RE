@@ -1,6 +1,7 @@
 2023-03-10  Daniel Gillies  <dc-gill1@d3-login02>
 
 	* src/HWW/gg_WW_int.f (gg_ww_int): Changed the int only case so that we have SM - BSM
+	(gg_ww_int): Modified the insertion of dimension 8 amplitudes into Adim8 removing conj.
 
 2023-03-09  Daniel Gillies  <dc-gill1@d3-login01>
 

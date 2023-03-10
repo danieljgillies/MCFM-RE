@@ -410,46 +410,38 @@ c---  fill amplitude with full contributions of Higgs
 
 c---  dimension 8 operators
       Adim8(1,2,2)= A1pp(za,zb)*im*(four,zero)
-      Adim8(1,2,1)= A1pm(za,zb)*im*ctwo
-      Adim8(1,1,2)= conjg(Adim8(1,2,1))
-      Adim8(1,1,1)= conjg(Adim8(1,2,2))
+      Adim8(1,2,1)= A1pm(za,zb)*im*(four,zero)
+      Adim8(1,1,2)= A1mp(za,zb)*im*(four,zero)
+      Adim8(1,1,1)= A1mm(za,zb)*im*(four,zero)
 
       Adim8(2,2,2)= A2pp(za,zb)*im*(8._dp,zero)
       Adim8(2,2,1)= czip
       Adim8(2,1,2)= czip
-      Adim8(2,1,1)= conjg(Adim8(2,2,2))
+      Adim8(2,1,1)= (za(1,2)**2)*Adim8(2,2,2)/(zb(1,2)**2)
 
       Adim8(3,2,2)= A3pp(za,zb)*im*(8._dp,zero)
       Adim8(3,2,1)= czip
       Adim8(3,1,2)= czip
-      Adim8(3,1,1)= conjg(Adim8(3,2,2))
+      Adim8(3,1,1)= -(za(1,2)**2)*Adim8(3,2,2)/(zb(1,2)**2)
 
       Adim8(4,2,2)= A4pp(za,zb)*im*(four,zero)
       Adim8(4,2,1)= A4pm(za,zb)*im*(four,zero)
-      Adim8(4,1,2)= conjg(Adim8(4,2,1))
-      Adim8(4,1,1)= conjg(Adim8(4,2,2))
+      Adim8(4,1,2)= A4mp(za,zb)*im*(four,zero)
+      Adim8(4,1,1)= A4mm(za,zb)*im*(four,zero)
 
       Adim8(5,2,2)= A5pp(za,zb)*im*wmass**2
       Adim8(5,2,1)= A5pm(za,zb)*im*wmass**2
-      Adim8(5,1,2)= conjg(Adim8(5,2,1))
-      Adim8(5,1,1)= conjg(Adim8(5,2,2))
+      Adim8(5,1,2)= A5mp(za,zb)*im*wmass**2
+      Adim8(5,1,1)= (za(1,2)**2)*Adim8(5,2,2)/(zb(1,2)**2)
 
-      Adim8(6,2,2)= A6pp(za,zb)*im*(four,zero)*wmass**2
+      Adim8(6,2,2)= -Adim8(5,2,2)*(four,zero)
       Adim8(6,2,1)= czip
       Adim8(6,1,2)= czip
-      Adim8(6,1,1)= conjg(Adim8(6,2,2))
+      Adim8(6,1,1)= -Adim8(5,1,1)*(four,zero)
 
 c---  MCFM propagator convention
       Adim8 = Adim8/(s(3,4)*s(5,6))
-      
-c---  Ratio convention
-c---  strong coupling constant omitted due to cancelling with kappa/v^4
-      rdim8 = ctwo*pi/gwsq
-!      check with 1602.05141 - omit unless checking
-!      rdim8 = rdim8*four*pi/gsq
-      Adim8 = Adim8*rdim8
-!     our normalisation, comment out when checking with 1602.05141
-      Adim8=Adim8*gwsq**2/((16d0,zero)*wmass**4)
+      Adim8 = Adim8/(gwsq*gsq/(8._dp*pisq))
 
 c---  
       msqgg=0._dp
