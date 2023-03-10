@@ -462,8 +462,7 @@ c---
 c---  This only accumulates the interference
              if (intonly) then
                 msqgg=msqgg+abs(Atot(h1,h2))**2
-     &          -abs(faccont*Avec(h1,h2)+Agen3(h1,h2))**2
-     &          -abs(Ahiggs(h1,h2))**2
+     &          -abs(faccont*Avec(h1,h2)+Agen3(h1,h2)+Ahiggs(h1,h2))**2
      &          -abs(dot_product(kdim8(:),Adim8(:,h1,h2)))**2
              else
 c---  This accumulates total contributions

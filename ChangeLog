@@ -1,3 +1,7 @@
+2023-03-10  Daniel Gillies  <dc-gill1@d3-login02>
+
+	* src/HWW/gg_WW_int.f (gg_ww_int): Changed the int only case so that we have SM - BSM
+
 2023-03-09  Daniel Gillies  <dc-gill1@d3-login01>
 
 	* src/HWW/qqb_hww_tb.f (qqb_hww_tb): Have seen that dim8 is also included in qqb and therefore proc 61
