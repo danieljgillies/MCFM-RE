@@ -617,12 +617,24 @@ function ATLAS_hww2017(ppart) result(res)
         endif
 
       elseif (VVcut == 6) then
-         ! mue
+         ! CMS cuts from https://arxiv.org/pdf/2009.00119.pdf
          if (abs(eta4) > 2.5_dp) passcuts = .false.
          if (abs(eta5) > 2.5_dp) passcuts = .false.
          if (m45 < 20._dp) passcuts = .false.
          if (ptll < 30._dp) passcuts = .false.
  
+         if (pt(4,ppart) < 20._dp) passcuts=.false.
+         if (pt(5,ppart) < 20._dp) passcuts=.false.
+         if (ptmiss < 30._dp) passcuts = .false.
+         if (jets > 0) then
+            if (ptj > ptj_veto) &
+                  passveto = .false.
+         endif
+      elseif (VVcut == 7) then
+         ! CMS cuts from https://arxiv.org/pdf/2009.00119.pdf compatible with input file
+         if (abs(eta4) > 2.5_dp) passcuts = .false.
+         if (abs(eta5) > 2.5_dp) passcuts = .false.
+
          if (pt(4,ppart) < 20._dp) passcuts=.false.
          if (pt(5,ppart) < 20._dp) passcuts=.false.
          if (ptmiss < 30._dp) passcuts = .false.
