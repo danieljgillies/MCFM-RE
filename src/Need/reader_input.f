@@ -469,6 +469,10 @@ c---  kappa's
       if (verbose) call writeinput(6,' * ',' ','k_b')
       read(20,*) k_g
       if (verbose) call writeinput(6,' * ',' ','k_g')
+      do i=1,6
+        read(20,*) kdim8(i)
+      enddo
+      if (verbose) call writeinput(6,' * ',' ','kdim8')
       read(20,*) intonly
       if (verbose) call writeinput(6,' * ',' ','intonly')
       read(20,*) lambda_eft
