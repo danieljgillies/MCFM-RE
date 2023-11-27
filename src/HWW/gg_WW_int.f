@@ -1,4 +1,5 @@
-      subroutine gg_ww_int(p,msq)
+      subroutine gg_ww_int(p,msq)      
+      use gg_ww_dim8
       implicit none
       include 'types.f'
       
@@ -31,7 +32,7 @@ c--- Triangle (axial) pieces cancel for massless isodoublets
       complex(dp):: Ahiggs_t(2,2), Ahiggs_b(2,2), Ahiggs_g(2,2)
       complex(dp):: Avec(2,2),Ahiggs(2,2),Agen3(2,2),Atot(2,2),
      & faccont,fachiggs,amphiggs,f,e3De4,sum(2,2,-2:0)
-
+      complex(dp):: Adim8(6,2,2)
       real(dp):: phi,muk,rho,ssig,csig,theta,
      & p1true(4),p2true(4),p3true(4),p4true(4),p5true(4),p6true(4),
      & dot,s12,s34,s56,dot1256,afac,bfac,gden,delta,
@@ -323,7 +324,7 @@ c      fachiggs=real(fachiggs)
          f=czip
       endif
       e3De4=2._dp*za(3,5)*zb(6,4)/(s(3,4)*s(5,6))
-      amphiggs=k_t*mfsq*(cone+(cone-cplx1(tauinv))*f)*im*e3De4
+      amphiggs=mfsq*(cone+(cone-cplx1(tauinv))*f)*im*e3De4
       Ahiggs_t(1,1)=fachiggs*amphiggs*za(1,2)/zb(2,1)
       Ahiggs_t(1,2)=czip
       Ahiggs_t(2,1)=czip
@@ -342,7 +343,7 @@ c--- fill amplitudes with contributions of Higgs: bottom loop
       else
          f=czip
       endif
-      amphiggs=k_b*mfsq*(cone+(cone-cplx1(tauinv))*f)*im*e3De4
+      amphiggs=mfsq*(cone+(cone-cplx1(tauinv))*f)*im*e3De4
 
       Ahiggs_b(1,1)=fachiggs*amphiggs*za(1,2)/zb(2,1)
       Ahiggs_b(1,2)=czip
@@ -401,10 +402,18 @@ c--- Rescale for width study
       endif
 
 c---  fill amplitude with full contributions of Higgs
-      Ahiggs(1,1)=Ahiggs_t(1,1)+Ahiggs_b(1,1)+Ahiggs_g(1,1)
-      Ahiggs(1,2)=Ahiggs_t(1,2)+Ahiggs_b(1,2)+Ahiggs_g(1,2)
-      Ahiggs(2,1)=Ahiggs_t(2,1)+Ahiggs_b(2,1)+Ahiggs_g(2,1)
-      Ahiggs(2,2)=Ahiggs_t(2,2)+Ahiggs_b(2,2)+Ahiggs_g(2,2)
+c---  Ahiggs is standard model only for caseggWW4l == True.
+      if (caseggWW4l) then
+            Ahiggs(1,1)=Ahiggs_t(1,1)+Ahiggs_b(1,1)
+            Ahiggs(1,2)=Ahiggs_t(1,2)+Ahiggs_b(1,2)
+            Ahiggs(2,1)=Ahiggs_t(2,1)+Ahiggs_b(2,1)
+            Ahiggs(2,2)=Ahiggs_t(2,2)+Ahiggs_b(2,2)
+      else
+            Ahiggs(1,1)=((1+k_t)*Ahiggs_t(1,1))+((1+k_b)*Ahiggs_b(1,1))+Ahiggs_g(1,1)
+            Ahiggs(1,2)=((1+k_t)*Ahiggs_t(1,2))+((1+k_b)*Ahiggs_b(1,2))+Ahiggs_g(1,2)
+            Ahiggs(2,1)=((1+k_t)*Ahiggs_t(2,1))+((1+k_b)*Ahiggs_b(2,1))+Ahiggs_g(2,1)
+            Ahiggs(2,2)=((1+k_t)*Ahiggs_t(2,2))+((1+k_b)*Ahiggs_b(2,2))+Ahiggs_g(2,2)
+      endif
 
       msqgg=0._dp
       do h1=1,2
@@ -413,7 +422,62 @@ c---  fill amplitude with full contributions of Higgs
 
       if     (caseggWW4l) then
 c--- This accumulates total contributions
-        msqgg=msqgg+abs(Atot(h1,h2))**2
+            select case (lambda_eft)
+            case (-1)
+c---              Standard Model only...
+                  if (intonly) then
+                        write(6,*) 'lambda_eft=-1 gives the full SM contribution.'      
+                        stop
+                  else
+                        if ((k_t.eq.0) .and. (k_b.eq.0) .and. (k_g.eq.0)) then
+                              msqgg=msqgg+abs(Atot(h1,h2))**2
+                        else
+                              write(6,*) 'anomalous k_t and k_b, and also k_g should be zero for no eft study.'      
+                              stop
+                        endif
+                  endif
+            case (0)
+c---              All possible EFT contributions up to dimension eight...
+                  if (intonly) then
+                        write(6,*) 'The interference terms have different orders in EFT'      
+                        stop                             
+                  else
+                        Atot(h1,h2)=Atot(h1,h2)+k_t*Ahiggs_t(h1,h2)+k_b*Ahiggs_b(h1,h2)+k_g*Ahiggs_g(h1,h2)
+     &                                   +dot_product(kdim8(:),Adim8(:,h1,h2))
+                        msqgg=msqgg+abs(Atot(h1,h2))**2
+                  endif
+            case (2)
+c---              Dimension six contributions...
+                  msqgg=msqgg+abs(Atot(h1,h2)+k_t*Ahiggs_t(h1,h2)+k_b*Ahiggs_b(h1,h2)+k_g*Ahiggs_g(h1,h2))**2 
+     &                        -abs(Atot(h1,h2))**2
+     &                        -abs(k_t*Ahiggs_t(h1,h2)+k_b*Ahiggs_b(h1,h2)+k_g*Ahiggs_g(h1,h2))**2
+            case (4)
+c---              Dimension eight contributions...   
+                  if (intonly) then
+                        msqgg=msqgg
+     &                        +abs(Atot(h1,h2)+dot_product(kdim8(:),Adim8(:,h1,h2)))**2
+     &                        -abs(dot_product(kdim8(:),Adim8(:,h1,h2)))**2
+     &                        -abs(Atot(h1,h2))**2
+                        msqgg=msqgg+abs(k_t*Ahiggs_t(h1,h2)+k_b*Ahiggs_b(h1,h2)+Ahiggs_g(h1,h2))**2
+     &                        -abs(k_t*Ahiggs_t(h1,h2))**2 -abs(k_b*Ahiggs_b(h1,h2))**2  -abs(Ahiggs_g(h1,h2))**2
+                  else
+                        msqgg=msqgg
+     &                        +abs(Atot(h1,h2)+dot_product(kdim8(:),Adim8(:,h1,h2)))**2
+     &                        -abs(dot_product(kdim8(:),Adim8(:,h1,h2)))**2
+     &                        -abs(Atot(h1,h2))**2
+                        msqgg=msqgg+abs(k_t*Ahiggs_t(h1,h2))**2 +abs(k_b*Ahiggs_b(h1,h2))**2 +abs(Ahiggs_g(h1,h2))**2
+                  endif
+            case (6) 
+c---              Dimension six and dimension eight interference...    
+                  msqgg=msqgg+abs(Ahiggs_g(h1,h2)+dot_product(kdim8(:),Adim8(:,h1,h2)))**2 -abs(Ahiggs_g(h1,h2))**2 
+     &                           -abs(dot_product(kdim8(:),Adim8(:,h1,h2)))**2        
+            case (8)
+c---              Dimension eight squared...  
+                  msqgg=msqgg+abs(dot_product(kdim8(:),Adim8(:,h1,h2)))**2
+            case default
+                  write(6,*) 'Unexpected value of lambda_eft: ', lambda_eft
+                  stop
+            end select
       elseif (caseHWWHpi) then
 c--- This only accumulates contributions containing the Higgs diagram,
 c---  i.e. the Higgs diagrams squared and the interference
