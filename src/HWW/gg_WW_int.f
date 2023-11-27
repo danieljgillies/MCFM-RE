@@ -415,6 +415,41 @@ c---  Ahiggs is standard model only for caseggWW4l == True.
             Ahiggs(2,2)=((1+k_t)*Ahiggs_t(2,2))+((1+k_b)*Ahiggs_b(2,2))+Ahiggs_g(2,2)
       endif
 
+c---  dimension 8 operators
+      Adim8(1,2,2)= A1pp(za,zb)*im*(four,zero)
+      Adim8(1,2,1)= A1pm(za,zb)*im*(four,zero)
+      Adim8(1,1,2)= A1mp(za,zb)*im*(four,zero)
+      Adim8(1,1,1)= A1mm(za,zb)*im*(four,zero)
+
+      Adim8(2,2,2)= A2pp(za,zb)*im*(8._dp,zero)
+      Adim8(2,2,1)= czip
+      Adim8(2,1,2)= czip
+      Adim8(2,1,1)= (za(1,2)**2)*Adim8(2,2,2)/(zb(1,2)**2)
+
+      Adim8(3,2,2)= A3pp(za,zb)*im*(8._dp,zero)
+      Adim8(3,2,1)= czip
+      Adim8(3,1,2)= czip
+      Adim8(3,1,1)= -(za(1,2)**2)*Adim8(3,2,2)/(zb(1,2)**2)
+
+      Adim8(4,2,2)= A4pp(za,zb)*im*(four,zero)
+      Adim8(4,2,1)= A4pm(za,zb)*im*(four,zero)
+      Adim8(4,1,2)= A4mp(za,zb)*im*(four,zero)
+      Adim8(4,1,1)= A4mm(za,zb)*im*(four,zero)
+
+      Adim8(5,2,2)= A5pp(za,zb)*im*wmass**2
+      Adim8(5,2,1)= A5pm(za,zb)*im*wmass**2
+      Adim8(5,1,2)= A5mp(za,zb)*im*wmass**2
+      Adim8(5,1,1)= (za(1,2)**2)*Adim8(5,2,2)/(zb(1,2)**2)
+
+      Adim8(6,2,2)= -Adim8(5,2,2)*(four,zero)
+      Adim8(6,2,1)= czip
+      Adim8(6,1,2)= czip
+      Adim8(6,1,1)= -Adim8(5,1,1)*(four,zero)
+
+c---  MCFM propagator convention
+      Adim8 = Adim8/(s(3,4)*s(5,6))
+      Adim8 = Adim8/(gwsq*gsq/(8._dp*pisq))
+
       msqgg=0._dp
       do h1=1,2
       do h2=1,2
@@ -426,24 +461,37 @@ c--- This accumulates total contributions
             case (-1)
 c---              Standard Model only...
                   if (intonly) then
-                        write(6,*) 'lambda_eft=-1 gives the full SM contribution. Should not be interference only.'      
+                        write(6,*) 'Lambda_eft=-1 gives the full SM contribution. Should not be interference only.'      
                         stop
                   else
                         if ((k_t.eq.0) .and. (k_b.eq.0) .and. (k_g.eq.0)) then
                               msqgg=msqgg+abs(Atot(h1,h2))**2
                         else
-                              write(6,*) 'anomalous k_t and k_b, and also k_g should be zero for no eft study.'      
+                              write(6,*) 'Anomalous k_t and k_b, and also k_g should be zero for no eft study.'      
                               stop
                         endif
                   endif
             case (0)
 c---              All possible EFT contributions up to dimension eight...
                   if (intonly) then
-                        write(6,*) 'The interference terms have different orders in EFT'      
+                        write(6,*) 'The interference terms have different orders in EFT.'      
                         stop                             
                   else
+c---                         write(6,*) "first"
+c---                         write(6,*) Atot(h1,h2)
+c---                         write(6,*) "break"
                         Atot(h1,h2)=Atot(h1,h2)+k_t*Ahiggs_t(h1,h2)+k_b*Ahiggs_b(h1,h2)+k_g*Ahiggs_g(h1,h2)
      &                                   +dot_product(kdim8(:),Adim8(:,h1,h2))
+c---                         write(6,*) Atot(h1,h2)
+c---                         write(6,*) "break"
+c---                         write(6,*) k_t*Ahiggs_t(h1,h2)
+c---                         write(6,*) "break"
+c---                         write(6,*) k_b*Ahiggs_b(h1,h2)
+c---                         write(6,*) "break"
+c---                         write(6,*) k_g*Ahiggs_g(h1,h2)
+c---                         write(6,*) "break"
+c---                         write(6,*) dot_product(kdim8(:),Adim8(:,h1,h2))
+c---                         write(6,*) "break"
                         msqgg=msqgg+abs(Atot(h1,h2))**2
                   endif
             case (2)
