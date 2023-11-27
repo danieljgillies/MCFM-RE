@@ -426,7 +426,7 @@ c--- This accumulates total contributions
             case (-1)
 c---              Standard Model only...
                   if (intonly) then
-                        write(6,*) 'lambda_eft=-1 gives the full SM contribution.'      
+                        write(6,*) 'lambda_eft=-1 gives the full SM contribution. Should not be interference only.'      
                         stop
                   else
                         if ((k_t.eq.0) .and. (k_b.eq.0) .and. (k_g.eq.0)) then
