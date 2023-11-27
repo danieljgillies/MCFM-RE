@@ -76,7 +76,7 @@ c--- APPLgrid - end
       logical:: technicalincluded
       real(dp):: ran2,ran2nr,randummy
       real(dp):: alphas
-      integer :: tmp
+      integer :: tmp,i
       
       common/writerefs/writerefs
       common/spira/spira
