@@ -4,8 +4,8 @@ module gg_ww_dim8
   
   private
 
-  public :: A1pp,A1mm,A2pp,A3pp,A4pp,A4mm,A5pp,A6pp
-  public :: A1pm,A1mp,A4pm,A4mp,A5pm,A5mp
+  public :: A1pp,A1mm,A2pp,A3pp,A5pp
+  public :: A1pm,A1mp,A5pm,A5mp
 
 contains
 
