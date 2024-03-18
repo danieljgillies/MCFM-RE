@@ -352,7 +352,8 @@ c--- fill amplitudes with contributions of Higgs: bottom loop
 
 c---  fill amplitudes with contributions of Higgs: contact interaction
       amphiggs=k_g*(s(1,2)/6._dp)*im*e3De4
-
+c--- *(((48*pisq)*4*(wmass**2)))
+c---&         /(gsq*gwsq)
       Ahiggs_g(1,1)=fachiggs*amphiggs*za(1,2)/zb(2,1)
       Ahiggs_g(1,2)=czip
       Ahiggs_g(2,1)=czip
@@ -431,10 +432,10 @@ c---  dimension 8 operators
       Adim8(3,1,2)= czip
       Adim8(3,1,1)= -(za(1,2)**2)*Adim8(3,2,2)/(zb(1,2)**2)
 
-      Adim8(4,2,2)= A4pp(za,zb)*im*(four,zero)
-      Adim8(4,2,1)= A4pm(za,zb)*im*(four,zero)
-      Adim8(4,1,2)= A4mp(za,zb)*im*(four,zero)
-      Adim8(4,1,1)= A4mm(za,zb)*im*(four,zero)
+      Adim8(4,2,2)= Adim8(1,2,2)
+      Adim8(4,2,1)= -Adim8(1,2,1)
+      Adim8(4,1,2)= -Adim8(1,1,2)
+      Adim8(4,1,1)= Adim8(1,1,1)
 
       Adim8(5,2,2)= A5pp(za,zb)*im*wmass**2
       Adim8(5,2,1)= A5pm(za,zb)*im*wmass**2
@@ -480,7 +481,7 @@ c---              All possible EFT contributions up to dimension eight...
 c---                         write(6,*) "first"
 c---                         write(6,*) Atot(h1,h2)
 c---                         write(6,*) "break"
-                        Atot(h1,h2)=Atot(h1,h2)+k_t*Ahiggs_t(h1,h2)+k_b*Ahiggs_b(h1,h2)+k_g*Ahiggs_g(h1,h2)
+                        Atot(h1,h2)=Atot(h1,h2)+k_t*Ahiggs_t(h1,h2)+k_b*Ahiggs_b(h1,h2)+Ahiggs_g(h1,h2)
      &                                   +dot_product(kdim8(:),Adim8(:,h1,h2))
 c---                         write(6,*) Atot(h1,h2)
 c---                         write(6,*) "break"
@@ -496,9 +497,9 @@ c---                         write(6,*) "break"
                   endif
             case (2)
 c---              Dimension six contributions...
-                  msqgg=msqgg+abs(Atot(h1,h2)+k_t*Ahiggs_t(h1,h2)+k_b*Ahiggs_b(h1,h2)+k_g*Ahiggs_g(h1,h2))**2 
+                  msqgg=msqgg+abs(Atot(h1,h2)+k_t*Ahiggs_t(h1,h2)+k_b*Ahiggs_b(h1,h2)+Ahiggs_g(h1,h2))**2 
      &                        -abs(Atot(h1,h2))**2
-     &                        -abs(k_t*Ahiggs_t(h1,h2)+k_b*Ahiggs_b(h1,h2)+k_g*Ahiggs_g(h1,h2))**2
+     &                        -abs(k_t*Ahiggs_t(h1,h2)+k_b*Ahiggs_b(h1,h2)+Ahiggs_g(h1,h2))**2
             case (4)
 c---              Dimension eight contributions...   
                   if (intonly) then
@@ -513,7 +514,7 @@ c---              Dimension eight contributions...
      &                        +abs(Atot(h1,h2)+dot_product(kdim8(:),Adim8(:,h1,h2)))**2
      &                        -abs(dot_product(kdim8(:),Adim8(:,h1,h2)))**2
      &                        -abs(Atot(h1,h2))**2
-                        msqgg=msqgg+abs(k_t*Ahiggs_t(h1,h2))**2 +abs(k_b*Ahiggs_b(h1,h2))**2 +abs(Ahiggs_g(h1,h2))**2
+                        msqgg=msqgg+abs(k_t*Ahiggs_t(h1,h2)+k_b*Ahiggs_b(h1,h2)+Ahiggs_g(h1,h2))**2
                   endif
             case (6) 
 c---              Dimension six and dimension eight interference...    

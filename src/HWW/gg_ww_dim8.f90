@@ -31,8 +31,8 @@ contains
     complex(dp), intent(in) :: za(:,:), zb(:,:)
     complex(dp) :: res
 
-    res = -zb(2,1)**2*(za(3,5)**2*(zb(5,4)*zb(6,3)-zb(5,3)*zb(6,4))&
-         &-za(4,6)*za(3,5)*zb(6,4)**2+za(3,6)*za(4,5)*zb(6,4)**2)
+    res = (zb(1,2)**2)*(za(3,4)*za(5,6)*zb(4,6)**2&
+    &+zb(3,4)*zb(5,6)*za(3,5)**2)
 
   end function A2pp
 
@@ -40,30 +40,11 @@ contains
     complex(dp), intent(in) :: za(:,:), zb(:,:)
     complex(dp) :: res
 
-    res = -zb(1,2)**2*(za(3,4)*za(5,6)*zb(4,6)**2&
-         &-za(3,5)**2*zb(3,4)*zb(5,6))
+    res = -(zb(1,2)**2)*(za(3,4)*za(5,6)*zb(4,6)**2&
+    &-zb(3,4)*zb(5,6)*za(3,5)**2)
 
   end function A3pp
 
-  function A4pp(za,zb) result(res)
-    complex(dp), intent(in) :: za(:,:), zb(:,:)
-    complex(dp) :: res
-
-    res = -za(3,4)*za(5,6)*(((zb(1,4)**2)*(zb(2,6)**2))&
-         &+((zb(1,6)**2)*(zb(2,4)**2)))
-
-  end function A4pp
-
-  function A4mm(za,zb) result(res)
-    complex(dp), intent(in) :: za(:,:), zb(:,:)
-    complex(dp) :: res
-
-    res = -zb(3,4)*zb(5,6)*(((za(1,5)**2)*(za(2,3)**2))+&
-         &((za(1,3)**2)*(za(2,5)**2)))
-
-  end function A4mm
-
-  
   function A5pp(za,zb) result(res)
     complex(dp), intent(in) :: za(:,:), zb(:,:)
     complex(dp) :: res
@@ -71,14 +52,6 @@ contains
     res = -(zb(1,2)**2)*za(3,5)*zb(4,6)
 
   end function A5pp
-
-  function A6pp(za,zb) result(res)
-    complex(dp), intent(in) :: za(:,:), zb(:,:)
-    complex(dp) :: res
-
-    res = (zb(1,2)**2)*za(3,5)*zb(4,6)
-
-  end function A6pp
 
 
   !---------------- Other Sign terms -----------------------
@@ -96,28 +69,10 @@ contains
     complex(dp), intent(in) :: za(:,:), zb(:,:)
     complex(dp) :: res
 
-    res = -(za(3,4)*zb(5,6)*((za(2,5)*zb(1,4))**2)+&
-         &zb(3,4)*za(5,6)*((za(2,3)*zb(1,6))**2))
-
-  end function A1mp
-
-  function A4pm(za,zb) result(res)
-    complex(dp), intent(in) :: za(:,:), zb(:,:)
-    complex(dp) :: res
-
-    res = (za(3,4)*zb(5,6)*((za(1,5)*zb(2,4))**2)+&
+    res = -(za(3,4)*zb(5,6)*((za(1,5)*zb(2,4))**2)+&
          &zb(3,4)*za(5,6)*((za(1,3)*zb(2,6))**2))
 
-  end function A4pm
-
-  function A4mp(za,zb) result(res)
-    complex(dp), intent(in) :: za(:,:), zb(:,:)
-    complex(dp) :: res
-
-    res = (za(3,4)*zb(5,6)*((za(1,6)*zb(2,3))**2)+&
-         &zb(3,4)*za(5,6)*((za(1,4)*zb(2,5))**2))
-
-  end function A4mp
+  end function A1mp
 
   function A5pm(za,zb) result(res)
     complex(dp), intent(in) :: za(:,:), zb(:,:)
