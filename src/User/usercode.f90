@@ -345,11 +345,93 @@ subroutine userplotter(pjet, wt, wt2, nd)
     !!! transverse components of visible and invisible particle pairs
 
   ! m(45), m_ll
-  call bookplot(iplot,tag,'mll',m45,wt,wt2,zip,1000._dp,20._dp,'log')
+  call bookplot(iplot,tag,'mll',m45,wt,wt2,zip,2000._dp,20._dp,'log')
   iplot = iplot + 1
   call bookplot(iplot,tag,'mll_full',m45,wt,wt2,zip,14000._dp,200._dp,'log')
   iplot = iplot + 1
-
+  ! m(45), m_ll ATLAS
+  call bookplot(iplot,tag,'mll_atlas13_1',m45,wt,wt2,55._dp,75._dp,20._dp,'log')
+  iplot = iplot + 1
+  call bookplot(iplot,tag,'mll_atlas13_2',m45,wt,wt2,75._dp,95._dp,10._dp,'log')
+  iplot = iplot + 1
+  call bookplot(iplot,tag,'mll_atlas13_3',m45,wt,wt2,95._dp,140._dp,15._dp,'log')
+  iplot = iplot + 1
+  call bookplot(iplot,tag,'mll_atlas13_4',m45,wt,wt2,140._dp,160._dp,20._dp,'log')
+  iplot = iplot + 1
+  call bookplot(iplot,tag,'mll_atlas13_5',m45,wt,wt2,160._dp,185._dp,25._dp,'log')
+  iplot = iplot + 1
+  call bookplot(iplot,tag,'mll_atlas13_6',m45,wt,wt2,185._dp,220._dp,35._dp,'log')
+  iplot = iplot + 1
+  call bookplot(iplot,tag,'mll_atlas13_7',m45,wt,wt2,220._dp,280._dp,60._dp,'log')
+  iplot = iplot + 1
+  call bookplot(iplot,tag,'mll_atlas13_8',m45,wt,wt2,280._dp,380._dp,100._dp,'log')
+  iplot = iplot + 1
+  call bookplot(iplot,tag,'mll_atlas13_9',m45,wt,wt2,380._dp,600._dp,220._dp,'log')
+  iplot = iplot + 1
+  call bookplot(iplot,tag,'mll_atlas13_10',m45,wt,wt2,600._dp,1500._dp,900._dp,'log')
+  iplot = iplot + 1
+  call bookplot(iplot,tag,'mll_atlas14_1',m45,wt,wt2,200._dp,241.1817_dp,41.1817_dp,'log')
+  iplot = iplot + 1
+  call bookplot(iplot,tag,'mll_atlas14_2',m45,wt,wt2,241.1817_dp,290.8431_dp,49.6614_dp,'log')
+  iplot = iplot + 1
+  call bookplot(iplot,tag,'mll_atlas14_3',m45,wt,wt2,290.8431_dp,350.7302_dp,59.8871_dp,'log')
+  iplot = iplot + 1
+  call bookplot(iplot,tag,'mll_atlas14_4',m45,wt,wt2,350.7302_dp,422.9485_dp,72.2183_dp,'log')
+  iplot = iplot + 1
+  call bookplot(iplot,tag,'mll_atlas14_5',m45,wt,wt2,422.9485_dp,510.0372_dp,87.0887_dp,'log')
+  iplot = iplot + 1
+  call bookplot(iplot,tag,'mll_atlas14_6',m45,wt,wt2,510.0372_dp,615.0582_dp,105.021_dp,'log')
+  iplot = iplot + 1
+  call bookplot(iplot,tag,'mll_atlas14_7',m45,wt,wt2,615.0582_dp,741.704_dp,126.6458_dp,'log')
+  iplot = iplot + 1
+  call bookplot(iplot,tag,'mll_atlas14_8',m45,wt,wt2,741.704_dp,894.4272_dp,152.7232_dp,'log')
+  iplot = iplot + 1
+  call bookplot(iplot,tag,'mll_atlas14_9',m45,wt,wt2,894.4272_dp,1078.597_dp,184.1698_dp,'log')
+  iplot = iplot + 1
+  call bookplot(iplot,tag,'mll_atlas14_10',m45,wt,wt2,1078.597_dp,1300.69_dp,222.093_dp,'log')
+  iplot = iplot + 1
+  call bookplot(iplot,tag,'mll_atlas14_11',m45,wt,wt2,1300.69_dp,1568.513_dp,267.823_dp,'log')
+  iplot = iplot + 1
+  call bookplot(iplot,tag,'mll_atlas14_12',m45,wt,wt2,1568.513_dp,1891.483_dp,322.97_dp,'log')
+  iplot = iplot + 1
+  call bookplot(iplot,tag,'mll_atlas14_13',m45,wt,wt2,1891.483_dp,2280.956_dp,389.473_dp,'log')
+  iplot = iplot + 1
+  call bookplot(iplot,tag,'mll_atlas14_14',m45,wt,wt2,2280.956_dp,2750.624_dp,469.668_dp,'log')
+  iplot = iplot + 1
+  call bookplot(iplot,tag,'mll_atlas14_15',m45,wt,wt2,2750.624_dp,3317.001_dp,566.377_dp,'log')
+  iplot = iplot + 1
+  call bookplot(iplot,tag,'mll_atlas14_16',m45,wt,wt2,3317.001_dp,4000._dp,682.999_dp,'log')
+  iplot = iplot + 1
+  call bookplot(iplot,tag,'mll_atlas100_1',m45,wt,wt2,200._dp,259.594_dp,59.594_dp,'log')
+  iplot = iplot + 1
+  call bookplot(iplot,tag,'mll_atlas100_2',m45,wt,wt2,259.594_dp,336.9452_dp,77.3512_dp,'log')
+  iplot = iplot + 1
+  call bookplot(iplot,tag,'mll_atlas100_3',m45,wt,wt2,336.9452_dp,437.3448_dp,100.3996_dp,'log')
+  iplot = iplot + 1
+  call bookplot(iplot,tag,'mll_atlas100_4',m45,wt,wt2,437.3448_dp,567.6605_dp,130.3157_dp,'log')
+  iplot = iplot + 1
+  call bookplot(iplot,tag,'mll_atlas100_5',m45,wt,wt2,567.6605_dp,736.8063_dp,169.1458_dp,'log')
+  iplot = iplot + 1
+  call bookplot(iplot,tag,'mll_atlas100_6',m45,wt,wt2,736.8063_dp,956.3525_dp,219.5462_dp,'log')
+  iplot = iplot + 1
+  call bookplot(iplot,tag,'mll_atlas100_7',m45,wt,wt2,956.3525_dp,1241.317_dp,284.9645_dp,'log')
+  iplot = iplot + 1
+  call bookplot(iplot,tag,'mll_atlas100_8',m45,wt,wt2,1241.317_dp,1611.192_dp,369.875_dp,'log')
+  iplot = iplot + 1
+  call bookplot(iplot,tag,'mll_atlas100_9',m45,wt,wt2,1611.192_dp,2091.279_dp,480.087_dp,'log')
+  iplot = iplot + 1
+  call bookplot(iplot,tag,'mll_atlas100_10',m45,wt,wt2,2091.279_dp,2714.418_dp,623.139_dp,'log')
+  iplot = iplot + 1
+  call bookplot(iplot,tag,'mll_atlas100_11',m45,wt,wt2,2714.418_dp,3523.233_dp,808.815_dp,'log')
+  iplot = iplot + 1
+  call bookplot(iplot,tag,'mll_atlas100_12',m45,wt,wt2,3523.233_dp,4573.051_dp,1049.818_dp,'log')
+  iplot = iplot + 1
+  call bookplot(iplot,tag,'mll_atlas100_13',m45,wt,wt2,4573.051_dp,5935.683_dp,1362.632_dp,'log')
+  iplot = iplot + 1
+  call bookplot(iplot,tag,'mll_atlas100_14',m45,wt,wt2,5935.683_dp,7704.338_dp,1768.655_dp,'log')
+  iplot = iplot + 1
+  call bookplot(iplot,tag,'mll_atlas100_15',m45,wt,wt2,7704.338_dp,10000._dp,2295.662_dp,'log')
+  iplot = iplot + 1
   ! pt(45), pt_ll
   call bookplot(iplot,tag,'ptll',ptll,wt,wt2,zip,1000._dp,20._dp,'log')
   iplot = iplot + 1
@@ -461,7 +543,7 @@ function ATLAS_hww2017(ppart) result(res)
   real(dp) :: pt45,pt56,m45,mt45,mtrans
   real(dp) :: et_vec(4),etmiss,r2,delphi,m34,m56,m3456
   integer :: i
-  integer, parameter :: VVcut=3 ! set cuts for e mu
+  integer, parameter :: VVcut=2 ! set cuts for e mu
   logical :: passcuts, passveto
   real(dp) :: etaj,ptj,ptmiss,rjl1,rjl2,r,eta4,eta5,ptll
   real(dp) :: dphi,ptrel,pt36(4)
@@ -598,6 +680,20 @@ function ATLAS_hww2017(ppart) result(res)
            if (ptj > ptj_veto .or. abs(etaj) > etajveto) &
                 passveto = .false.
         endif
+     elseif (VVcut == 2) then
+         ! emu
+        if (abs(eta5) > 2.5_dp) passcuts = .false.
+        if (abs(eta4) > 2.5_dp) passcuts = .false.
+        if (m45 < 55._dp) passcuts = .false.
+        if (ptmiss < 20._dp) passcuts = .false.
+        if (ptll < 30._dp) passcuts = .false.
+        if (pt(4,ppart) < 27._dp) passcuts=.false.
+        if (pt(5,ppart) < 27._dp) passcuts=.false.
+
+        if (jets > 0) then
+           if (ptj > ptj_veto .or. abs(etaj) > etajveto) &
+                passveto = .false.
+        endif
 
      elseif (VVcut == 5) then
         ! only jet veto cuts
@@ -611,6 +707,38 @@ function ATLAS_hww2017(ppart) result(res)
 
 !==========================================
 !     8 TeV cuts ATLAS CONF 014-033
+  elseif (abs(sqrts-14000._dp) < 1._dp) then
+   if (VVcut == 2) then
+      ! emu
+     if (abs(eta5) > 2.5_dp) passcuts = .false.
+     if (abs(eta4) > 2.5_dp) passcuts = .false.
+     if (m45 < 55._dp) passcuts = .false.
+     if (ptmiss < 20._dp) passcuts = .false.
+     if (ptll < 30._dp) passcuts = .false.
+     if (pt(4,ppart) < 27._dp) passcuts=.false.
+     if (pt(5,ppart) < 27._dp) passcuts=.false.
+
+     if (jets > 0) then
+        if (ptj > ptj_veto .or. abs(etaj) > etajveto) &
+             passveto = .false.
+      endif
+   endif
+   elseif (abs(sqrts-100000._dp) < 1._dp) then
+      if (VVcut == 2) then
+         ! emu
+        if (abs(eta5) > 2.5_dp) passcuts = .false.
+        if (abs(eta4) > 2.5_dp) passcuts = .false.
+        if (m45 < 55._dp) passcuts = .false.
+        if (ptmiss < 20._dp) passcuts = .false.
+        if (ptll < 30._dp) passcuts = .false.
+        if (pt(4,ppart) < 27._dp) passcuts=.false.
+        if (pt(5,ppart) < 27._dp) passcuts=.false.
+   
+        if (jets > 0) then
+           if (ptj > ptj_veto .or. abs(etaj) > etajveto) &
+                passveto = .false.
+         endif
+      endif
 
   elseif (abs(sqrts-8000._dp) < 1._dp) then
 
