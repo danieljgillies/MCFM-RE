@@ -1,0 +1,23 @@
+#+TITLE: MCFM-RE
+#+AUTHOR: Luke Arpino, Daniel Gillies 
+
+MCFM-RE: NNLL resummation for jet-veto cross sections in colour singlet
+processes.
+
+**Now with support for dimension-6 and dimension-8 SMEFT operators in the gg -> WW (e+ mu-) channel. (proc 126)**
+
+
+* General Information
+
+MCFM-RE implements the jet-veto resummation of [[https://jetvheto.hepforge.org/][JetVHeto]] using [[https://mcfm.fnal.gov/][MCFM]] as an event
+generator. The exact details of the implementation are discussed in
+[[https://arxiv.org/abs/1905.06646][arXiv:1905.06646]].
+
+This branch of MCFM-RE was forked from the original which implemented the jet-veto resummation. This fork did not modify any of the resummation,
+but instead allows for the NLL resummation of ggWW contact interactions at dimension-6 and dimension-8 therefore giving more realistic predictions.
+For details on installation see previous README's, for information on usage for SMEFT read here.
+
+
+* Changes to Bin directory.
+
+First for the analysis in ... the higgs decay width was modified in the br.sm2 file. The original value is now found in the new br.sm2_default file.
